@@ -80,9 +80,10 @@ namespace Forum.Controller
 			List<Claim> claims = new List<Claim>()
 			{
 				new Claim(ClaimTypes.Name, user.AccountName),
+				new Claim(ClaimTypes.Role, "user")
 			};
 
-			return new ClaimsIdentity(claims);
+			return new ClaimsIdentity(claims, "Authentication Type");
 		}
 	}
 }

@@ -1,8 +1,7 @@
 @page "/"
-@attribute [Authorize]
+@attribute [Authorize(Roles = "user")]
 @using Microsoft.EntityFrameworkCore;
 @using System.Security.Claims;
-@inject IDbContextFactory<Model.Database> DbFactory;
 
 <h1>You can only see this if you're authorized.</h1>
 @*<h1>Hello, world!</h1>
@@ -22,22 +21,16 @@ Welcome to your new app.*@
 	</Authorized>
 	<NotAuthorized>
 		<label><b style="color: red;">You are not authorized.</b></label>
+		<p>@context.User.Identity.Name</p>
+		<ul>
+			@foreach (Claim c in context.User.Claims)
+			{
+				<li>@c.Type: @c.Value</li>
+			}
+		</ul>
 	</NotAuthorized>
 </AuthorizeView>
 
 @code {
-	//private async Task AddUser()
-	//{
-	//	using var db = DbFactory.CreateDbContext();
 
-	//	Entity.User user = new Entity.User()
-	//	{
-	//		AccountName = "MyAccName",
-	//		Email = "myacc@name.ch",
-	//		PwHash = "imaginethisisahash"
-	//	};
-
-	//	await db.Users.AddAsync(user);
-	//	await db.SaveChangesAsync();
-	//}
 }

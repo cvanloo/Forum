@@ -1,16 +1,75 @@
 ﻿@page "/register"
-@using BCrypt.Net; 
+@using BCrypt.Net;
+@using Microsoft.EntityFrameworkCore; 
+@using Forum.Entity;
+@inject IDbContextFactory<Model.Database> DbContext;
 
 <h3>Register</h3>
-<input type="password" placeholder="password" @bind-value="_passwd"/>
+<input type="text" @bind-value="_accname" placeholder="Account name" />
+<input type="email" @bind-value="_email" placeholder="Email Address" />
+<input type="password" @bind-value="_passwd" placeholder="Password" />
+<input type="password" @bind-value="_repeatpw" placeholder="Repeat Password" />
 <button @onclick="HashPw">Register</button>
+<p>@_message</p>
 
 @code {
+	private string _accname;
+	private string _email;
 	private string _passwd;
+	private string _repeatpw;
+
+	private string _message;
 
 	private async Task HashPw()
 	{
-		string pwHash = BCrypt.HashPassword(_passwd);
+		if (checkInput())
+		{
+			string pwHash = BCrypt.HashPassword(_passwd);
 
+			using var db = DbContext.CreateDbContext();
+
+			if (db.Users.Where(u => u.AccountName == _accname).Any())
+			{
+				_message = "Username already exists.";
+				return;
+			}
+
+			if (db.Users.Where(u => u.Email == _email).Any())
+			{
+				_message = "There already is an account with this email address.";
+				return;
+			}
+
+			User user = new User()
+			{
+				AccountName = _accname,
+				Email = _email,
+				PwHash = pwHash
+			};
+
+			try
+			{
+				await db.Users.AddAsync(user);
+				await db.SaveChangesAsync();
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine(ex.Message);
+			}
+		}
+
+	}
+
+	private bool checkInput()
+	{
+		if (!string.IsNullOrEmpty(_accname) &&
+			!string.IsNullOrEmpty(_email) &&
+			!string.IsNullOrEmpty(_passwd) &&
+			!string.IsNullOrEmpty(_repeatpw))
+		{
+			if (_passwd == _repeatpw) return true;
+		}
+
+		return false;
 	}
 }
