@@ -1,0 +1,16 @@
+﻿@page "/register"
+@using BCrypt.Net; 
+
+<h3>Register</h3>
+<input type="password" placeholder="password" @bind-value="_passwd"/>
+<button @onclick="HashPw">Register</button>
+
+@code {
+	private string _passwd;
+
+	private async Task HashPw()
+	{
+		string pwHash = BCrypt.HashPassword(_passwd);
+
+	}
+}

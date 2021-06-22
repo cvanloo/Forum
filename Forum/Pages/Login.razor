@@ -1,0 +1,52 @@
+﻿@page "/login"
+@using Microsoft.EntityFrameworkCore;
+@using System.Security.Claims;
+@using BCrypt.Net;
+@*@inject IDbContextFactory<Model.Database> DbContext;*@
+@inject AuthenticationStateProvider AuthProvider;
+@inject NavigationManager NavigationManager; 
+
+
+<AuthorizeView>
+	<NotAuthorized>
+		<h3>Login</h3>
+		<input type="text" @bind="_username" placeholder="Enter Username"/>
+		<input type="password" @bind="_password" placeholder="Enter Password"/>
+		<button @onclick="SignIn">Sign In</button>
+		<p>@_message</p>
+	</NotAuthorized>
+	<Authorized>
+		<h3>Logout</h3>
+		<button @onclick="LogOut">Log out</button>
+	</Authorized>
+</AuthorizeView>
+
+@code {
+	private string _username;
+	private string _password;
+	private string _message;
+
+	private async Task SignIn()
+	{
+		if (!string.IsNullOrEmpty(_username) && !string.IsNullOrEmpty(_password))
+		{
+			try
+			{
+				((Forum.Controller.AuthenticationStateController)AuthProvider).ValidateLogin(_username, _password);
+			}
+			catch (Exception ex)
+			{
+				_message = ex.Message;
+			}
+
+			_username = string.Empty;
+			_password = string.Empty;
+		}
+	}
+
+	private async Task LogOut()
+	{
+		((Forum.Controller.AuthenticationStateController)AuthProvider).Logout();
+		NavigationManager.NavigateTo("/");
+	}
+}
