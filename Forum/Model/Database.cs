@@ -134,7 +134,7 @@ namespace Forum.Model
 		}
 
         /* NOTE: In order to make properties from Entities readonly,
-         * use a private setter and contstructor
+         * use a private setter and a contstructor
          * 
          * public User Creator { get; private set; }
          * 
@@ -143,10 +143,10 @@ namespace Forum.Model
          *      Creator = creator;
          * }
          * 
-         * NOTE2: Use the NotMapped annotation to indicate that a property
+         * NOTE2: Use the [NotMapped] annotation to indicate that a property
          * should not be mapped to the database.
          * 
-         * NOTE3: The 'Required' annotation is ignored, except when the foreign key is explicitly
+         * NOTE3: The [Required] annotation is ignored, except when the foreign key is explicitly
          * marked as one:
          * 
          * [ForeignKey("CreatorId"),Required] // Without the Fk annotation the Required anno. is ignored
@@ -154,7 +154,7 @@ namespace Forum.Model
          * 
          * NOTE4: In the ORM the fk is displayed in 'Forum', in the db it is in 'Thread'.
          * In order to make the fk in 'Thread' non-nullable it has to be spicified in the
-         * 'Thread' class of the orm too.
+         * 'Thread' class of the orm too, as an int.
          * 
          * public class Forum {
          *     public ICollection<Thread> Threads { get; set; }

@@ -11,6 +11,8 @@ namespace Forum.Model
 		[Required]
 		public string Username { get; set; }
 
+		public string DisplayName { get; set; }
+
 		[Required]
 		public string Email { get; set; }
 
