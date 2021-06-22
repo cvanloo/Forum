@@ -40,7 +40,7 @@ namespace Forum.Controller
 						ValidateLogin(user.AccountName, user.PwHash);
 					}
 				}
-				catch (Exception ex) { }
+				catch (Exception) { }
 			}
 			else
 			{
@@ -83,6 +83,8 @@ namespace Forum.Controller
 				new Claim(ClaimTypes.Role, "user")
 			};
 
+			// "Authentication Type": Apparently, if you don't pass a string here, authentication using the <AuthorizeView>-tags
+			// won't work.
 			return new ClaimsIdentity(claims, "Authentication Type");
 		}
 	}

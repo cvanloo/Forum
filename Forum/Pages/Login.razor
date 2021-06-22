@@ -6,20 +6,21 @@
 @inject AuthenticationStateProvider AuthProvider;
 @inject NavigationManager NavigationManager; 
 
-
-<AuthorizeView>
-	<NotAuthorized>
-		<h3>Login</h3>
-		<input type="text" @bind="_username" placeholder="Enter Username"/>
-		<input type="password" @bind="_password" placeholder="Enter Password"/>
-		<button @onclick="SignIn">Sign In</button>
-		<p>@_message</p>
-	</NotAuthorized>
-	<Authorized>
-		<h3>Logout</h3>
-		<button @onclick="LogOut">Log out</button>
-	</Authorized>
-</AuthorizeView>
+<div class="main-div">
+	<AuthorizeView>
+		<NotAuthorized>
+			<h3>Login</h3>
+			<input type="text" @bind="_username" placeholder="Enter Username"/>
+			<input type="password" @bind="_password" placeholder="Enter Password"/>
+			<button @onclick="SignIn">Sign In</button>
+			<p>@_message</p>
+		</NotAuthorized>
+		<Authorized>
+			<h3>Logout</h3>
+			<button @onclick="LogOut">Log out</button>
+		</Authorized>
+	</AuthorizeView>
+</div>
 
 @code {
 	private string _username;

@@ -3,6 +3,7 @@
 @using Microsoft.EntityFrameworkCore; 
 @using Forum.Entity;
 @inject IDbContextFactory<Model.Database> DbContext;
+@inject NavigationManager NavigationManager; 
 
 <h3>Register</h3>
 <input type="text" @bind-value="_accname" placeholder="Account name" />
@@ -13,6 +14,9 @@
 <p>@_message</p>
 
 @code {
+	[CascadingParameter]
+	private Task<AuthenticationState> authenticationStateTask { get; set; }
+
 	private string _accname;
 	private string _email;
 	private string _passwd;
@@ -20,11 +24,22 @@
 
 	private string _message;
 
+	protected async override Task OnInitializedAsync()
+	{
+		var authenticationState = await authenticationStateTask;
+
+		if (authenticationState.User.Identity.IsAuthenticated)
+		{
+			// Go away!
+			NavigationManager.NavigateTo("/");
+		}
+	}
+
 	private async Task HashPw()
 	{
 		if (checkInput())
 		{
-			string pwHash = BCrypt.HashPassword(_passwd);
+			string pwHash = BCrypt.EnhancedHashPassword(_passwd, 12);
 
 			using var db = DbContext.CreateDbContext();
 
@@ -51,6 +66,8 @@
 			{
 				await db.Users.AddAsync(user);
 				await db.SaveChangesAsync();
+
+				NavigationManager.NavigateTo("/login");
 			}
 			catch (Exception ex)
 			{

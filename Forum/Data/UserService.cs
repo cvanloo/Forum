@@ -27,8 +27,8 @@ namespace Forum.Data
 			{
 				throw new Exception("User not found.");
 			}
-
-			if (!BCrypt.Net.BCrypt.Verify(password, user.PwHash))
+			
+			if (!BCrypt.Net.BCrypt.EnhancedVerify(password, user.PwHash))
 			{
 				throw new Exception("Wrong password.");
 			}
