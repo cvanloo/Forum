@@ -6,13 +6,17 @@
 @inject AuthenticationStateProvider AuthProvider;
 @inject NavigationManager NavigationManager;
 
-<div class="main-div">
+<div class="main-div m-auto">
 	<AuthorizeView>
 		<NotAuthorized>
 			<h3>Login</h3>
-			<input type="text" @bind="_loginModel.Username" placeholder="Enter Username" />
-			<input type="password" @bind="_loginModel.Password" placeholder="Enter Password" />
-			<button @onclick="SignIn">Sign In</button>
+			<input class="main-color" type="text" @bind-value="_loginModel.Username" placeholder="Username / Email" /><br />
+			<input class="main-color" type="password" @bind-value="_loginModel.Password" placeholder="Password" />
+			<div class="row">
+				<a href=""><button class="button bg-red">Forgot Password</button></a>
+				<a href="/register"><button class="button bg-blue">Create Account</button></a>
+				<button class="button bg-green" @onclick="SignIn">Sign In</button>
+			</div>
 			<p>@_message</p>
 		</NotAuthorized>
 		<Authorized>
@@ -29,11 +33,12 @@
 
 	private async Task SignIn()
 	{
+		Console.WriteLine("Sign in");
 		if (!string.IsNullOrEmpty(_loginModel.Username) && !string.IsNullOrEmpty(_loginModel.Password))
 		{
 			try
 			{
-				((Forum.Controller.AuthenticationStateController)AuthProvider).ValidateLogin(_loginModel.Username, _loginModel.Password);
+				((Forum.Controller.AuthenticationStateController) AuthProvider).ValidateLogin(_loginModel.Username, _loginModel.Password);
 			}
 			catch (Exception ex)
 			{

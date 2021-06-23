@@ -20,7 +20,7 @@ namespace Forum.Data
 		public User ValidateUser(string username, string password)
 		{
 			using var db = _dbContext.CreateDbContext();
-
+			
 			User user = db.Users.Where(u => u.AccountName == username).FirstOrDefault();
 
 			if (null == user)
