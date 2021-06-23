@@ -15,4 +15,6 @@
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="5.0.0" />
   </ItemGroup>
 
+  <ProjectExtensions><VisualStudio><UserProperties wwwroot_4css_4bootstrap_4bootstrap_1min_1css_1map__JsonSchema="https://json.schemastore.org/specif-1.0.json" /></VisualStudio></ProjectExtensions>
+
 </Project>

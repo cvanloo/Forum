@@ -1,47 +1,46 @@
 ﻿@page "/login"
 @using Microsoft.EntityFrameworkCore;
 @using System.Security.Claims;
-@using BCrypt.Net;
+@using System.ComponentModel.DataAnnotations;
 @*@inject IDbContextFactory<Model.Database> DbContext;*@
 @inject AuthenticationStateProvider AuthProvider;
-@inject NavigationManager NavigationManager; 
+@inject NavigationManager NavigationManager;
 
 <div class="main-div">
 	<AuthorizeView>
 		<NotAuthorized>
 			<h3>Login</h3>
-			<input type="text" @bind="_username" placeholder="Enter Username"/>
-			<input type="password" @bind="_password" placeholder="Enter Password"/>
+			<input type="text" @bind="_loginModel.Username" placeholder="Enter Username" />
+			<input type="password" @bind="_loginModel.Password" placeholder="Enter Password" />
 			<button @onclick="SignIn">Sign In</button>
 			<p>@_message</p>
 		</NotAuthorized>
 		<Authorized>
 			<h3>Logout</h3>
 			<button @onclick="LogOut">Log out</button>
+			<a href="/">Home</a>
 		</Authorized>
 	</AuthorizeView>
 </div>
 
 @code {
-	private string _username;
-	private string _password;
+	private LoginModel _loginModel = new LoginModel();
 	private string _message;
 
 	private async Task SignIn()
 	{
-		if (!string.IsNullOrEmpty(_username) && !string.IsNullOrEmpty(_password))
+		if (!string.IsNullOrEmpty(_loginModel.Username) && !string.IsNullOrEmpty(_loginModel.Password))
 		{
 			try
 			{
-				((Forum.Controller.AuthenticationStateController)AuthProvider).ValidateLogin(_username, _password);
+				((Forum.Controller.AuthenticationStateController)AuthProvider).ValidateLogin(_loginModel.Username, _loginModel.Password);
 			}
 			catch (Exception ex)
 			{
 				_message = ex.Message;
 			}
 
-			_username = string.Empty;
-			_password = string.Empty;
+			_loginModel = null;
 		}
 	}
 
@@ -49,5 +48,13 @@
 	{
 		((Forum.Controller.AuthenticationStateController)AuthProvider).Logout();
 		NavigationManager.NavigateTo("/");
+	}
+
+	public class LoginModel
+	{
+		[Required]
+		public string Username { get; set; }
+		[Required]
+		public string Password { get; set; }
 	}
 }
