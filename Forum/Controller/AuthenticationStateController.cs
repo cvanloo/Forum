@@ -29,22 +29,20 @@ namespace Forum.Controller
 
 			if (null == cachedUser)
 			{
-				try
-				{
-					string userAsJson = await jsRuntime.InvokeAsync<string>("sessionStorage.getItem", "currentUser");
+				string userAsJson = await jsRuntime.InvokeAsync<string>("sessionStorage.getItem", "currentUser");
 
-					if (!string.IsNullOrEmpty(userAsJson))
-					{
-						User user = JsonSerializer.Deserialize<User>(userAsJson);
-						ValidateLogin(user.AccountName, user.PwHash);
-					}
+				if (!string.IsNullOrEmpty(userAsJson))
+				{
+					User user = JsonSerializer.Deserialize<User>(userAsJson);
+					cachedUser = user;
 				}
-				catch (Exception) { }
+				else
+				{
+					return await Task.FromResult(new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity())));
+				}
 			}
-			else
-			{
-				identity = SetupClaims(cachedUser);
-			}
+
+			identity = SetupClaims(cachedUser);
 
 			ClaimsPrincipal cachedClaimsPrincipal = new ClaimsPrincipal(identity);
 			return await Task.FromResult(new AuthenticationState(cachedClaimsPrincipal));
@@ -52,25 +50,24 @@ namespace Forum.Controller
 
 		public void ValidateLogin(string username, string password)
 		{
-			ClaimsIdentity identity = new ClaimsIdentity();
-
 			User user = userService.ValidateUser(username, password);
 
-			identity = SetupClaims(user);
+			ClaimsIdentity identity = SetupClaims(user);
 
 			string userAsJson = JsonSerializer.Serialize(user);
 			jsRuntime.InvokeVoidAsync("sessionStorage.setItem", "currentUser", userAsJson);
 			
 			cachedUser = user;
 
-			NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(new ClaimsPrincipal(identity))));
+			NotifyAuthenticationStateChanged(
+				Task.FromResult(new AuthenticationState(new ClaimsPrincipal(identity))));
 		}
 
 		public void Logout()
 		{
 			cachedUser = null;
-			var user = new ClaimsPrincipal(new ClaimsIdentity());
 			jsRuntime.InvokeVoidAsync("sessionStorage.setItem", "currentUser", "");
+			var user = new ClaimsPrincipal(new ClaimsIdentity());
 			NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(user)));
 		}
 
