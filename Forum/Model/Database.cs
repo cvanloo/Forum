@@ -15,6 +15,7 @@ namespace Forum.Model
         public DbSet<UserForum> UserForums { get; set; }
         public DbSet<Thread> Threads { get; set; }
         public DbSet<Comment> Comments { get; set; }
+        public DbSet<Session> Sessions { get; set; }
 
         public Database(DbContextOptions<Database> options) : base(options) { } 
 
@@ -131,6 +132,11 @@ namespace Forum.Model
             modelBuilder.Entity<Setting>()
 				.HasIndex(s => new { s.Key, s.UserId })
 				.IsUnique();
+
+            // Session
+            modelBuilder.Entity<Session>()
+                .HasIndex(s => new { s.UserId, s.Identifier })
+                .IsUnique();
 		}
 
         /* NOTE: In order to make properties from Entities readonly,
@@ -152,7 +158,7 @@ namespace Forum.Model
          * [ForeignKey("CreatorId"),Required] // Without the Fk annotation the Required anno. is ignored
          * public User Creator { get; set; }
          * 
-         * NOTE4: In the ORM the fk is displayed in 'Forum', in the db it is in 'Thread'.
+         * NOTE4 (one-to-many): In the ORM the fk is displayed in 'Forum', in the db it is in 'Thread'.
          * In order to make the fk in 'Thread' non-nullable it has to be spicified in the
          * 'Thread' class of the orm too, as an int.
          * 

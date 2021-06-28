@@ -29,11 +29,13 @@ namespace Forum.Controller
 
 			if (null == cachedUser)
 			{
-				string userAsJson = await jsRuntime.InvokeAsync<string>("sessionStorage.getItem", "currentUser");
+				string rndToken = await jsRuntime.InvokeAsync<string>("sessionStorage.getItem", "SESSION_ID");
 
-				if (!string.IsNullOrEmpty(userAsJson))
+				if (!string.IsNullOrEmpty(rndToken))
 				{
-					User user = JsonSerializer.Deserialize<User>(userAsJson);
+					//User user = JsonSerializer.Deserialize<User>(userAsJson);
+					User user = userService.GetUserFromSessionToken(rndToken);
+
 					cachedUser = user;
 				}
 				else
@@ -54,8 +56,11 @@ namespace Forum.Controller
 
 			ClaimsIdentity identity = SetupClaims(user);
 
-			string userAsJson = JsonSerializer.Serialize(user);
-			jsRuntime.InvokeVoidAsync("sessionStorage.setItem", "currentUser", userAsJson);
+			//string userAsJson = JsonSerializer.Serialize(user);
+			//jsRuntime.InvokeVoidAsync("sessionStorage.setItem", "currentUser", userAsJson);
+
+			string rndToken = userService.StoreSessionToken(user);
+			jsRuntime.InvokeVoidAsync("sessionStorage.setItem", "SESSION_ID", rndToken);
 			
 			cachedUser = user;
 
@@ -65,8 +70,9 @@ namespace Forum.Controller
 
 		public void Logout()
 		{
+			userService.RemoveSession(cachedUser);
 			cachedUser = null;
-			jsRuntime.InvokeVoidAsync("sessionStorage.setItem", "currentUser", "");
+			jsRuntime.InvokeVoidAsync("sessionStorage.setItem", "SESSION_ID", "");
 			var user = new ClaimsPrincipal(new ClaimsIdentity());
 			NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(user)));
 		}
@@ -79,7 +85,7 @@ namespace Forum.Controller
 				new Claim(ClaimTypes.Role, "user")
 			};
 
-			// "Authentication Type": Apparently, if you don't pass a string here, authentication using the <AuthorizeView>-tags
+			// "Authentication Type": If you don't pass a string here, authentication using the <AuthorizeView>-tags
 			// won't work.
 			return new ClaimsIdentity(claims, "Authentication Type");
 		}

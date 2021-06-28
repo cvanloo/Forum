@@ -5,19 +5,21 @@
 @*@inject IDbContextFactory<Model.Database> DbContext;*@
 @inject AuthenticationStateProvider AuthProvider;
 @inject NavigationManager NavigationManager;
-
-<div class="main-div m-auto">
+<!--div class="main-div m-auto"-->
+<!--<div class="main-div text-center mt-5 input-group input-group-lg" style="max-width: 300px;">
 	<AuthorizeView>
 		<NotAuthorized>
-			<h3>Login</h3>
-			<input class="main-color" type="text" @bind-value="_loginModel.Username" placeholder="Username / Email" /><br />
-			<input class="main-color" type="password" @bind-value="_loginModel.Password" placeholder="Password" />
-			<div class="row">
-				<a href=""><button class="button bg-red">Forgot Password</button></a>
-				<a href="/register"><button class="button bg-blue">Create Account</button></a>
-				<button class="button bg-green" @onclick="SignIn">Sign In</button>
+			<div style="max-width: 300px; margin: auto">
+				<h3>Login</h3>
+				<input class="main-color form-control" type="text" @bind-value="_loginModel.Username" placeholder="Username / Email" /><br />
+				<input class="main-color form-control" type="password" @bind-value="_loginModel.Password" placeholder="Password" />
+				<div class="row">
+					<a href=""><button class="button bg-red">Forgot Password</button></a>
+					<a href="/register"><button class="button bg-blue">Create Account</button></a>
+					<button class="button bg-green" @onclick="SignIn">Sign In</button>
+				</div>
+				<p>@_message</p>
 			</div>
-			<p>@_message</p>
 		</NotAuthorized>
 		<Authorized>
 			<h3>Logout</h3>
@@ -25,6 +27,26 @@
 			<a href="/">Home</a>
 		</Authorized>
 	</AuthorizeView>
+</div>-->
+
+<div class="main text-center m-auto">
+	<AuthorizeView>
+		<NotAuthorized>
+			<h3>Login</h3>
+			<input class="form-control" placeholder="Username / Email" @bind-value="_loginModel.Username" />
+			<input class="form-control" placeholder="Password" @bind-value="_loginModel.Password" />
+			<div class="row">
+				<button class="accent-red btn-bottom-left">Forgot Password</button>
+				<button class="accent-purple">Create Account</button>
+				<button class="accent-green btn-bottom-right" @onclick="SignIn">Log In</button>
+			</div>
+	</NotAuthorized>
+	<Authorized>
+		<h3>Logout</h3>
+		<button @onclick="LogOut">Log out</button>
+		<a href="/">Home</a>
+	</Authorized>
+</AuthorizeView>
 </div>
 
 @code {
@@ -33,19 +55,18 @@
 
 	private async Task SignIn()
 	{
-		Console.WriteLine("Sign in");
 		if (!string.IsNullOrEmpty(_loginModel.Username) && !string.IsNullOrEmpty(_loginModel.Password))
 		{
 			try
 			{
-				((Forum.Controller.AuthenticationStateController) AuthProvider).ValidateLogin(_loginModel.Username, _loginModel.Password);
+				((Forum.Controller.AuthenticationStateController)AuthProvider).ValidateLogin(_loginModel.Username, _loginModel.Password);
 			}
 			catch (Exception ex)
 			{
 				_message = ex.Message;
 			}
 
-			_loginModel = null;
+			_loginModel = new LoginModel();
 		}
 	}
 

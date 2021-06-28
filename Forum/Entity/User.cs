@@ -44,5 +44,9 @@ namespace Forum.Entity
         public ICollection<Chat> Chats { get; set; }
 
         public ICollection<Forum> Forums { get; set; }
+
+        public ICollection<Thread> Threads { get; set; }
+
+        public Session Session { get; set; }
     }
 }

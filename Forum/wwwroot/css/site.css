@@ -6,10 +6,14 @@ html, body {
 	color: #FFF;
 }
 
+h1 {
+	color: #FFF;
+}
+
 input {
 	border: none;
 	margin: 1rem;
-	width: 100%;
+	/*width: 100%;*/
 	border-radius: 0.5rem; 
 }
 
@@ -20,47 +24,72 @@ input {
 	}
 
 div {
-	border-radius: 0.7rem;
+	border-radius: 0.5rem;
 }
 
 a {
 	text-decoration: none;
+	color: #FFF;
 }
 
 	a:hover {
 		text-decoration: underline;
 	}
 
-.main-div {
-	background-color: #191B22;
+.main {
+	background: #191B22;
 	color: #9BAEC8;
 }
 
-.main-color {
+.element {
 	background: #282C37;
 	color: #9BAEC8;
 }
 
 button {
 	border: none;
+	display: inline-block;
+	/*max-width: 34%;*/
+	/*min-width: 33%;*/
 }
 
 	button:hover {
-		filter: brightness(60%);
-		color: white;
+		filter: brightness(70%);
 	}
 
-.bg-red {
+.btn-bottom-left {
+	border-bottom-left-radius: 0.5rem;
+}
+
+.btn-bottom-right {
+	border-bottom-right-radius: 0.5rem;
+}
+
+.accent-red {
 	background: #D03F3F;
 }
 
-.bg-green {
+.accent-green {
 	background: #2E8427;
 }
 
-.bg-blue {
+.accent-purple {
 	background: #512DFC;
 }
+
+.col-dark {
+	background: #191B22;
+}
+
+.col-light {
+	background: #282C37;
+}
+
+.col-lighter {
+	background: #9BAEC8;
+}
+
+
 
 
 

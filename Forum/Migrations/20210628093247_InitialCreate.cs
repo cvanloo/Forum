@@ -17,7 +17,7 @@ namespace Forum.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Created = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValue: new DateTime(2021, 6, 21, 15, 23, 53, 617, DateTimeKind.Local).AddTicks(1056)),
+                    Created = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValue: new DateTime(2021, 6, 28, 11, 32, 47, 22, DateTimeKind.Local).AddTicks(8328)),
                     IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false)
                 },
                 constraints: table =>
@@ -38,7 +38,7 @@ namespace Forum.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Rules = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Created = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValue: new DateTime(2021, 6, 21, 15, 23, 53, 616, DateTimeKind.Local).AddTicks(1634)),
+                    Created = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValue: new DateTime(2021, 6, 28, 11, 32, 47, 21, DateTimeKind.Local).AddTicks(8240)),
                     IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false)
                 },
                 constraints: table =>
@@ -61,7 +61,7 @@ namespace Forum.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     PwHash = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Created = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValue: new DateTime(2021, 6, 21, 15, 23, 53, 584, DateTimeKind.Local).AddTicks(5595)),
+                    Created = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValue: new DateTime(2021, 6, 28, 11, 32, 46, 989, DateTimeKind.Local).AddTicks(8684)),
                     IsBlocked = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false),
                     IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false)
                 },
@@ -79,7 +79,7 @@ namespace Forum.Migrations
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     SenderId = table.Column<int>(type: "int", nullable: true),
                     ParentId = table.Column<int>(type: "int", nullable: true),
-                    Sent = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValue: new DateTime(2021, 6, 21, 15, 23, 53, 617, DateTimeKind.Local).AddTicks(2564)),
+                    Sent = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValue: new DateTime(2021, 6, 28, 11, 32, 47, 23, DateTimeKind.Local).AddTicks(99)),
                     IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false),
                     ChatId = table.Column<int>(type: "int", nullable: true)
                 },
@@ -158,6 +158,30 @@ namespace Forum.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "Sessions",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    Identifier = table.Column<string>(type: "varchar(255)", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Value = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Sessions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Sessions_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "Setting",
                 columns: table => new
                 {
@@ -192,7 +216,7 @@ namespace Forum.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     ContentPath = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Created = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValue: new DateTime(2021, 6, 21, 15, 23, 53, 616, DateTimeKind.Local).AddTicks(3100)),
+                    Created = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValue: new DateTime(2021, 6, 28, 11, 32, 47, 21, DateTimeKind.Local).AddTicks(9723)),
                     IsArchived = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false),
                     IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false),
                     ForumId = table.Column<int>(type: "int", nullable: false)
@@ -223,7 +247,7 @@ namespace Forum.Migrations
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     UserId = table.Column<int>(type: "int", nullable: false),
                     ForumId = table.Column<int>(type: "int", nullable: false),
-                    Joined = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValue: new DateTime(2021, 6, 21, 15, 23, 53, 616, DateTimeKind.Local).AddTicks(6545)),
+                    Joined = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValue: new DateTime(2021, 6, 28, 11, 32, 47, 22, DateTimeKind.Local).AddTicks(3443)),
                     IsBlocked = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false),
                     ModLevel = table.Column<int>(type: "int", nullable: false, defaultValue: 0)
                 },
@@ -280,7 +304,7 @@ namespace Forum.Migrations
                     Text = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     ParentId = table.Column<int>(type: "int", nullable: true),
-                    Created = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValue: new DateTime(2021, 6, 21, 15, 23, 53, 616, DateTimeKind.Local).AddTicks(4842)),
+                    Created = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValue: new DateTime(2021, 6, 28, 11, 32, 47, 22, DateTimeKind.Local).AddTicks(1632)),
                     IsArchived = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false),
                     IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false),
                     ThreadId = table.Column<int>(type: "int", nullable: true)
@@ -356,6 +380,18 @@ namespace Forum.Migrations
                 column: "MembersId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Sessions_UserId",
+                table: "Sessions",
+                column: "UserId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Sessions_UserId_Identifier",
+                table: "Sessions",
+                columns: new[] { "UserId", "Identifier" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Setting_Key_UserId",
                 table: "Setting",
                 columns: new[] { "Key", "UserId" },
@@ -417,6 +453,9 @@ namespace Forum.Migrations
 
             migrationBuilder.DropTable(
                 name: "ForumUser");
+
+            migrationBuilder.DropTable(
+                name: "Sessions");
 
             migrationBuilder.DropTable(
                 name: "Setting");

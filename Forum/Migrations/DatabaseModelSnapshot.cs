@@ -41,7 +41,7 @@ namespace Forum.Migrations
                     b.Property<DateTime>("Created")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime(6)")
-                        .HasDefaultValue(new DateTime(2021, 6, 21, 15, 23, 53, 617, DateTimeKind.Local).AddTicks(1056));
+                        .HasDefaultValue(new DateTime(2021, 6, 28, 11, 32, 47, 22, DateTimeKind.Local).AddTicks(8328));
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
@@ -76,7 +76,7 @@ namespace Forum.Migrations
                     b.Property<DateTime>("Sent")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime(6)")
-                        .HasDefaultValue(new DateTime(2021, 6, 21, 15, 23, 53, 617, DateTimeKind.Local).AddTicks(2564));
+                        .HasDefaultValue(new DateTime(2021, 6, 28, 11, 32, 47, 23, DateTimeKind.Local).AddTicks(99));
 
                     b.HasKey("Id");
 
@@ -98,7 +98,7 @@ namespace Forum.Migrations
                     b.Property<DateTime>("Created")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime(6)")
-                        .HasDefaultValue(new DateTime(2021, 6, 21, 15, 23, 53, 616, DateTimeKind.Local).AddTicks(4842));
+                        .HasDefaultValue(new DateTime(2021, 6, 28, 11, 32, 47, 22, DateTimeKind.Local).AddTicks(1632));
 
                     b.Property<int>("CreatorId")
                         .HasColumnType("int");
@@ -143,7 +143,7 @@ namespace Forum.Migrations
                     b.Property<DateTime>("Created")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime(6)")
-                        .HasDefaultValue(new DateTime(2021, 6, 21, 15, 23, 53, 616, DateTimeKind.Local).AddTicks(1634));
+                        .HasDefaultValue(new DateTime(2021, 6, 28, 11, 32, 47, 21, DateTimeKind.Local).AddTicks(8240));
 
                     b.Property<string>("Description")
                         .HasColumnType("longtext");
@@ -166,6 +166,34 @@ namespace Forum.Migrations
                         .IsUnique();
 
                     b.ToTable("Forums");
+                });
+
+            modelBuilder.Entity("Forum.Entity.Session", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("Identifier")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.HasIndex("UserId", "Identifier")
+                        .IsUnique();
+
+                    b.ToTable("Sessions");
                 });
 
             modelBuilder.Entity("Forum.Entity.Setting", b =>
@@ -208,7 +236,7 @@ namespace Forum.Migrations
                     b.Property<DateTime>("Created")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime(6)")
-                        .HasDefaultValue(new DateTime(2021, 6, 21, 15, 23, 53, 616, DateTimeKind.Local).AddTicks(3100));
+                        .HasDefaultValue(new DateTime(2021, 6, 28, 11, 32, 47, 21, DateTimeKind.Local).AddTicks(9723));
 
                     b.Property<int>("CreatorId")
                         .HasColumnType("int");
@@ -252,7 +280,7 @@ namespace Forum.Migrations
                     b.Property<DateTime>("Created")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime(6)")
-                        .HasDefaultValue(new DateTime(2021, 6, 21, 15, 23, 53, 584, DateTimeKind.Local).AddTicks(5595));
+                        .HasDefaultValue(new DateTime(2021, 6, 28, 11, 32, 46, 989, DateTimeKind.Local).AddTicks(8684));
 
                     b.Property<string>("DisplayName")
                         .HasColumnType("longtext");
@@ -303,7 +331,7 @@ namespace Forum.Migrations
                     b.Property<DateTime>("Joined")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime(6)")
-                        .HasDefaultValue(new DateTime(2021, 6, 21, 15, 23, 53, 616, DateTimeKind.Local).AddTicks(6545));
+                        .HasDefaultValue(new DateTime(2021, 6, 28, 11, 32, 47, 22, DateTimeKind.Local).AddTicks(3443));
 
                     b.Property<int>("ModLevel")
                         .ValueGeneratedOnAdd()
@@ -407,6 +435,17 @@ namespace Forum.Migrations
                     b.Navigation("Parent");
                 });
 
+            modelBuilder.Entity("Forum.Entity.Session", b =>
+                {
+                    b.HasOne("Forum.Entity.User", "Owner")
+                        .WithOne("Session")
+                        .HasForeignKey("Forum.Entity.Session", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Owner");
+                });
+
             modelBuilder.Entity("Forum.Entity.Setting", b =>
                 {
                     b.HasOne("Forum.Entity.User", null)
@@ -419,7 +458,7 @@ namespace Forum.Migrations
             modelBuilder.Entity("Forum.Entity.Thread", b =>
                 {
                     b.HasOne("Forum.Entity.User", "Creator")
-                        .WithMany()
+                        .WithMany("Threads")
                         .HasForeignKey("CreatorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -499,7 +538,11 @@ namespace Forum.Migrations
 
             modelBuilder.Entity("Forum.Entity.User", b =>
                 {
+                    b.Navigation("Session");
+
                     b.Navigation("Settings");
+
+                    b.Navigation("Threads");
                 });
 #pragma warning restore 612, 618
         }
