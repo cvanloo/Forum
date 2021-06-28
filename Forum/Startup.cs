@@ -33,10 +33,9 @@ namespace Forum
             services.AddServerSideBlazor();
             services.AddRazorPages();
 
+            // Authentication and Authorization services
             services.AddScoped<IUserService, UserService>();
-
             services.AddScoped<AuthenticationStateProvider, AuthenticationStateController>();
-
             services.AddAuthorization(options =>
             {
                 options.AddPolicy("CanAccess", a => a.RequireAuthenticatedUser());

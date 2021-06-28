@@ -13,7 +13,7 @@ h1 {
 input {
 	border: none;
 	margin: 1rem;
-	/*width: 100%;*/
+	width: 100%;
 	border-radius: 0.5rem; 
 }
 
@@ -40,6 +40,10 @@ a {
 	background: #191B22;
 	color: #9BAEC8;
 }
+
+	.main h3 {
+		color: #FFF;
+	}
 
 .element {
 	background: #282C37;
@@ -73,7 +77,7 @@ button {
 	background: #2E8427;
 }
 
-.accent-purple {
+.accent-blue {
 	background: #512DFC;
 }
 

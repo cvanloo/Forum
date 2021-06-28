@@ -133,10 +133,13 @@ namespace Forum.Model
 				.HasIndex(s => new { s.Key, s.UserId })
 				.IsUnique();
 
-            // Session
-            modelBuilder.Entity<Session>()
-                .HasIndex(s => new { s.UserId, s.Identifier })
-                .IsUnique();
+			// Session
+			modelBuilder.Entity<Session>()
+				.HasIndex(s => new { s.UserId, s.Identifier })
+				.IsUnique();
+
+			// Make Session keyless
+			//modelBuilder.Entity<Session>().HasNoKey();
 		}
 
         /* NOTE: In order to make properties from Entities readonly,

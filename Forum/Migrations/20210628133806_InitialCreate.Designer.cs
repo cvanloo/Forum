@@ -3,14 +3,16 @@ using System;
 using Forum.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Forum.Migrations
 {
     [DbContext(typeof(Database))]
-    partial class DatabaseModelSnapshot : ModelSnapshot
+    [Migration("20210628133806_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -41,7 +43,7 @@ namespace Forum.Migrations
                     b.Property<DateTime>("Created")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime(6)")
-                        .HasDefaultValue(new DateTime(2021, 6, 28, 16, 2, 11, 717, DateTimeKind.Local).AddTicks(4065));
+                        .HasDefaultValue(new DateTime(2021, 6, 28, 15, 38, 5, 968, DateTimeKind.Local).AddTicks(5001));
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
@@ -76,7 +78,7 @@ namespace Forum.Migrations
                     b.Property<DateTime>("Sent")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime(6)")
-                        .HasDefaultValue(new DateTime(2021, 6, 28, 16, 2, 11, 717, DateTimeKind.Local).AddTicks(5913));
+                        .HasDefaultValue(new DateTime(2021, 6, 28, 15, 38, 5, 968, DateTimeKind.Local).AddTicks(6875));
 
                     b.HasKey("Id");
 
@@ -98,7 +100,7 @@ namespace Forum.Migrations
                     b.Property<DateTime>("Created")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime(6)")
-                        .HasDefaultValue(new DateTime(2021, 6, 28, 16, 2, 11, 716, DateTimeKind.Local).AddTicks(5669));
+                        .HasDefaultValue(new DateTime(2021, 6, 28, 15, 38, 5, 967, DateTimeKind.Local).AddTicks(8472));
 
                     b.Property<int>("CreatorId")
                         .HasColumnType("int");
@@ -143,7 +145,7 @@ namespace Forum.Migrations
                     b.Property<DateTime>("Created")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime(6)")
-                        .HasDefaultValue(new DateTime(2021, 6, 28, 16, 2, 11, 715, DateTimeKind.Local).AddTicks(9071));
+                        .HasDefaultValue(new DateTime(2021, 6, 28, 15, 38, 5, 967, DateTimeKind.Local).AddTicks(5213));
 
                     b.Property<string>("Description")
                         .HasColumnType("longtext");
@@ -236,7 +238,7 @@ namespace Forum.Migrations
                     b.Property<DateTime>("Created")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime(6)")
-                        .HasDefaultValue(new DateTime(2021, 6, 28, 16, 2, 11, 716, DateTimeKind.Local).AddTicks(1945));
+                        .HasDefaultValue(new DateTime(2021, 6, 28, 15, 38, 5, 967, DateTimeKind.Local).AddTicks(6695));
 
                     b.Property<int>("CreatorId")
                         .HasColumnType("int");
@@ -280,7 +282,7 @@ namespace Forum.Migrations
                     b.Property<DateTime>("Created")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime(6)")
-                        .HasDefaultValue(new DateTime(2021, 6, 28, 16, 2, 11, 681, DateTimeKind.Local).AddTicks(6044));
+                        .HasDefaultValue(new DateTime(2021, 6, 28, 15, 38, 5, 935, DateTimeKind.Local).AddTicks(2940));
 
                     b.Property<string>("DisplayName")
                         .HasColumnType("longtext");
@@ -331,7 +333,7 @@ namespace Forum.Migrations
                     b.Property<DateTime>("Joined")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime(6)")
-                        .HasDefaultValue(new DateTime(2021, 6, 28, 16, 2, 11, 716, DateTimeKind.Local).AddTicks(8702));
+                        .HasDefaultValue(new DateTime(2021, 6, 28, 15, 38, 5, 968, DateTimeKind.Local).AddTicks(324));
 
                     b.Property<int>("ModLevel")
                         .ValueGeneratedOnAdd()

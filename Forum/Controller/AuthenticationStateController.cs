@@ -25,42 +25,33 @@ namespace Forum.Controller
 
 		public override async Task<AuthenticationState> GetAuthenticationStateAsync()
 		{
-			var identity = new ClaimsIdentity();
-
 			if (null == cachedUser)
 			{
-				string rndToken = await jsRuntime.InvokeAsync<string>("sessionStorage.getItem", "SESSION_ID");
+				string token = await jsRuntime.InvokeAsync<string>("sessionStorage.getItem", "SESSION_ID");
 
-				if (!string.IsNullOrEmpty(rndToken))
-				{
-					//User user = JsonSerializer.Deserialize<User>(userAsJson);
-					User user = userService.GetUserFromSessionToken(rndToken);
+				// Not important to check if token is null or empty
+				cachedUser = userService.GetUserFromSessionToken(token);
 
-					cachedUser = user;
-				}
-				else
+				if (null == cachedUser)
 				{
 					return await Task.FromResult(new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity())));
 				}
 			}
 
-			identity = SetupClaims(cachedUser);
+			ClaimsIdentity identity = SetupClaims(cachedUser);
 
-			ClaimsPrincipal cachedClaimsPrincipal = new ClaimsPrincipal(identity);
-			return await Task.FromResult(new AuthenticationState(cachedClaimsPrincipal));
+			ClaimsPrincipal claimsPrincipal = new ClaimsPrincipal(identity);
+			return await Task.FromResult(new AuthenticationState(claimsPrincipal));
 		}
 
-		public void ValidateLogin(string username, string password)
+		public async Task ValidateLogin(string username, string password)
 		{
 			User user = userService.ValidateUser(username, password);
 
 			ClaimsIdentity identity = SetupClaims(user);
 
-			//string userAsJson = JsonSerializer.Serialize(user);
-			//jsRuntime.InvokeVoidAsync("sessionStorage.setItem", "currentUser", userAsJson);
-
 			string rndToken = userService.StoreSessionToken(user);
-			jsRuntime.InvokeVoidAsync("sessionStorage.setItem", "SESSION_ID", rndToken);
+			await jsRuntime.InvokeVoidAsync("sessionStorage.setItem", "SESSION_ID", rndToken);
 			
 			cachedUser = user;
 
@@ -68,11 +59,11 @@ namespace Forum.Controller
 				Task.FromResult(new AuthenticationState(new ClaimsPrincipal(identity))));
 		}
 
-		public void Logout()
+		public async Task Logout()
 		{
 			userService.RemoveSession(cachedUser);
 			cachedUser = null;
-			jsRuntime.InvokeVoidAsync("sessionStorage.setItem", "SESSION_ID", "");
+			await jsRuntime.InvokeVoidAsync("sessionStorage.setItem", "SESSION_ID", "");
 			var user = new ClaimsPrincipal(new ClaimsIdentity());
 			NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(user)));
 		}
