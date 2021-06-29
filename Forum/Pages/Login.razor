@@ -6,22 +6,33 @@
 @inject AuthenticationStateProvider AuthProvider;
 @inject NavigationManager NavigationManager;
 
-<div class="main text-center m-auto">
+<div class="main text-center mt-5 ml-auto mr-auto">
 	<AuthorizeView>
 		<NotAuthorized>
-			<h3>Login</h3>
-			<input class="form-control" placeholder="Username / Email" @bind-value="_loginModel.Username" />
-			<input class="form-control" placeholder="Password" @bind-value="_loginModel.Password" />
-			<div class="row">
-				<a href="/pwreset"><button class="accent-red btn-bottom-left">Forgot Password</button></a>
-				<a href="/register"><button class="accent-blue">Create Account</button></a>
-				<button class="accent-green btn-bottom-right" @onclick="SignIn">Log In</button>
-			</div>
+			<form @onsubmit="SignIn">
+				<div class="col">
+					<h3 class="mt-2">Login</h3>
+					<input class="form-control" type="text" placeholder="Username / Email" @bind-value="_loginModel.Username" />
+					<input class="form-control" type="password" placeholder="Password" @bind-value="_loginModel.Password" />
+					<div class="row">
+						<button class="accent-red btn-bottom-left" @onclick="NavPwReset">Forgot Password</button>
+						<button class="accent-blue" @onclick="NavRegister">Create Account</button>
+						<button class="accent-green btn-bottom-right" @onclick="SignIn">Log In</button>
+					</div>
+				</div>
+			</form>
 		</NotAuthorized>
 		<Authorized>
-			<h3>Logout</h3>
-			<button @onclick="LogOut">Log Out</button>
-			<a href="/">Home</a>
+			<div class="form-sim">
+				<div class="col">
+					<h3 class="mt-2">Logout</h3>
+					<p>Confirm logout.</p>
+					<div class="row">
+						<button class="accent-blue btn-bottom-left">Home</button>
+						<button class="accent-green btn-bottom-right" @onclick="LogOut">Log Out</button>
+					</div>
+				</div>
+			</div>
 		</Authorized>
 	</AuthorizeView>
 </div>
@@ -54,6 +65,16 @@
 	{
 		await ((Forum.Controller.AuthenticationStateController)AuthProvider).Logout();
 		NavigationManager.NavigateTo("/");
+	}
+
+	private void NavPwReset()
+	{
+		NavigationManager.NavigateTo("/pwreset");
+	}
+
+	private void NavRegister()
+	{
+		NavigationManager.NavigateTo("/register");
 	}
 
 	//private async Task SetSessionVar()

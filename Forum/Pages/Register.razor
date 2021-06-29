@@ -6,13 +6,18 @@
 @inject IDbContextFactory<Model.Database> DbContext;
 @inject NavigationManager NavigationManager; 
 
-<h3>Register</h3>
-<input type="text" @bind-value="_registerModel.AccountName" placeholder="Account name" />
-<input type="email" @bind-value="_registerModel.Email" placeholder="Email Address" />
-<input type="password" @bind-value="_registerModel.Password" placeholder="Password" />
-<input type="password" @bind-value="_registerModel.RepeatPassword" placeholder="Repeat Password" />
-<button @onclick="HashPw">Register</button>
-<p>@_message</p>
+<div class="main text-center mt-5 ml-auto mr-auto form-sim">
+	<div class="col">
+		<h3 class="mt-2">Register</h3>
+		<input class="form-control" type="text" @bind-value="_registerModel.AccountName" placeholder="Account name" />
+		<input class="form-control" type="email" @bind-value="_registerModel.Email" placeholder="Email Address" />
+		<input class="form-control" type="password" @bind-value="_registerModel.Password" placeholder="Password" />
+		<input class="form-control" type="password" @bind-value="_registerModel.RepeatPassword" placeholder="Repeat Password" />
+		<div class="row">
+			<button class="accent-green btn-bottom-left btn-bottom-right" @onclick="HashPw">Register</button>
+		</div>
+	</div>
+</div>
 
 @code {
 	[CascadingParameter]

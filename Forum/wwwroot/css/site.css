@@ -2,7 +2,8 @@
 
 html, body {
 	font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-	background: #000;
+	/*background: #282C37;*/
+	background: #343744;
 	color: #FFF;
 }
 
@@ -12,15 +13,20 @@ h1 {
 
 input {
 	border: none;
-	margin: 1rem;
+	margin: 2rem 0;
 	width: 100%;
-	border-radius: 0.5rem; 
+	border-radius: 0.5rem;
 }
 
-	input:focus {
-		outline-color: #512DFC;
-		outline-width: 0.1rem;
-		outline-style: solid;
+.form-control {
+	border: none;
+	background: #282C37;
+	color: white;
+}
+
+	.form-control:focus {
+		background: #282C37;
+		color: white;
 	}
 
 div {
@@ -29,15 +35,25 @@ div {
 
 a {
 	text-decoration: none;
-	color: #FFF;
+	color: white;
 }
 
 	a:hover {
 		text-decoration: underline;
 	}
 
+form {
+	width: 30em;
+}
+
+.form-sim {
+	width: 30em;
+}
+
 .main {
-	background: #191B22;
+	/*background: #191B22;*/
+	/*background: #343744;*/
+	background: #000;
 	color: #9BAEC8;
 }
 
@@ -53,12 +69,16 @@ a {
 button {
 	border: none;
 	display: inline-block;
+	padding: 7px;
+	width: 1%;
+	flex-grow: 1;
 	/*max-width: 34%;*/
 	/*min-width: 33%;*/
 }
 
 	button:hover {
-		filter: brightness(70%);
+		/*filter: brightness(70%);*/
+		filter: brightness(120%);
 	}
 
 .btn-bottom-left {

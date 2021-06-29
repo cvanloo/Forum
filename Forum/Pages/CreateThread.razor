@@ -1,0 +1,54 @@
+﻿@page "/post"
+@*TODO: Policies?*@
+@attribute [Authorize(Roles = "user")]
+@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<Model.Database> DbContext
+
+<div class="main text-center mt-5 ml-auto mr-auto form-sim">
+	<div class="col">
+		<h3 class="mt-2">Create Thread</h3>
+		<select class="form-control">
+			<option>Forum 1</option>
+			<option>Forum 2</option>
+		</select>
+		<input class="form-control" type="text" placeholder="Title" />
+		<textarea class="form-control" placeholder="Content" />
+		<img />
+		<input class="form-control" type="text" placeholder="Add Tags" />
+		<input class="form-control" type="file" />
+		<div class="row">
+			<button class="accent-blue btn-bottom-left">Go Back</button>
+			<button class="accent-green btn-bottom-right">Create Thread</button>
+		</div>
+	</div>
+</div>
+
+@code {
+	[CascadingParameter]
+	private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+	private string _forum { get; set; }
+	private string _title { get; set; }
+
+	private async void StoreThread()
+	{
+		using var db = DbContext.CreateDbContext();
+
+		string content = null;
+		var authState = await authenticationStateTask;
+		var user = db.Users.FirstOrDefault(u => u.AccountName == authState.User.Identity.Name);
+		var forum = db.Forums.First(f => f.Name == _forum);
+
+		var newThread = new Entity.Thread()
+		{
+			ContentPath = content,
+			Creator = user,
+			ForumId = forum.Id,
+			Title = _title,
+
+		};
+
+		db.Threads.Add(newThread);
+		db.SaveChanges();
+	}
+}

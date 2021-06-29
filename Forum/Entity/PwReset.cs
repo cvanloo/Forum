@@ -21,5 +21,8 @@ namespace Forum.Entity
 
 		[Required]
 		public string Token { get; set; }
+
+		[Required]
+		public bool Used { get; set; }
 	}
 }

@@ -5,16 +5,28 @@
 
 @if (string.IsNullOrEmpty(Token))
 {
-	<h3>Request Password Reset</h3>
-	<input @bind-value="_email" type="email" placeholder="Email" />
-	<input @onsubmit="ProcessRequest" type="submit" value="Request reset Link" />
+	<div class="main text-center mt-5 ml-auto mr-auto">
+		<div class="col">
+			<h3 class="mt-2">Request Password Reset</h3>
+			<input class="form-control" @bind-value="_email" type="text" placeholder="Email" />
+			<div class="row">
+				<button class="accent-green btn-bottom-left btn-bottom-right" @onclick="ProcessRequest">Request reset Link</button>
+			</div>
+		</div>
+	</div>
 }
 else
 {
-	<h3>Update Password</h3>
-	<input @bind-value="_newPassword" type="password" placeholder="New Password" />
-	<input @bind-value="_repNewPassword" type="password" placeholder="Repeat New Password" />
-	<input @onsubmit="UpdatePassword" type="submit" value="Save Password" />
+	<div class="main text-center mt-5 ml-auto mr-auto">
+		<div class="col">
+			<h3 class="mt-2">Update Password</h3>
+			<input class="form-control" @bind-value="_newPassword" type="password" placeholder="New Password" />
+			<input class="form-control" @bind-value="_repNewPassword" type="password" placeholder="Repeat New Password" />
+			<div class="row">
+				<button class="accent-green btn-bottom-left btn-bottom-right" @onclick="UpdatePassword">Save Password"</button>
+			</div>
+		</div>
+	</div>
 }
 
 @code {
@@ -49,7 +61,6 @@ else
 			await db.SaveChangesAsync();
 
 			// TODO: Send reset link with token
-			// Email Service?
 		}
 	}
 
@@ -60,19 +71,20 @@ else
 		var pwReset = db.PwResets.Include(p => p.User).FirstOrDefault(p => p.Token == Token);
 
 		DateTime expiring = pwReset.Timestamp;
-		expiring.AddMinutes(30);
+		expiring = expiring.AddMinutes(30);
 
-		if (DateTime.Now.CompareTo(expiring) < 0)
+		if (!pwReset.Used && DateTime.Now.CompareTo(expiring) < 0)
 		{
 			if (!string.IsNullOrEmpty(_newPassword) && _repNewPassword == _newPassword)
 			{
 				string pwHash = BCrypt.Net.BCrypt.EnhancedHashPassword(_newPassword, 12);
 
 				pwReset.User.PwHash = pwHash;
-
-				await db.SaveChangesAsync();
 			}
 		}
+
+		pwReset.Used = true;
+		await db.SaveChangesAsync();
 	}
 }
 

@@ -83,7 +83,7 @@ namespace Forum.Model
             // UserForum
             modelBuilder.Entity<UserForum>()
                 .Property(uf => uf.Joined)
-                .HasDefaultValue(DateTime.Now);
+                .HasDefaultValueSql("NOW()");
 
             modelBuilder.Entity<UserForum>()
                 .Property(uf => uf.IsBlocked)
