@@ -26,7 +26,7 @@ namespace Forum.Model
             // User
             modelBuilder.Entity<User>()
                 .Property(u => u.Created)
-                .HasDefaultValue(DateTime.Now);
+                .HasDefaultValueSql("NOW()");
 
             modelBuilder.Entity<User>()
                 .Property(u => u.IsBlocked)
@@ -47,7 +47,7 @@ namespace Forum.Model
             // Forum
             modelBuilder.Entity<Entity.Forum>()
                 .Property(f => f.Created)
-                .HasDefaultValue(DateTime.Now);
+                .HasDefaultValueSql("NOW()");
 
             modelBuilder.Entity<Entity.Forum>()
                 .Property(f => f.IsDeleted)
@@ -56,7 +56,7 @@ namespace Forum.Model
             // Thread
             modelBuilder.Entity<Thread>()
                 .Property(t => t.Created)
-                .HasDefaultValue(DateTime.Now);
+                .HasDefaultValueSql("NOW()");
 
             modelBuilder.Entity<Thread>()
                 .Property(t => t.IsArchived)
@@ -69,7 +69,7 @@ namespace Forum.Model
             // Comment
             modelBuilder.Entity<Comment>()
                 .Property(c => c.Created)
-                .HasDefaultValue(DateTime.Now);
+                .HasDefaultValueSql("NOW()");
 
             modelBuilder.Entity<Comment>()
                 .Property(c => c.IsArchived)
@@ -95,7 +95,7 @@ namespace Forum.Model
             // Chat
             modelBuilder.Entity<Chat>()
                 .Property(c => c.Created)
-                .HasDefaultValue(DateTime.Now);
+                .HasDefaultValueSql("NOW()");
 
             modelBuilder.Entity<Chat>()
                 .Property(c => c.IsDeleted)
@@ -104,7 +104,7 @@ namespace Forum.Model
             // ChatMessage
             modelBuilder.Entity<ChatMessage>()
                 .Property(cm => cm.Sent)
-                .HasDefaultValue(DateTime.Now);
+                .HasDefaultValueSql("NOW()");
 
             modelBuilder.Entity<ChatMessage>()
                 .Property(cm => cm.IsDeleted)
