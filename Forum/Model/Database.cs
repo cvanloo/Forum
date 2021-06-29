@@ -16,6 +16,7 @@ namespace Forum.Model
         public DbSet<Thread> Threads { get; set; }
         public DbSet<Comment> Comments { get; set; }
         public DbSet<Session> Sessions { get; set; }
+        public DbSet<PwReset> PwResets { get; set; }
 
         public Database(DbContextOptions<Database> options) : base(options) { } 
 
@@ -109,6 +110,11 @@ namespace Forum.Model
             modelBuilder.Entity<ChatMessage>()
                 .Property(cm => cm.IsDeleted)
                 .HasDefaultValue(false);
+
+            // PwReset
+            modelBuilder.Entity<PwReset>()
+                .Property(p => p.Timestamp)
+                .HasDefaultValueSql("NOW()");
 
 
             /* Set unique constraints */

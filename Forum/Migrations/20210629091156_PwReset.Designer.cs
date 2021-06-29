@@ -3,14 +3,16 @@ using System;
 using Forum.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Forum.Migrations
 {
     [DbContext(typeof(Database))]
-    partial class DatabaseModelSnapshot : ModelSnapshot
+    [Migration("20210629091156_PwReset")]
+    partial class PwReset
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -175,9 +177,7 @@ namespace Forum.Migrations
                         .HasColumnType("int");
 
                     b.Property<DateTime>("Timestamp")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime(6)")
-                        .HasDefaultValueSql("NOW()");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("Token")
                         .IsRequired()
@@ -190,7 +190,7 @@ namespace Forum.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("PwResets");
+                    b.ToTable("PwReset");
                 });
 
             modelBuilder.Entity("Forum.Entity.Session", b =>
@@ -352,7 +352,7 @@ namespace Forum.Migrations
                     b.Property<DateTime>("Joined")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime(6)")
-                        .HasDefaultValue(new DateTime(2021, 6, 29, 11, 32, 39, 805, DateTimeKind.Local).AddTicks(8214));
+                        .HasDefaultValue(new DateTime(2021, 6, 29, 11, 11, 56, 536, DateTimeKind.Local).AddTicks(9191));
 
                     b.Property<int>("ModLevel")
                         .ValueGeneratedOnAdd()

@@ -48,5 +48,7 @@ namespace Forum.Entity
         public ICollection<Thread> Threads { get; set; }
 
         public ICollection<Session> Sessions { get; set; }
+
+        public ICollection<PwReset> PwResets { get; set; }
     }
 }

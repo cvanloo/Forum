@@ -1,0 +1,85 @@
+﻿@page "/pwreset/{Token?}"
+@using Microsoft.EntityFrameworkCore
+@inject NavigationManager NavMan;
+@inject IDbContextFactory<Model.Database> DbContext;
+
+@if (string.IsNullOrEmpty(Token))
+{
+	<h3>Request Password Reset</h3>
+	<input @bind-value="_email" type="email" placeholder="Email" />
+	<input @onsubmit="ProcessRequest" type="submit" value="Request reset Link" />
+}
+else
+{
+	<h3>Update Password</h3>
+	<input @bind-value="_newPassword" type="password" placeholder="New Password" />
+	<input @bind-value="_repNewPassword" type="password" placeholder="Repeat New Password" />
+	<input @onsubmit="UpdatePassword" type="submit" value="Save Password" />
+}
+
+@code {
+	[Parameter]
+	public string Token { get; set; }
+
+	private string _email;
+
+	private string _newPassword;
+	private string _repNewPassword;
+
+	private async void ProcessRequest()
+	{
+		using var db = DbContext.CreateDbContext();
+
+		// TODO: Validate email
+
+		var user = db.Users.FirstOrDefault(u => u.Email == _email);
+
+		if (null != user)
+		{
+			string rndToken = Guid.NewGuid().ToString();
+
+			var pwReset = new Entity.PwReset()
+			{
+				UserId = user.Id,
+				Token = rndToken
+			};
+
+			db.PwResets.Add(pwReset);
+
+			await db.SaveChangesAsync();
+
+			// TODO: Send reset link with token
+		}
+	}
+
+	private async void UpdatePassword()
+	{
+		using var db = DbContext.CreateDbContext();
+
+		var pwReset = db.PwResets.Include(p => p.User).FirstOrDefault(p => p.Token == Token);
+
+		DateTime expiring = pwReset.Timestamp;
+		expiring.AddMinutes(30);
+
+		if (DateTime.Now.CompareTo(expiring) < 0)
+		{
+			if (!string.IsNullOrEmpty(_newPassword) && _repNewPassword == _newPassword)
+			{
+				string pwHash = BCrypt.Net.BCrypt.EnhancedHashPassword(_newPassword, 12);
+
+				pwReset.User.PwHash = pwHash;
+
+				await db.SaveChangesAsync();
+			}
+		}
+	}
+}
+
+@*
+	{Id:int?}
+	{*CatchAll}
+
+	var uriBuilder = new UriBuilder(NavMan.Uri);
+	var q = System.Web.HttpUtility.ParseQueryString(uriBuilder.Query);
+	Test = q["Test"] ?? "";
+*@
