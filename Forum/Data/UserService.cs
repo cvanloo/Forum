@@ -90,9 +90,9 @@ namespace Forum.Data
 		{
 			using var db = _dbContext.CreateDbContext();
 
-			Session session = db.Sessions.Include(s => s.Owner).Where(s => s.Identifier == "SESSION_ID" && s.Value == token).FirstOrDefault();
+			Session session = db.Sessions.Include(s => s.User).Where(s => s.Identifier == "SESSION_ID" && s.Value == token).FirstOrDefault();
 
-			return session?.Owner;
+			return session?.User;
 		}
 
 		/// <summary>
@@ -103,7 +103,7 @@ namespace Forum.Data
 		{
 			using var db = _dbContext.CreateDbContext();
 
-			Session[] sessions = db.Sessions.Where(s => s.Owner == user).ToArray();
+			Session[] sessions = db.Sessions.Where(s => s.User == user).ToArray();
 
 			db.Sessions.RemoveRange(sessions);
 			

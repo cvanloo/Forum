@@ -17,7 +17,7 @@ namespace Forum.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Created = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValue: new DateTime(2021, 6, 28, 15, 38, 5, 968, DateTimeKind.Local).AddTicks(5001)),
+                    Created = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValueSql: "NOW()"),
                     IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false)
                 },
                 constraints: table =>
@@ -38,7 +38,7 @@ namespace Forum.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Rules = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Created = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValue: new DateTime(2021, 6, 28, 15, 38, 5, 967, DateTimeKind.Local).AddTicks(5213)),
+                    Created = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValueSql: "NOW()"),
                     IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false)
                 },
                 constraints: table =>
@@ -61,7 +61,7 @@ namespace Forum.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     PwHash = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Created = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValue: new DateTime(2021, 6, 28, 15, 38, 5, 935, DateTimeKind.Local).AddTicks(2940)),
+                    Created = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValueSql: "NOW()"),
                     IsBlocked = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false),
                     IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false)
                 },
@@ -79,7 +79,7 @@ namespace Forum.Migrations
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     SenderId = table.Column<int>(type: "int", nullable: true),
                     ParentId = table.Column<int>(type: "int", nullable: true),
-                    Sent = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValue: new DateTime(2021, 6, 28, 15, 38, 5, 968, DateTimeKind.Local).AddTicks(6875)),
+                    Sent = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValueSql: "NOW()"),
                     IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false),
                     ChatId = table.Column<int>(type: "int", nullable: true)
                 },
@@ -164,7 +164,7 @@ namespace Forum.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     UserId = table.Column<int>(type: "int", nullable: false),
-                    Identifier = table.Column<string>(type: "varchar(255)", nullable: false)
+                    Identifier = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Value = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4")
@@ -216,7 +216,7 @@ namespace Forum.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     ContentPath = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Created = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValue: new DateTime(2021, 6, 28, 15, 38, 5, 967, DateTimeKind.Local).AddTicks(6695)),
+                    Created = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValueSql: "NOW()"),
                     IsArchived = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false),
                     IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false),
                     ForumId = table.Column<int>(type: "int", nullable: false)
@@ -247,7 +247,7 @@ namespace Forum.Migrations
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     UserId = table.Column<int>(type: "int", nullable: false),
                     ForumId = table.Column<int>(type: "int", nullable: false),
-                    Joined = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValue: new DateTime(2021, 6, 28, 15, 38, 5, 968, DateTimeKind.Local).AddTicks(324)),
+                    Joined = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValue: new DateTime(2021, 6, 29, 9, 49, 40, 667, DateTimeKind.Local).AddTicks(9889)),
                     IsBlocked = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false),
                     ModLevel = table.Column<int>(type: "int", nullable: false, defaultValue: 0)
                 },
@@ -304,7 +304,7 @@ namespace Forum.Migrations
                     Text = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     ParentId = table.Column<int>(type: "int", nullable: true),
-                    Created = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValue: new DateTime(2021, 6, 28, 15, 38, 5, 967, DateTimeKind.Local).AddTicks(8472)),
+                    Created = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValueSql: "NOW()"),
                     IsArchived = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false),
                     IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false),
                     ThreadId = table.Column<int>(type: "int", nullable: true)
@@ -382,14 +382,7 @@ namespace Forum.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Sessions_UserId",
                 table: "Sessions",
-                column: "UserId",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Sessions_UserId_Identifier",
-                table: "Sessions",
-                columns: new[] { "UserId", "Identifier" },
-                unique: true);
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Setting_Key_UserId",

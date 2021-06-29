@@ -9,8 +9,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Forum.Migrations
 {
     [DbContext(typeof(Database))]
-    [Migration("20210628135818_notuniquetest")]
-    partial class notuniquetest
+    [Migration("20210629074941_InitialCreate")]
+    partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -43,7 +43,7 @@ namespace Forum.Migrations
                     b.Property<DateTime>("Created")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime(6)")
-                        .HasDefaultValue(new DateTime(2021, 6, 28, 15, 58, 18, 585, DateTimeKind.Local).AddTicks(2902));
+                        .HasDefaultValueSql("NOW()");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
@@ -78,7 +78,7 @@ namespace Forum.Migrations
                     b.Property<DateTime>("Sent")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime(6)")
-                        .HasDefaultValue(new DateTime(2021, 6, 28, 15, 58, 18, 585, DateTimeKind.Local).AddTicks(4675));
+                        .HasDefaultValueSql("NOW()");
 
                     b.HasKey("Id");
 
@@ -100,7 +100,7 @@ namespace Forum.Migrations
                     b.Property<DateTime>("Created")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime(6)")
-                        .HasDefaultValue(new DateTime(2021, 6, 28, 15, 58, 18, 584, DateTimeKind.Local).AddTicks(6471));
+                        .HasDefaultValueSql("NOW()");
 
                     b.Property<int>("CreatorId")
                         .HasColumnType("int");
@@ -145,7 +145,7 @@ namespace Forum.Migrations
                     b.Property<DateTime>("Created")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime(6)")
-                        .HasDefaultValue(new DateTime(2021, 6, 28, 15, 58, 18, 584, DateTimeKind.Local).AddTicks(2981));
+                        .HasDefaultValueSql("NOW()");
 
                     b.Property<string>("Description")
                         .HasColumnType("longtext");
@@ -189,8 +189,7 @@ namespace Forum.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId")
-                        .IsUnique();
+                    b.HasIndex("UserId");
 
                     b.ToTable("Sessions");
                 });
@@ -235,7 +234,7 @@ namespace Forum.Migrations
                     b.Property<DateTime>("Created")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime(6)")
-                        .HasDefaultValue(new DateTime(2021, 6, 28, 15, 58, 18, 584, DateTimeKind.Local).AddTicks(4506));
+                        .HasDefaultValueSql("NOW()");
 
                     b.Property<int>("CreatorId")
                         .HasColumnType("int");
@@ -279,7 +278,7 @@ namespace Forum.Migrations
                     b.Property<DateTime>("Created")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime(6)")
-                        .HasDefaultValue(new DateTime(2021, 6, 28, 15, 58, 18, 551, DateTimeKind.Local).AddTicks(9919));
+                        .HasDefaultValueSql("NOW()");
 
                     b.Property<string>("DisplayName")
                         .HasColumnType("longtext");
@@ -330,7 +329,7 @@ namespace Forum.Migrations
                     b.Property<DateTime>("Joined")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime(6)")
-                        .HasDefaultValue(new DateTime(2021, 6, 28, 15, 58, 18, 584, DateTimeKind.Local).AddTicks(8208));
+                        .HasDefaultValue(new DateTime(2021, 6, 29, 9, 49, 40, 667, DateTimeKind.Local).AddTicks(9889));
 
                     b.Property<int>("ModLevel")
                         .ValueGeneratedOnAdd()
@@ -436,13 +435,13 @@ namespace Forum.Migrations
 
             modelBuilder.Entity("Forum.Entity.Session", b =>
                 {
-                    b.HasOne("Forum.Entity.User", "Owner")
-                        .WithOne("Session")
-                        .HasForeignKey("Forum.Entity.Session", "UserId")
+                    b.HasOne("Forum.Entity.User", "User")
+                        .WithMany("Sessions")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Owner");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Forum.Entity.Setting", b =>
@@ -537,7 +536,7 @@ namespace Forum.Migrations
 
             modelBuilder.Entity("Forum.Entity.User", b =>
                 {
-                    b.Navigation("Session");
+                    b.Navigation("Sessions");
 
                     b.Navigation("Settings");
 

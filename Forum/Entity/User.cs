@@ -47,6 +47,6 @@ namespace Forum.Entity
 
         public ICollection<Thread> Threads { get; set; }
 
-        public Session Session { get; set; }
+        public ICollection<Session> Sessions { get; set; }
     }
 }

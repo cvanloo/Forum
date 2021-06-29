@@ -22,7 +22,6 @@
 			<h3>Logout</h3>
 			<button @onclick="LogOut">Log out</button>
 			<a href="/">Home</a>
-			<button @onclick="SetSessionVar">Set Session Var.</button>
 		</Authorized>
 	</AuthorizeView>
 </div>
@@ -57,26 +56,26 @@
 		NavigationManager.NavigateTo("/");
 	}
 
-	private async Task SetSessionVar()
-	{
-		using var db = DbContext.CreateDbContext();
+	//private async Task SetSessionVar()
+	//{
+	//	using var db = DbContext.CreateDbContext();
 
-		var authenticationState = await authenticationStateTask;
+	//	var authenticationState = await authenticationStateTask;
 
-		string username = authenticationState.User.Identity.Name;
+	//	string username = authenticationState.User.Identity.Name;
 
-		var user = db.Sessions.Include(s => s.Owner).Where(s => s.Owner.AccountName == username).FirstOrDefault().Owner;
+	//	var user = db.Sessions.Include(s => s.User).Where(s => s.User.AccountName == username).FirstOrDefault().User;
 
-		var session = new Entity.Session()
-		{
-			UserId = user.Id,
-			Identifier = "Test",
-			Value = "tseT"
-		};
+	//	var session = new Entity.Session()
+	//	{
+	//		UserId = user.Id,
+	//		Identifier = "Test",
+	//		Value = "tseT"
+	//	};
 
-		db.Sessions.Add(session);
-		db.SaveChanges();
-	}
+	//	db.Sessions.Add(session);
+	//	db.SaveChanges();
+	//}
 
 	public class LoginModel
 	{

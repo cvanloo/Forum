@@ -15,7 +15,8 @@ namespace Forum.Entity
 
 		[Required]
 		public int UserId { get; set; }
-		public User Owner { get; set; }
+		[Required]
+		public User User { get; set; }
 
 		[Required]
 		public string Identifier { get; set; }

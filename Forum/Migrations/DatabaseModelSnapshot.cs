@@ -176,7 +176,7 @@ namespace Forum.Migrations
 
                     b.Property<string>("Identifier")
                         .IsRequired()
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("longtext");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -187,11 +187,7 @@ namespace Forum.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId")
-                        .IsUnique();
-
-                    b.HasIndex("UserId", "Identifier")
-                        .IsUnique();
+                    b.HasIndex("UserId");
 
                     b.ToTable("Sessions");
                 });
@@ -331,7 +327,7 @@ namespace Forum.Migrations
                     b.Property<DateTime>("Joined")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime(6)")
-                        .HasDefaultValue(new DateTime(2021, 6, 29, 8, 42, 45, 662, DateTimeKind.Local).AddTicks(2104));
+                        .HasDefaultValue(new DateTime(2021, 6, 29, 9, 49, 40, 667, DateTimeKind.Local).AddTicks(9889));
 
                     b.Property<int>("ModLevel")
                         .ValueGeneratedOnAdd()
@@ -437,13 +433,13 @@ namespace Forum.Migrations
 
             modelBuilder.Entity("Forum.Entity.Session", b =>
                 {
-                    b.HasOne("Forum.Entity.User", "Owner")
-                        .WithOne("Session")
-                        .HasForeignKey("Forum.Entity.Session", "UserId")
+                    b.HasOne("Forum.Entity.User", "User")
+                        .WithMany("Sessions")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Owner");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Forum.Entity.Setting", b =>
@@ -538,7 +534,7 @@ namespace Forum.Migrations
 
             modelBuilder.Entity("Forum.Entity.User", b =>
                 {
-                    b.Navigation("Session");
+                    b.Navigation("Sessions");
 
                     b.Navigation("Settings");
 
