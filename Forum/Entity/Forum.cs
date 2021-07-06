@@ -27,5 +27,6 @@ namespace Forum.Entity
         public ICollection<Thread> Threads { get; set; }
 
         public ICollection<User> Members { get; set; }
+        //public ICollection<Userforum> Members { get; set; }
     }
 }

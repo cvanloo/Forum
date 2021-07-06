@@ -1,0 +1,75 @@
+﻿@page "/thread/{Id:int?}"
+@using Microsoft.EntityFrameworkCore
+@using System.IO
+@inject IDbContextFactory<Model.Database> DbContext
+@inject NavigationManager NavMan
+@inject IJSRuntime iJsRuntime
+
+<div class="container-left" >
+	<div class="main row" >
+		<button class="btn-norm-sec" @onclick="NavHome">
+			<img width="50" height="50" src="/css/icons/Arrow_Back.png" alt="Back Arrow" />
+			Go Back
+		</button>
+	</div>
+</div>
+<div class="container-middle" >
+	<div class="main needs-padding">
+		<p class="p-annotation-sm">
+			@_thread.Creator.AccountName@@@_thread.Forum.Name
+			@_thread.Created.ToString("t"), @_thread.Created.ToString("d")
+		</p>
+		<h5 class="txt-title">@_thread.Title</h5>
+		<pre class="txt-title">@_content</pre>
+	</div>
+	<div class="second row">
+		<p class="p-annotation-sm txt-dark needs-space-lr">@_thread.Comments.Count Comments (@(_thread.Comments.Count / 20) Pages)</p>
+		<p @onclick="CopyLink" class="p-annotation-sm txt-dark needs-space-lr clickable shiny">Copy Link</p>
+		<p class="p-annotation-sm txt-dark needs-space-lr clickable shiny">Save</p>
+	</div>
+</div>
+<div class="container-right" >
+	<div class="second needs-padding" >
+		<img width="100" height="100" src="/css/icons/Default.jpg" alt="Forum Image"/>
+		<h5>@_thread.Forum.Name</h5>
+		<p class="p-annotation-sm">@_thread.Forum.Members.Count Mem. / Created @_thread.Forum.Created.ToString("d")</p>
+		<pre class="txt-title">@_thread.Forum.Description</pre>
+	</div>
+</div>
+
+@code {
+	[Parameter]
+	public int Id { get; set; }
+
+	private Entity.Thread _thread;
+	private string _content;
+
+	protected async override Task OnInitializedAsync()
+	{
+		using var db = DbContext.CreateDbContext();
+
+		_thread = db.Threads
+			.Include(t => t.Creator)
+			.Include(t => t.Forum)
+				.ThenInclude(f => f.Members)
+			.Include(t => t.Comments)
+			.FirstOrDefault(t => t.Id == Id);
+
+		string path = _thread.ContentPath;
+		StreamReader streamReader = new StreamReader(path);
+
+		_content = streamReader.ReadToEnd();
+	}
+
+	private void NavHome()
+	{
+		NavMan.NavigateTo("/");
+	}
+
+	private async void CopyLink()
+	{
+		string link = NavMan.Uri;
+		Console.WriteLine(link);
+		await iJsRuntime.InvokeVoidAsync("clipboardCopy.copyText", link);
+	}
+}

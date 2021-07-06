@@ -32,5 +32,7 @@ namespace Forum.Entity
 
         [Required]
         public int ForumId { get; set; }
+        [Required]
+        public Forum Forum { get; set; }
     }
 }

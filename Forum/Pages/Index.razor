@@ -20,40 +20,41 @@
 				<li>@claim.Type: @claim.Value</li>
 			}
 		</ul>*@
-		<div class="container-left" >
+		<div class="container-left">
 			<div class="main">
-				<img width="50px" height="50px" src="" alt="Profile Image" />
+				<img width="50" height="50" src="/css/icons/Default.jpg" alt="Profile Image" />
 				<h4>DisplayName</h4>
 				<p class="p-annotation-lg">AccountName</p>
 			</div>
-			<div class="main row" >
-				<button class="btn-norm">Start a Thread</button>
+			<div class="main row">
+				<button @onclick="NavCreatePost" class="btn-norm">Start a Thread</button>
 			</div>
-			<div >
-				<img width="25px" height="25px" src="" alt="Settings Image" />
-				<a href="/pref">Preferences</a>
+			<div>
+				<a href="/pref">
+					<img width="50" height="50" src="/css/icons/Settings.png" alt="Settings Image" />
+					Preferences
+				</a>
 			</div>
-			<div class="fixed-bottom">
+			<div class="" style="bottom: 0;">
 				<p class="p-annotation-sm">Bottom</p>
 			</div>
 		</div>
 		<div class="container-middle">
-			<div class="main" >
-				Threads
+			<div class="main">
 				@foreach (Entity.Thread thread in _threads)
 				{
 					<ThreadPreview ThreadModel="thread" />
 				}
 			</div>
 		</div>
-		<div class="container-right" >
-			<div class="main" >
+		<div class="container-right">
+			<div class="main">
 				HOME Sort options
 			</div>
-			<div class="main row" >
+			<div class="main row">
 				<input class="input-fg" type="text" placeholder="Search User, Tags or Posts" />
 			</div>
-			<div class="main" >
+			<div class="main">
 				Trending Now
 			</div>
 		</div>
@@ -77,13 +78,27 @@
 		{
 			// Send unauthorized users to the login page
 			NavigationManager.NavigateTo("/login");
+			return;
 		}
+
+		LoadThreads();
 	}
 
 	private async void LoadThreads()
 	{
 		using var db = DbContext.CreateDbContext();
 
-		_threads = db.Threads.ToList();
+		_threads = db.Threads
+			.Include(t => t.Creator)
+			.Include(t => t.Forum)
+			.OrderBy(o => o.Created)
+			.Take(50).ToList();
+	}
+
+
+
+	private void NavCreatePost()
+	{
+		NavigationManager.NavigateTo("/post");
 	}
 }

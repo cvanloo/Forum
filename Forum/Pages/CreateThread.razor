@@ -4,6 +4,7 @@
 @attribute [Authorize(Policy = "IsPoster")]
 @using Microsoft.EntityFrameworkCore
 @inject IDbContextFactory<Model.Database> DbContext
+@inject NavigationManager NavMan 
 
 <div class="main text-center mt-5 ml-auto mr-auto form-sim">
 	<div class="col">
@@ -18,7 +19,7 @@
 		<input class="form-control" type="text" placeholder="Add Tags" />
 		<input class="form-control" type="file" />
 		<div class="row">
-			<button class="accent-blue btn-bottom-left">Go Back</button>
+			<button @onclick="NavHome" class="accent-blue btn-bottom-left">Go Back</button>
 			<button class="accent-green btn-bottom-right">Create Thread</button>
 		</div>
 	</div>
@@ -51,5 +52,10 @@
 
 		db.Threads.Add(newThread);
 		db.SaveChanges();
+	}
+
+	private void NavHome()
+	{
+		NavMan.NavigateTo("/");
 	}
 }

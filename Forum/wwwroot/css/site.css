@@ -42,11 +42,12 @@ div {
 
 a {
 	text-decoration: none;
-	color: white;
+	color: #9BAEC8;
 }
 
 	a:hover {
 		text-decoration: underline;
+		color: #9BAEC8;
 	}
 
 form {
@@ -66,6 +67,24 @@ form {
 	.main h3 {
 		color: #FFF;
 	}
+
+.second {
+	background: #191B22;
+	margin: 5px;
+}
+
+.needs-padding {
+	padding: 10px;
+}
+
+.needs-space-lr {
+	margin-left: 15px !important;
+	margin-right: 15px !important;
+}
+
+.clickable {
+	cursor: pointer;
+}
 
 .container-middle {
 	margin-left: auto;
@@ -105,6 +124,13 @@ button {
 	font-size: larger;
 }
 
+.btn-norm-sec {
+	border: none;
+	background: #191B22;
+	color: #9BAEC8;
+	font-size: larger;
+}
+
 .btn-bottom-left {
 	border-bottom-left-radius: 0.5rem;
 }
@@ -137,6 +163,14 @@ button {
 	background: #9BAEC8;
 }
 
+.txt-title {
+	color: white;
+}
+
+.txt-dark {
+	color: #9BAEC8;
+}
+
 .p-annotation-lg {
 	margin: 0;
 }
@@ -161,7 +195,9 @@ button {
 		outline: none;
 	}
 
-
+.shiny:hover {
+	filter: brightness(120%);
+}
 
 
 
