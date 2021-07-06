@@ -5,7 +5,7 @@
 @inject IDbContextFactory<Model.Database> DbContext
 @inject NavigationManager NavigationManager
 
-<h1>You can only see this if you're authorized.</h1>
+@*<h1>You can only see this if you're authorized.</h1>*@
 @*<h1>Hello, world!</h1>
 	<button @onclick="AddUser">Add User</button>
 
@@ -13,13 +13,50 @@
 
 <AuthorizeView>
 	<Authorized>
-		<label>Hello @context.User.Identity.Name!</label>
+		@*<label>Hello @context.User.Identity.Name!</label>
 		<ul>
 			@foreach (Claim claim in @context.User.Claims)
 			{
 				<li>@claim.Type: @claim.Value</li>
 			}
-		</ul>
+		</ul>*@
+		<div class="container-left" >
+			<div class="main">
+				<img width="50px" height="50px" src="" alt="Profile Image" />
+				<h4>DisplayName</h4>
+				<p class="p-annotation-lg">AccountName</p>
+			</div>
+			<div class="main row" >
+				<button class="btn-norm">Start a Thread</button>
+			</div>
+			<div >
+				<img width="25px" height="25px" src="" alt="Settings Image" />
+				<a href="/pref">Preferences</a>
+			</div>
+			<div class="fixed-bottom">
+				<p class="p-annotation-sm">Bottom</p>
+			</div>
+		</div>
+		<div class="container-middle">
+			<div class="main" >
+				Threads
+				@foreach (Entity.Thread thread in _threads)
+				{
+					<ThreadPreview ThreadModel="thread" />
+				}
+			</div>
+		</div>
+		<div class="container-right" >
+			<div class="main" >
+				HOME Sort options
+			</div>
+			<div class="main row" >
+				<input class="input-fg" type="text" placeholder="Search User, Tags or Posts" />
+			</div>
+			<div class="main" >
+				Trending Now
+			</div>
+		</div>
 	</Authorized>
 	<NotAuthorized>
 		<label><b style="color: red;">You are not authorized.</b></label>

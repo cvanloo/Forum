@@ -73,7 +73,9 @@ namespace Forum.Controller
 			List<Claim> claims = new List<Claim>()
 			{
 				new Claim(ClaimTypes.Name, user.AccountName),
-				new Claim(ClaimTypes.Role, "user")
+				new Claim(ClaimTypes.Role, "user"),
+				new Claim("admin", "true"),
+				new Claim("poster", "true")
 			};
 
 			// "Authentication Type": If you don't pass a string here, authentication using the <AuthorizeView>-tags

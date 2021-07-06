@@ -28,7 +28,7 @@
 					<h3 class="mt-2">Logout</h3>
 					<p>Confirm logout.</p>
 					<div class="row">
-						<button class="accent-blue btn-bottom-left">Home</button>
+						<button @onclick="NavHome" class="accent-blue btn-bottom-left">Home</button>
 						<button class="accent-green btn-bottom-right" @onclick="LogOut">Log Out</button>
 					</div>
 				</div>
@@ -64,7 +64,7 @@
 	private async Task LogOut()
 	{
 		await ((Forum.Controller.AuthenticationStateController)AuthProvider).Logout();
-		NavigationManager.NavigateTo("/");
+		//NavigationManager.NavigateTo("/");
 	}
 
 	private void NavPwReset()
@@ -75,6 +75,11 @@
 	private void NavRegister()
 	{
 		NavigationManager.NavigateTo("/register");
+	}
+
+	private void NavHome()
+	{
+		NavigationManager.NavigateTo("/");
 	}
 
 	//private async Task SetSessionVar()

@@ -1,6 +1,7 @@
 ﻿@page "/post"
 @*TODO: Policies?*@
-@attribute [Authorize(Roles = "user")]
+@*@attribute [Authorize(Roles = "user")]*@
+@attribute [Authorize(Policy = "IsPoster")]
 @using Microsoft.EntityFrameworkCore
 @inject IDbContextFactory<Model.Database> DbContext
 

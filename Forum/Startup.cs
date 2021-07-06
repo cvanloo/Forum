@@ -39,6 +39,8 @@ namespace Forum
             services.AddAuthorization(options =>
             {
                 options.AddPolicy("CanAccess", a => a.RequireAuthenticatedUser());
+                options.AddPolicy("IsAdmin", p => p.RequireClaim("admin", "true"));
+                options.AddPolicy("IsPoster", p => p.RequireClaim("poster", "true"));
             });
 
             // Database context factory

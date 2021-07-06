@@ -2,30 +2,37 @@
 
 html, body {
 	font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-	/*background: #282C37;*/
-	background: #343744;
+	background: #191B22;
 	color: #FFF;
+	max-width: 125rem;
+	margin-left: auto;
+	margin-right: auto;
 }
 
 h1 {
 	color: #FFF;
 }
 
-input {
+.center-whole {
+	width: 90%;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+/* Overwrites bootstraps form-control class */
+.form-control {
+	border: none;
+	background: #131419;
+	color: white;
+
 	border: none;
 	margin: 2rem 0;
 	width: 100%;
 	border-radius: 0.5rem;
 }
 
-.form-control {
-	border: none;
-	background: #282C37;
-	color: white;
-}
-
 	.form-control:focus {
-		background: #282C37;
+		background: #131419;
 		color: white;
 	}
 
@@ -51,15 +58,28 @@ form {
 }
 
 .main {
-	/*background: #191B22;*/
-	/*background: #343744;*/
-	background: #000;
+	background: #333844;
 	color: #9BAEC8;
+	margin: 5px;
 }
 
 	.main h3 {
 		color: #FFF;
 	}
+
+.container-middle {
+	margin-left: auto;
+	margin-right: auto;
+	width: 70%;
+}
+
+.container-left {
+	width: 15%;
+}
+
+.container-right {
+	width: 15%;
+}
 
 .element {
 	background: #282C37;
@@ -72,14 +92,18 @@ button {
 	padding: 7px;
 	width: 1%;
 	flex-grow: 1;
-	/*max-width: 34%;*/
-	/*min-width: 33%;*/
 }
 
 	button:hover {
-		/*filter: brightness(70%);*/
 		filter: brightness(120%);
 	}
+
+.btn-norm {
+	border-radius: 0.5rem;
+	background: #333844;
+	color: #9BAEC8;
+	font-size: larger;
+}
 
 .btn-bottom-left {
 	border-bottom-left-radius: 0.5rem;
@@ -113,6 +137,29 @@ button {
 	background: #9BAEC8;
 }
 
+.p-annotation-lg {
+	margin: 0;
+}
+
+.p-annotation-sm {
+	margin: 0;
+	font-size: smaller;
+}
+
+.input-fg {
+	border: none;
+	background: #333844;
+	color: #9BAEC8;
+	margin: 5px;
+	width: 100%;
+	border-radius: 0.5rem;
+}
+
+	.input-fg:focus {
+		background: #333844;
+		color: #9BAEC8;
+		outline: none;
+	}
 
 
 
@@ -124,6 +171,7 @@ button {
 
 
 
+/* Blazor Error Stuff */
 .valid.modified:not([type=checkbox]) {
 	outline: 1px solid #26b050;
 }
