@@ -28,11 +28,20 @@ namespace Forum.Data
 		/// <returns>
 		/// The User entity on success. Will throw an exception otherwise.
 		/// </returns>
-		public User ValidateUser(string username, string password)
+		public User ValidateUser(string identifier, string password)
 		{
 			using var db = _dbContext.CreateDbContext();
-			
-			User user = db.Users.Where(u => u.AccountName == username).FirstOrDefault();
+
+			User user;
+
+			if (identifier.Contains('@'))
+			{
+				user = db.Users.Where(u => u.Email == identifier).FirstOrDefault();
+			}
+			else
+			{
+				user = db.Users.Where(u => u.AccountName == identifier).FirstOrDefault();
+			}
 
 			if (null == user)
 			{
