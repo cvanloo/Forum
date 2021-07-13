@@ -139,6 +139,11 @@ namespace Forum.Model
 				.HasIndex(s => new { s.Key, s.UserId })
 				.IsUnique();
 
+            // Tag
+            modelBuilder.Entity<Tag>()
+                .HasIndex(t => t.Name)
+                .IsUnique();
+
             // Session
             //modelBuilder.Entity<Session>()
             //    .HasKey(s => new { s.UserId, s.Identifier });
@@ -146,6 +151,19 @@ namespace Forum.Model
             //modelBuilder.Entity<Session>()
             //    .HasIndex(s => new { s.User, s.Identifier })
             //    .IsUnique();
+
+            /* Mapping multiple relations between the same tables.
+             * Multiple relations between two tables need to be
+             * mapped manually.
+             */
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.Threads)
+                .WithOne(t => t.Creator)
+                .HasForeignKey(t => t.CreatorId);
+
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.SavedThreads)
+                .WithMany(t => t.Saviors);
         }
 
         /* NOTE: In order to make properties from Entities readonly,

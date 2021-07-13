@@ -247,6 +247,24 @@ namespace Forum.Migrations
                     b.ToTable("Setting");
                 });
 
+            modelBuilder.Entity("Forum.Entity.Tag", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Tag");
+                });
+
             modelBuilder.Entity("Forum.Entity.Thread", b =>
                 {
                     b.Property<int>("Id")
@@ -254,7 +272,6 @@ namespace Forum.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("ContentPath")
-                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<DateTime>("Created")
@@ -387,6 +404,36 @@ namespace Forum.Migrations
                     b.HasIndex("MembersId");
 
                     b.ToTable("ForumUser");
+                });
+
+            modelBuilder.Entity("TagThread", b =>
+                {
+                    b.Property<int>("TagsId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ThreadsId")
+                        .HasColumnType("int");
+
+                    b.HasKey("TagsId", "ThreadsId");
+
+                    b.HasIndex("ThreadsId");
+
+                    b.ToTable("TagThread");
+                });
+
+            modelBuilder.Entity("ThreadUser", b =>
+                {
+                    b.Property<int>("SavedThreadsId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SaviorsId")
+                        .HasColumnType("int");
+
+                    b.HasKey("SavedThreadsId", "SaviorsId");
+
+                    b.HasIndex("SaviorsId");
+
+                    b.ToTable("ThreadUser");
                 });
 
             modelBuilder.Entity("UserUser", b =>
@@ -539,6 +586,36 @@ namespace Forum.Migrations
                     b.HasOne("Forum.Entity.User", null)
                         .WithMany()
                         .HasForeignKey("MembersId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TagThread", b =>
+                {
+                    b.HasOne("Forum.Entity.Tag", null)
+                        .WithMany()
+                        .HasForeignKey("TagsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Forum.Entity.Thread", null)
+                        .WithMany()
+                        .HasForeignKey("ThreadsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ThreadUser", b =>
+                {
+                    b.HasOne("Forum.Entity.Thread", null)
+                        .WithMany()
+                        .HasForeignKey("SavedThreadsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Forum.Entity.User", null)
+                        .WithMany()
+                        .HasForeignKey("SaviorsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

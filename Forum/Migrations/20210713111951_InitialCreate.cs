@@ -48,6 +48,21 @@ namespace Forum.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "Tag",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Name = table.Column<string>(type: "varchar(255)", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Tag", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
                 {
@@ -158,6 +173,30 @@ namespace Forum.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "PwResets",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    Timestamp = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValueSql: "NOW()"),
+                    Token = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Used = table.Column<bool>(type: "tinyint(1)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PwResets", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PwResets_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "Sessions",
                 columns: table => new
                 {
@@ -214,7 +253,7 @@ namespace Forum.Migrations
                     CreatorId = table.Column<int>(type: "int", nullable: false),
                     Title = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    ContentPath = table.Column<string>(type: "longtext", nullable: false)
+                    ContentPath = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Created = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValueSql: "NOW()"),
                     IsArchived = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false),
@@ -247,7 +286,7 @@ namespace Forum.Migrations
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     UserId = table.Column<int>(type: "int", nullable: false),
                     ForumId = table.Column<int>(type: "int", nullable: false),
-                    Joined = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValue: new DateTime(2021, 6, 29, 9, 49, 40, 667, DateTimeKind.Local).AddTicks(9889)),
+                    Joined = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValueSql: "NOW()"),
                     IsBlocked = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false),
                     ModLevel = table.Column<int>(type: "int", nullable: false, defaultValue: 0)
                 },
@@ -333,6 +372,56 @@ namespace Forum.Migrations
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
+            migrationBuilder.CreateTable(
+                name: "TagThread",
+                columns: table => new
+                {
+                    TagsId = table.Column<int>(type: "int", nullable: false),
+                    ThreadsId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TagThread", x => new { x.TagsId, x.ThreadsId });
+                    table.ForeignKey(
+                        name: "FK_TagThread_Tag_TagsId",
+                        column: x => x.TagsId,
+                        principalTable: "Tag",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_TagThread_Threads_ThreadsId",
+                        column: x => x.ThreadsId,
+                        principalTable: "Threads",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "ThreadUser",
+                columns: table => new
+                {
+                    SavedThreadsId = table.Column<int>(type: "int", nullable: false),
+                    SaviorsId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ThreadUser", x => new { x.SavedThreadsId, x.SaviorsId });
+                    table.ForeignKey(
+                        name: "FK_ThreadUser_Threads_SavedThreadsId",
+                        column: x => x.SavedThreadsId,
+                        principalTable: "Threads",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ThreadUser_Users_SaviorsId",
+                        column: x => x.SaviorsId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
             migrationBuilder.CreateIndex(
                 name: "IX_ChatMessage_ChatId",
                 table: "ChatMessage",
@@ -380,6 +469,11 @@ namespace Forum.Migrations
                 column: "MembersId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_PwResets_UserId",
+                table: "PwResets",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Sessions_UserId",
                 table: "Sessions",
                 column: "UserId");
@@ -396,6 +490,17 @@ namespace Forum.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Tag_Name",
+                table: "Tag",
+                column: "Name",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TagThread_ThreadsId",
+                table: "TagThread",
+                column: "ThreadsId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Threads_CreatorId",
                 table: "Threads",
                 column: "CreatorId");
@@ -404,6 +509,11 @@ namespace Forum.Migrations
                 name: "IX_Threads_ForumId",
                 table: "Threads",
                 column: "ForumId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ThreadUser_SaviorsId",
+                table: "ThreadUser",
+                column: "SaviorsId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserForums_ForumId",
@@ -448,10 +558,19 @@ namespace Forum.Migrations
                 name: "ForumUser");
 
             migrationBuilder.DropTable(
+                name: "PwResets");
+
+            migrationBuilder.DropTable(
                 name: "Sessions");
 
             migrationBuilder.DropTable(
                 name: "Setting");
+
+            migrationBuilder.DropTable(
+                name: "TagThread");
+
+            migrationBuilder.DropTable(
+                name: "ThreadUser");
 
             migrationBuilder.DropTable(
                 name: "UserForums");
@@ -461,6 +580,9 @@ namespace Forum.Migrations
 
             migrationBuilder.DropTable(
                 name: "Chat");
+
+            migrationBuilder.DropTable(
+                name: "Tag");
 
             migrationBuilder.DropTable(
                 name: "Threads");

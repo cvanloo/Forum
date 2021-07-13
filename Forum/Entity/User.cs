@@ -46,10 +46,14 @@ namespace Forum.Entity
         public ICollection<Forum> Forums { get; set; }
         //public ICollection<UserForum> Forums { get; set; }
 
+        // Threads created by this user
         public ICollection<Thread> Threads { get; set; }
 
         public ICollection<Session> Sessions { get; set; }
 
         public ICollection<PwReset> PwResets { get; set; }
+
+        // Threads saved by this user
+        public ICollection<Thread> SavedThreads { get; set; }
     }
 }

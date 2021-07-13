@@ -10,13 +10,14 @@ namespace Forum.Entity
         [Key,Required]
         public int Id { get; set; }
 
-        [ForeignKey("CreatorId"),Required] // Without the Fk annotation the Required anno. is ignored
+        [Required]
+        public int CreatorId { get; set; }
+        [Required]
         public User Creator { get; set; } 
 
         [Required]
         public string Title { get; set; }
 
-        [Required]
         public string ContentPath { get; set; }
 
         [Required]
@@ -34,5 +35,10 @@ namespace Forum.Entity
         public int ForumId { get; set; }
         [Required]
         public Forum Forum { get; set; }
+
+        // The users that saved this thread
+        public ICollection<User> Saviors { get; set; }
+
+        public ICollection<Tag> Tags { get; set; }
     }
 }
