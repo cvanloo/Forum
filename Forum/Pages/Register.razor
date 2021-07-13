@@ -3,18 +3,20 @@
 @using Microsoft.EntityFrameworkCore; 
 @using Forum.Entity;
 @using System.ComponentModel.DataAnnotations;
-@inject IDbContextFactory<Model.Database> DbContext;
-@inject NavigationManager NavigationManager; 
+@inject IDbContextFactory<Model.Database> DbContext
+@inject NavigationManager NavigationManager 
+@inject NavigationManager NavMan 
 
 <div class="main text-center mt-5 ml-auto mr-auto form-sim">
 	<div class="col">
-		<h3 class="mt-2">Register</h3>
-		<input class="form-control" type="text" @bind-value="_registerModel.AccountName" placeholder="Account name" />
+		<h3 class="mt-2">Create Account</h3>
+		<input class="form-control" type="text" @bind-value="_registerModel.AccountName" placeholder="Account Name" />
 		<input class="form-control" type="email" @bind-value="_registerModel.Email" placeholder="Email Address" />
 		<input class="form-control" type="password" @bind-value="_registerModel.Password" placeholder="Password" />
 		<input class="form-control" type="password" @bind-value="_registerModel.RepeatPassword" placeholder="Repeat Password" />
 		<div class="row">
-			<button class="accent-green btn-bottom-left btn-bottom-right" @onclick="HashPw">Register</button>
+			<button class="accent-blue btn-bottom-left btn-grow-large" @onclick="NavLogin">Already have an account?</button>
+			<button class="accent-green btn-bottom-right" @onclick="HashPw">Register</button>
 		</div>
 	</div>
 </div>
@@ -73,6 +75,11 @@
 		{
 			Console.WriteLine(ex.Message);
 		}
+	}
+
+	private void NavLogin()
+	{
+		NavMan.NavigateTo("/login");
 	}
 
 	public class RegisterModel

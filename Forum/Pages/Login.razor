@@ -12,7 +12,7 @@
 			<form @onsubmit="SignIn">
 				<div class="col">
 					<h3 class="mt-2">Login</h3>
-					<input class="form-control" type="text" placeholder="Username / Email" @bind-value="_loginModel.Username" />
+					<input class="form-control" type="text" placeholder="Username / Email" @bind-value="_loginModel.Identifier" />
 					<input class="form-control" type="password" placeholder="Password" @bind-value="_loginModel.Password" />
 					<div class="row">
 						<button class="accent-red btn-bottom-left" @onclick="NavPwReset">Forgot Password</button>
@@ -46,11 +46,11 @@
 
 	private async Task SignIn()
 	{
-		if (!string.IsNullOrEmpty(_loginModel.Username) && !string.IsNullOrEmpty(_loginModel.Password))
+		if (!string.IsNullOrEmpty(_loginModel.Identifier) && !string.IsNullOrEmpty(_loginModel.Password))
 		{
 			try
 			{
-				await ((Forum.Controller.AuthenticationStateController)AuthProvider).ValidateLogin(_loginModel.Username, _loginModel.Password);
+				await ((Forum.Controller.AuthenticationStateController)AuthProvider).ValidateLogin(_loginModel.Identifier, _loginModel.Password);
 			}
 			catch (Exception ex)
 			{
@@ -64,7 +64,6 @@
 	private async Task LogOut()
 	{
 		await ((Forum.Controller.AuthenticationStateController)AuthProvider).Logout();
-		//NavigationManager.NavigateTo("/");
 	}
 
 	private void NavPwReset()
@@ -106,7 +105,7 @@
 	public class LoginModel
 	{
 		[Required]
-		public string Username { get; set; }
+		public string Identifier { get; set; }
 		[Required]
 		public string Password { get; set; }
 	}

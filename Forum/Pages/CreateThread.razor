@@ -6,21 +6,23 @@
 @inject IDbContextFactory<Model.Database> DbContext
 @inject NavigationManager NavMan 
 
-<div class="main text-center mt-5 ml-auto mr-auto form-sim">
+<div class="main text-center mt-5 ml-auto mr-auto form-bigger">
 	<div class="col">
 		<h3 class="mt-2">Create Thread</h3>
-		<select class="form-control">
-			<option>Forum 1</option>
-			<option>Forum 2</option>
+		<select class="form-control" @bind="_forumId">
+			@foreach (Entity.Forum forum in _forums)
+			{
+				<option value="@forum.Id">@forum.Name</option>
+			}
 		</select>
-		<input class="form-control" type="text" placeholder="Title" />
+		<input class="form-control" type="text" placeholder="Title" @bind-value="_title" />
 		<textarea class="form-control" placeholder="Content" />
 		<img />
 		<input class="form-control" type="text" placeholder="Add Tags" />
 		<input class="form-control" type="file" />
 		<div class="row">
 			<button @onclick="NavHome" class="accent-blue btn-bottom-left">Go Back</button>
-			<button class="accent-green btn-bottom-right">Create Thread</button>
+			<button @onclick="StoreThread" class="accent-green btn-bottom-right">Create Thread</button>
 		</div>
 	</div>
 </div>
@@ -29,8 +31,16 @@
 	[CascadingParameter]
 	private Task<AuthenticationState> authenticationStateTask { get; set; }
 
-	private string _forum { get; set; }
-	private string _title { get; set; }
+	private Entity.Forum[] _forums;
+	private int _forumId = 1;
+	private string _title;
+
+	protected async override Task OnInitializedAsync()
+	{
+		using var db = DbContext.CreateDbContext();
+
+		_forums = db.Forums.ToArray();
+	}
 
 	private async void StoreThread()
 	{
@@ -39,13 +49,12 @@
 		string content = null;
 		var authState = await authenticationStateTask;
 		var user = db.Users.FirstOrDefault(u => u.AccountName == authState.User.Identity.Name);
-		var forum = db.Forums.First(f => f.Name == _forum);
 
 		var newThread = new Entity.Thread()
 		{
 			ContentPath = content,
 			Creator = user,
-			ForumId = forum.Id,
+			ForumId = _forumId,
 			Title = _title,
 
 		};

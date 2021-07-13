@@ -5,11 +5,12 @@
 @inject IDbContextFactory<Model.Database> DbContext
 @inject NavigationManager NavigationManager
 
-@*<h1>You can only see this if you're authorized.</h1>*@
-@*<h1>Hello, world!</h1>
-	<button @onclick="AddUser">Add User</button>
-
-	Welcome to your new app.*@
+<style>
+	#search_bar {
+		background: #333844 url(/css/icons/Search.png) right no-repeat;
+		padding-right: 17px;
+	}
+</style>
 
 <AuthorizeView>
 	<Authorized>
@@ -21,10 +22,10 @@
 			}
 		</ul>*@
 		<div class="container-left">
-			<div class="main">
+			<div class="main needs-padding">
 				<img width="50" height="50" src="/css/icons/Default.jpg" alt="Profile Image" />
-				<h4>DisplayName</h4>
-				<p class="p-annotation-lg">AccountName</p>
+				<h4>@_displayName</h4>
+				<p class="p-annotation-lg">@_accountName</p>
 			</div>
 			<div class="main row">
 				<button @onclick="NavCreatePost" class="btn-norm">Start a Thread</button>
@@ -35,7 +36,7 @@
 					Preferences
 				</a>
 			</div>
-			<div class="" style="bottom: 0;">
+			<div class="">
 				<p class="p-annotation-sm">Bottom</p>
 			</div>
 		</div>
@@ -48,14 +49,20 @@
 			</div>
 		</div>
 		<div class="container-right">
-			<div class="main">
-				HOME Sort options
+			<div class="main needs-padding">
+				<h1>HOME <img src="/css/icons/Quick_Settings.png" width="40" height="40"/></h1>
+				<p>Sort by:</p>
+				<div class="row btn-select">
+					<button class="btn-left">New</button>
+					<button class="btn-active">Trending</button>
+					<button class="btn-right">Old</button>
+				</div>
 			</div>
 			<div class="main row">
-				<input class="input-fg" type="text" placeholder="Search User, Tags or Posts" />
+				<input class="input-fg needs-padding" type="text" placeholder="Search @@User, #Tags or Posts" id="search_bar" />
 			</div>
-			<div class="main">
-				Trending Now
+			<div class="main needs-padding">
+				<TrendingNow />
 			</div>
 		</div>
 	</Authorized>
@@ -68,6 +75,8 @@
 	[CascadingParameter]
 	private Task<AuthenticationState> authenticationStateTask { get; set; }
 
+	private string _displayName;
+	private string _accountName;
 	private List<Entity.Thread> _threads = new List<Entity.Thread>();
 
 	protected async override Task OnInitializedAsync()
@@ -81,10 +90,17 @@
 			return;
 		}
 
-		LoadThreads();
+		using (var db = DbContext.CreateDbContext())
+		{
+			Entity.User user = db.Users.First(u => u.AccountName == authenticationState.User.Identity.Name);
+			_displayName = user.DisplayName;
+			_accountName = user.AccountName;
+		}
+
+		await LoadThreads();
 	}
 
-	private async void LoadThreads()
+	private async Task LoadThreads()
 	{
 		using var db = DbContext.CreateDbContext();
 
@@ -94,8 +110,6 @@
 			.OrderBy(o => o.Created)
 			.Take(50).ToList();
 	}
-
-
 
 	private void NavCreatePost()
 	{

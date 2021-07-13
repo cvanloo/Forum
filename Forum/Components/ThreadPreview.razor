@@ -2,7 +2,7 @@
 @using System.IO 
 @inject NavigationManager NavMan 
 
-<div @onclick="OpenThread" style="border-bottom: 2px solid #9BAEC8; border-radius: 0; cursor: pointer" class="needs-padding shiny">
+<div @onclick="OpenThread" style="border-bottom: 0.1rem solid #9BAEC8; border-radius: 0; cursor: pointer" class="needs-padding shiny">
 	<p class="p-annotation-sm">@ThreadModel.Creator.AccountName@@@ThreadModel.Forum.Name 
 		@ThreadModel.Created.ToString("t"), @ThreadModel.Created.ToString("d")</p>
 	<h5 class="txt-title">@ThreadModel.Title</h5>
@@ -17,14 +17,17 @@
 
 	protected async override Task OnInitializedAsync()
 	{
-		string path = ThreadModel.ContentPath;
+		if (!string.IsNullOrEmpty(ThreadModel.ContentPath))
+		{
+			string path = ThreadModel.ContentPath;
 
-		StreamReader streamReader = new StreamReader(path);
+			StreamReader streamReader = new StreamReader(path);
 
-		char[] buffer = new char[50];
-		streamReader.Read(buffer);
+			char[] buffer = new char[50];
+			streamReader.Read(buffer);
 
-		_content = new string(buffer);
+			_content = new string(buffer);
+		}
 	}
 
 	private void OpenThread()

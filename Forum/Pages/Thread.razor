@@ -24,8 +24,8 @@
 	</div>
 	<div class="second row">
 		<p class="p-annotation-sm txt-dark needs-space-lr">@_thread.Comments.Count Comments (@(_thread.Comments.Count / 20) Pages)</p>
-		<p @onclick="CopyLink" class="p-annotation-sm txt-dark needs-space-lr clickable shiny">Copy Link</p>
-		<p class="p-annotation-sm txt-dark needs-space-lr clickable shiny">Save</p>
+		<p @onclick="CopyLink" class="p-annotation-sm txt-dark needs-space-lr clickable shiny">@_copyLabel</p>
+		<p @onclick="SaveThread" class="p-annotation-sm txt-dark needs-space-lr clickable shiny">Save</p>
 	</div>
 </div>
 <div class="container-right" >
@@ -41,6 +41,10 @@
 	[Parameter]
 	public int Id { get; set; }
 
+	[CascadingParameter]
+	private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+	private string _copyLabel = "Copy Link";
 	private Entity.Thread _thread;
 	private string _content;
 
@@ -55,10 +59,13 @@
 			.Include(t => t.Comments)
 			.FirstOrDefault(t => t.Id == Id);
 
-		string path = _thread.ContentPath;
-		StreamReader streamReader = new StreamReader(path);
+		if (!string.IsNullOrEmpty(_thread.ContentPath))
+		{
+			string path = _thread.ContentPath;
+			StreamReader streamReader = new StreamReader(path);
 
-		_content = streamReader.ReadToEnd();
+			_content = streamReader.ReadToEnd();
+		}
 	}
 
 	private void NavHome()
@@ -68,8 +75,28 @@
 
 	private async void CopyLink()
 	{
+		_copyLabel = "Copied!";
 		string link = NavMan.Uri;
-		Console.WriteLine(link);
-		await iJsRuntime.InvokeVoidAsync("clipboardCopy.copyText", link);
+		await iJsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", link);
+	}
+
+	private async void SaveThread()
+	{
+		using var db = DbContext.CreateDbContext();
+
+		var authenticationState = await authenticationStateTask;
+
+		Entity.User user = db.Users
+			.Include(u => u.SavedThreads)
+			.Include(u => u.Forums)
+			.First(u => u.AccountName == authenticationState.User.Identity.Name);
+
+		// Get the thread again, because it needs to come from the same db-context.
+		// Using `_thread` would not work.
+		Entity.Thread thread = db.Threads.First(t => t.Id == _thread.Id);
+
+		user.SavedThreads.Add(thread);
+
+		await db.SaveChangesAsync();
 	}
 }
