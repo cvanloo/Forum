@@ -1,4 +1,5 @@
 ﻿@page "/thread/{Id:int?}"
+@attribute [Authorize]
 @using Microsoft.EntityFrameworkCore
 @using System.IO
 @inject IDbContextFactory<Model.Database> DbContext
@@ -25,7 +26,7 @@
 	<div class="second row">
 		<p class="p-annotation-sm txt-dark needs-space-lr">@_thread.Comments.Count Comments (@(_thread.Comments.Count / 20) Pages)</p>
 		<p @onclick="CopyLink" class="p-annotation-sm txt-dark needs-space-lr clickable shiny">@_copyLabel</p>
-		<p @onclick="SaveThread" class="p-annotation-sm txt-dark needs-space-lr clickable shiny">Save</p>
+		<p @onclick="SaveThread" class="p-annotation-sm txt-dark needs-space-lr clickable shiny">@(_saved ? "Saved!" : "Save")</p>
 	</div>
 </div>
 <div class="container-right" >
@@ -47,6 +48,7 @@
 	private string _copyLabel = "Copy Link";
 	private Entity.Thread _thread;
 	private string _content;
+	private bool _saved;
 
 	protected async override Task OnInitializedAsync()
 	{
@@ -58,6 +60,10 @@
 				.ThenInclude(f => f.Members)
 			.Include(t => t.Comments)
 			.FirstOrDefault(t => t.Id == Id);
+
+		var authenticationState = await authenticationStateTask;
+		Entity.User user = db.Users.Include(u => u.SavedThreads).First(u => u.AccountName == authenticationState.User.Identity.Name);
+		_saved = user.SavedThreads.Contains(_thread);
 
 		if (!string.IsNullOrEmpty(_thread.ContentPath))
 		{
@@ -95,8 +101,18 @@
 		// Using `_thread` would not work.
 		Entity.Thread thread = db.Threads.First(t => t.Id == _thread.Id);
 
-		user.SavedThreads.Add(thread);
+		if (_saved)
+		{
+			user.SavedThreads.Remove(thread);
+		}
+		else
+		{
+			user.SavedThreads.Add(thread);
+		}
 
 		await db.SaveChangesAsync();
+
+		_saved = !_saved;
+		StateHasChanged();
 	}
 }

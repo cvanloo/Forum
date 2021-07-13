@@ -59,7 +59,7 @@ form {
 }
 
 .form-sim {
-	width: 30em;
+	width: 30rem;
 }
 
 .form-bigger {
@@ -69,7 +69,7 @@ form {
 .main {
 	background: #333844;
 	color: #9BAEC8;
-	margin: 0.25em;
+	margin: 0.25rem;
 }
 
 	.main h3 {
@@ -78,16 +78,16 @@ form {
 
 .second {
 	background: #191B22;
-	margin: 0.25em;
+	margin: 0.25rem;
 }
 
 .needs-padding {
-	padding: 0.5em;
+	padding: 0.5rem;
 }
 
 .needs-space-lr {
-	margin-left: 0.75em !important;
-	margin-right: 0.75em !important;
+	margin-left: 0.75rem !important;
+	margin-right: 0.75rem !important;
 }
 
 .clickable {
@@ -116,7 +116,7 @@ form {
 button {
 	border: none;
 	display: inline-block;
-	padding: 0.5em;
+	padding: 0.5rem;
 	
 	/* Divides the whole available width between
 	 * all buttons equally.
@@ -205,7 +205,7 @@ button {
 	border: none;
 	background: #333844;
 	color: #9BAEC8;
-	margin: 0.25em;
+	margin: 0.25rem;
 	width: 100%;
 	border-radius: 0.5rem;
 }
@@ -250,13 +250,13 @@ textarea {
 	}
 
 .btn-left {
-	border-bottom-left-radius: 0.25em;
-	border-top-left-radius: 0.25em;
+	border-bottom-left-radius: 0.25rem;
+	border-top-left-radius: 0.25rem;
 }
 
 .btn-right {
-	border-bottom-right-radius: 0.25em;
-	border-top-right-radius: 0.25em;
+	border-bottom-right-radius: 0.25rem;
+	border-top-right-radius: 0.25rem;
 }
 
 
