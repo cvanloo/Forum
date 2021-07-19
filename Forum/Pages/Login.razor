@@ -15,9 +15,9 @@
 					<input class="form-control" type="text" placeholder="Username / Email" @bind-value="_loginModel.Identifier" />
 					<input class="form-control" type="password" placeholder="Password" @bind-value="_loginModel.Password" />
 					<div class="row">
-						<button class="accent-red btn-bottom-left" @onclick="NavPwReset">Forgot Password</button>
-						<button class="accent-blue" @onclick="NavRegister">Create Account</button>
-						<button class="accent-green btn-bottom-right" @onclick="SignIn">Log In</button>
+						<button type="button" class="accent-red btn-bottom-left" @onclick="NavPwReset">Forgot Password</button>
+						<button type="button" class="accent-blue" @onclick="NavRegister">Create Account</button>
+						<button type="submit" class="accent-green btn-bottom-right" @onclick="SignIn">Log In</button>
 					</div>
 				</div>
 			</form>

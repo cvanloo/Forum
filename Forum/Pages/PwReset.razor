@@ -11,8 +11,8 @@
 			<h3 class="mt-2">Request Password Reset</h3>
 			<input class="form-control" @bind-value="_email" type="text" placeholder="Email" />
 			<div class="row">
-				<button class="accent-blue btn-bottom-left btn-grow-medium" @onclick="NavLogin">Go to Login</button>
-				<button class="accent-green btn-bottom-right" @onclick="ProcessRequest">Request Reset Link</button>
+				<button type="button" class="accent-blue btn-bottom-left btn-grow-medium" @onclick="NavLogin">Go to Login</button>
+				<button type="submit" class="accent-green btn-bottom-right" @onclick="ProcessRequest">Request Reset Link</button>
 			</div>
 		</div>
 	</div>
@@ -25,7 +25,7 @@ else
 			<input class="form-control" @bind-value="_newPassword" type="password" placeholder="New Password" />
 			<input class="form-control" @bind-value="_repNewPassword" type="password" placeholder="Repeat New Password" />
 			<div class="row">
-				<button class="accent-green btn-bottom-left btn-bottom-right" @onclick="UpdatePassword">Save Password</button>
+				<button type="submit" class="accent-green btn-bottom-left btn-bottom-right" @onclick="UpdatePassword">Save Password</button>
 			</div>
 		</div>
 	</div>

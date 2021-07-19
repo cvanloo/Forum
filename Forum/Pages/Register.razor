@@ -15,8 +15,8 @@
 		<input class="form-control" type="password" @bind-value="_registerModel.Password" placeholder="Password" />
 		<input class="form-control" type="password" @bind-value="_registerModel.RepeatPassword" placeholder="Repeat Password" />
 		<div class="row">
-			<button class="accent-blue btn-bottom-left btn-grow-large" @onclick="NavLogin">Already have an account?</button>
-			<button class="accent-green btn-bottom-right" @onclick="HashPw">Register</button>
+			<button type="button" class="accent-blue btn-bottom-left btn-grow-large" @onclick="NavLogin">Already have an account?</button>
+			<button type="submit" class="accent-green btn-bottom-right" @onclick="HashPw">Register</button>
 		</div>
 	</div>
 </div>
