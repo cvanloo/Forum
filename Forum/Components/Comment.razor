@@ -8,17 +8,23 @@
 	}
 
 	.collapsed {
+		padding: 0 !important;
+		color: gray;
+	}
+
+	.collapsed span {
 		display: none;
 	}
+
 </style>
 
-<div class="second needs-padding border-left" >
+<div class="second needs-padding border-left @_collapseClass" >
 	<p class="p-annotation-sm">
 		@CommentModel.Creator.AccountName
 		@CommentModel.Created.ToString("t"), @CommentModel.Created.ToString("d")
 		<button class="btn-mini" @onclick="Collapse">--</button>
 	</p>
-	<span class="@_collapseClass">
+	<span>
 		<pre class="txt-title">@CommentModel.Text</pre>
 		<button class="btn-mini" @onclick="ToggleCommentField" >Answer</button>
 		<div class="@_cfClass">
