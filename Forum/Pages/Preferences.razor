@@ -1,0 +1,81 @@
+﻿@page "/pref"
+@attribute [Authorize]
+@inject NavigationManager NavMan
+@inject IDbContextFactory<Model.Database> DbContext
+@using Microsoft.EntityFrameworkCore
+
+<style>
+	p {
+		border-bottom: 1px solid #9BAEC8;
+	}
+</style>
+
+<div class="main text-center mt-5 ml-auto mr-auto form-bigger">
+	<div class="col">
+		<h3 class="mt-2">User Preferences</h3>
+		<p>Username</p>
+		<input type="text" disabled class="form-control" placeholder="@_accountName (Cannot be changed)" />
+		<input type="text" class="form-control" placeholder="Displayname" @bind-value="@_displayName" />
+		<p>Email</p>
+		<input type="email" class="form-control" placeholder="Email Address" @bind-value="@_email" />
+		<p>Password</p>
+		<input type="password" class="form-control" placeholder="Current Password" @bind-value="@_currentPasswd" />
+		<input type="password" class="form-control" placeholder="New Password" @bind-value="@_newPasswd" />
+		<input type="password" class="form-control" placeholder="Repeat New Password" @bind-value="@_repNewPasswd" />
+		<div class="row">
+			<button type="button" @onclick="NavHome" class="accent-blue btn-bottom-left">Go Back</button>
+			<button type="submit" @onclick="UpdateAccount" class="accent-green btn-bottom-right">Update Account</button>
+		</div>
+	</div>
+</div>
+
+@code {
+	private string _accountName;
+	private string _displayName;
+	private string _email;
+	private string _currentPasswd;
+	private string _newPasswd;
+	private string _repNewPasswd;
+
+	[CascadingParameter]
+	private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+	protected async override Task OnInitializedAsync()
+	{
+		var authenticationState = await authenticationStateTask;
+		using var db = DbContext.CreateDbContext();
+
+		Entity.User user = db.Users.First(u => u.AccountName == authenticationState.User.Identity.Name);
+
+		_accountName = user.AccountName;
+		_displayName = user.DisplayName;
+		_email = user.Email;
+	}
+
+	private async void UpdateAccount()
+	{
+		var authenticationState = await authenticationStateTask;
+		using var db = DbContext.CreateDbContext();
+
+		Entity.User user = db.Users.First(u => u.AccountName == authenticationState.User.Identity.Name);
+
+		user.DisplayName = string.IsNullOrEmpty(_displayName) ? user.DisplayName : _displayName;
+		// TODO: Send email
+		user.Email = string.IsNullOrEmpty(_email) ? user.Email : _email;
+
+		if (!string.IsNullOrEmpty(_newPasswd) &&
+			!string.IsNullOrEmpty(_repNewPasswd) &&
+			_repNewPasswd == _newPasswd &&
+			BCrypt.Net.BCrypt.EnhancedVerify(_currentPasswd, user.PwHash))
+		{
+			user.PwHash = BCrypt.Net.BCrypt.EnhancedHashPassword(_newPasswd, 12);
+		}
+
+		await db.SaveChangesAsync();
+	}
+
+	private void NavHome()
+	{
+		NavMan.NavigateTo("/");
+	}
+}
