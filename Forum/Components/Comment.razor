@@ -6,25 +6,31 @@
 		border-left: 2px solid white !important;
 		border-radius: 0;
 	}
+
+	.collapsed {
+		display: none;
+	}
 </style>
 
 <div class="second needs-padding border-left" >
 	<p class="p-annotation-sm">
 		@CommentModel.Creator.AccountName
 		@CommentModel.Created.ToString("t"), @CommentModel.Created.ToString("d")
+		<button class="btn-mini" @onclick="Collapse">--</button>
 	</p>
-	<pre class="txt-title">@CommentModel.Text</pre>
-	<button class="btn-mini" @onclick="ToggleCommentField" >Answer</button>
-	<div class="@_cfClass">
-		<CommentField ThreadId="@CommentModel.ThreadId" ParentId="@CommentModel.Id" />
-	</div>
+	<span class="@_collapseClass">
+		<pre class="txt-title">@CommentModel.Text</pre>
+		<button class="btn-mini" @onclick="ToggleCommentField" >Answer</button>
+		<div class="@_cfClass">
+			<CommentField ThreadId="@CommentModel.ThreadId" ParentId="@CommentModel.Id" />
+		</div>
 	
-	@foreach (Entity.Comment c in _childs)
-	{
-		<Comment CommentModel="c" />
-	}
+		@foreach (Entity.Comment c in _childs)
+		{
+			<Comment CommentModel="c" />
+		}
+	</span>
 </div>
- 
 
 @code {
 	[Parameter]
@@ -32,6 +38,7 @@
 
 	private List<Entity.Comment> _childs;
 	private string _cfClass = "hidden";
+	private string _collapseClass = "";
 
 	protected async override Task OnInitializedAsync()
 	{
@@ -49,5 +56,13 @@
 			_cfClass = "";
 		else
 			_cfClass = "hidden";
+	}
+
+	private void Collapse()
+	{
+		if ("collapsed" == _collapseClass)
+			_collapseClass = "";
+		else
+			_collapseClass = "collapsed";
 	}
 }

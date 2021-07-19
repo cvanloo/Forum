@@ -110,7 +110,7 @@
 			.Include(u => u.Forums)
 			.First(u => u.AccountName == authenticationState.User.Identity.Name);
 
-		// Get the thread again, because it needs to come from the same db-context.
+		// Get the thread again, because it needs to come from the _same_ db-context.
 		// Using `_thread` would not work.
 		Entity.Thread thread = db.Threads.First(t => t.Id == _thread.Id);
 
