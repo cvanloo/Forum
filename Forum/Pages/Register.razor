@@ -3,9 +3,11 @@
 @using Microsoft.EntityFrameworkCore; 
 @using Forum.Entity;
 @using System.ComponentModel.DataAnnotations;
+@using Microsoft.Extensions.Configuration 
 @inject IDbContextFactory<Model.Database> DbContext
 @inject NavigationManager NavigationManager 
 @inject NavigationManager NavMan 
+@inject IConfiguration Config
 
 <div class="main text-center mt-5 ml-auto mr-auto form-sim">
 	<div class="col">
@@ -41,7 +43,7 @@
 
 	private async Task HashPw()
 	{
-		string pwHash = BCrypt.EnhancedHashPassword(_registerModel.Password, 12);
+		string pwHash = BCrypt.EnhancedHashPassword(_registerModel.Password, Config.GetValue<int>("Workfactor"));
 
 		using var db = DbContext.CreateDbContext();
 

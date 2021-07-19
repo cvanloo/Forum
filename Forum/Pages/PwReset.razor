@@ -1,8 +1,10 @@
 ﻿@page "/pwreset/{Token?}"
 @using Microsoft.EntityFrameworkCore
+@using Microsoft.Extensions.Configuration
 @inject NavigationManager NavMan
 @inject IDbContextFactory<Model.Database> DbContext
 @inject NavigationManager NavMan 
+@inject IConfiguration Config
 
 @if (string.IsNullOrEmpty(Token))
 {
@@ -79,7 +81,7 @@ else
 		{
 			if (!string.IsNullOrEmpty(_newPassword) && _repNewPassword == _newPassword)
 			{
-				string pwHash = BCrypt.Net.BCrypt.EnhancedHashPassword(_newPassword, 12);
+				string pwHash = BCrypt.Net.BCrypt.EnhancedHashPassword(_newPassword, Config.GetValue<int>("Workfactor"));
 
 				pwReset.User.PwHash = pwHash;
 			}

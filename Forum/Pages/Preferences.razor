@@ -2,7 +2,9 @@
 @attribute [Authorize]
 @inject NavigationManager NavMan
 @inject IDbContextFactory<Model.Database> DbContext
+@inject IConfiguration Config
 @using Microsoft.EntityFrameworkCore
+@using Microsoft.Extensions.Configuration
 
 <style>
 	p {
@@ -68,7 +70,7 @@
 			_repNewPasswd == _newPasswd &&
 			BCrypt.Net.BCrypt.EnhancedVerify(_currentPasswd, user.PwHash))
 		{
-			user.PwHash = BCrypt.Net.BCrypt.EnhancedHashPassword(_newPasswd, 12);
+			user.PwHash = BCrypt.Net.BCrypt.EnhancedHashPassword(_newPasswd, Config.GetValue<int>("Workfactor"));
 		}
 
 		await db.SaveChangesAsync();

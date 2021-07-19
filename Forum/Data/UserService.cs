@@ -12,10 +12,12 @@ namespace Forum.Data
 	public class UserService : IUserService
 	{
 		private readonly IDbContextFactory<Database> _dbContext;
+		private readonly int _workfactor;
 
-		public UserService(IDbContextFactory<Database> dbContext)
+		public UserService(IDbContextFactory<Database> dbContext, IConfiguration config)
 		{
 			_dbContext = dbContext;
+			_workfactor = config.GetValue<int>("Workfactor");
 		}
 
 		/// <summary>
@@ -53,10 +55,9 @@ namespace Forum.Data
 				throw new Exception("Wrong password.");
 			}
 
-			// TODO: Configure workFactor at one place
-			if (BCrypt.Net.BCrypt.PasswordNeedsRehash(user.PwHash, 12))
+			if (BCrypt.Net.BCrypt.PasswordNeedsRehash(user.PwHash, _workfactor))
 			{
-				user.PwHash = BCrypt.Net.BCrypt.EnhancedHashPassword(password, 12);
+				user.PwHash = BCrypt.Net.BCrypt.EnhancedHashPassword(password, _workfactor);
 				db.SaveChanges();
 			}
 
