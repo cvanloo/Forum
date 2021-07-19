@@ -37,7 +37,7 @@
 				</a>
 			</div>
 			<div class="">
-				<p class="p-annotation-sm">Bottom</p>
+				<p class="p-annotation-sm">@*Bottom*@</p>
 			</div>
 		</div>
 		<div class="container-middle">
@@ -87,17 +87,19 @@
 		{
 			// Send unauthorized users to the login page
 			NavigationManager.NavigateTo("/login");
-			return;
 		}
-
-		using (var db = DbContext.CreateDbContext())
+		else
 		{
-			Entity.User user = db.Users.First(u => u.AccountName == authenticationState.User.Identity.Name);
-			_displayName = user.DisplayName;
-			_accountName = user.AccountName;
+			using (var db = DbContext.CreateDbContext())
+			{
+				Entity.User user = db.Users.First(u => u.AccountName == authenticationState.User.Identity.Name);
+				_displayName = user.DisplayName;
+				_accountName = user.AccountName;
+			}
+
+			await LoadThreads();
 		}
 
-		await LoadThreads();
 	}
 
 	private async Task LoadThreads()
@@ -107,6 +109,7 @@
 		_threads = db.Threads
 			.Include(t => t.Creator)
 			.Include(t => t.Forum)
+			.Include(t => t.Tags)
 			.OrderBy(o => o.Created)
 			.Take(50).ToList();
 	}
