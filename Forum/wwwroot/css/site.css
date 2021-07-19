@@ -23,6 +23,10 @@ h1 {
 	margin-right: auto;
 }
 
+.hidden {
+	display: none;
+}
+
 /* Overwrites bootstraps form-control class */
 .form-control {
 	border: none;
@@ -66,6 +70,10 @@ form {
 	width: 50rem;
 }
 
+pre {
+	margin: 0;
+}
+
 .main {
 	background: #333844;
 	color: #9BAEC8;
@@ -78,6 +86,7 @@ form {
 
 .second {
 	background: #191B22;
+	color: #9BAEC8;
 	margin: 0.25rem;
 }
 
@@ -158,6 +167,15 @@ button {
 
 .btn-bottom-right {
 	border-bottom-right-radius: 0.5rem;
+}
+
+.btn-mini {
+	margin: 0;
+	padding: 0;
+	height: 0.25rem;
+	background: #191B22;
+	color: #9BAEC8;
+	font-size: 80%;
 }
 
 .accent-red {
@@ -257,6 +275,10 @@ textarea {
 .btn-right {
 	border-bottom-right-radius: 0.25rem;
 	border-top-right-radius: 0.25rem;
+}
+
+textarea {
+	height: 15rem !important;
 }
 
 

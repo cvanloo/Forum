@@ -17,6 +17,7 @@ namespace Forum.Model
         public DbSet<Comment> Comments { get; set; }
         public DbSet<Session> Sessions { get; set; }
         public DbSet<PwReset> PwResets { get; set; }
+        public DbSet<Tag> Tags { get; set; }
 
         public Database(DbContextOptions<Database> options) : base(options) { } 
 

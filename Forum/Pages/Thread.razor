@@ -28,6 +28,15 @@
 		<p @onclick="CopyLink" class="p-annotation-sm txt-dark needs-space-lr clickable shiny">@_copyLabel</p>
 		<p @onclick="SaveThread" class="p-annotation-sm txt-dark needs-space-lr clickable shiny">@(_saved ? "Saved!" : "Save")</p>
 	</div>
+	<div class="main">
+		<CommentField ThreadId="@_thread.Id"/>
+	</div>
+	@foreach (Entity.Comment c in _comments)
+	{
+		if (null != c.Parent) continue;
+
+		<Comment CommentModel="c" />
+	}
 </div>
 <div class="container-right" >
 	<div class="second needs-padding" >
@@ -49,6 +58,7 @@
 	private Entity.Thread _thread;
 	private string _content;
 	private bool _saved;
+	private List<Entity.Comment> _comments;
 
 	protected async override Task OnInitializedAsync()
 	{
@@ -59,7 +69,10 @@
 			.Include(t => t.Forum)
 				.ThenInclude(f => f.Members)
 			.Include(t => t.Comments)
+				.ThenInclude(c => c.Creator)
 			.FirstOrDefault(t => t.Id == Id);
+
+		_comments = _thread.Comments.ToList();
 
 		var authenticationState = await authenticationStateTask;
 		Entity.User user = db.Users.Include(u => u.SavedThreads).First(u => u.AccountName == authenticationState.User.Identity.Name);

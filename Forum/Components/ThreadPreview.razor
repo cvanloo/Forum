@@ -3,10 +3,20 @@
 @inject NavigationManager NavMan 
 
 <div @onclick="OpenThread" style="border-bottom: 0.1rem solid #9BAEC8; border-radius: 0; cursor: pointer" class="needs-padding shiny">
-	<p class="p-annotation-sm">@ThreadModel.Creator.AccountName@@@ThreadModel.Forum.Name 
-		@ThreadModel.Created.ToString("t"), @ThreadModel.Created.ToString("d")</p>
+	<p class="p-annotation-sm">
+		@ThreadModel.Creator.AccountName@@@ThreadModel.Forum.Name
+		@ThreadModel.Created.ToString("t"), @ThreadModel.Created.ToString("d")
+	</p>
 	<h5 class="txt-title">@ThreadModel.Title</h5>
 	<pre class="main">@_content</pre>
+	@{
+		string tagText = "";
+		@foreach (Tag t in ThreadModel.Tags)
+		{
+			tagText += ' ' + t.Name;
+		}
+	}
+	<small>Tags: @tagText</small>
 </div>
 
 @code {

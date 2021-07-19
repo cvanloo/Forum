@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -15,7 +16,14 @@ namespace Forum.Entity
         [Required]
         public string Text { get; set; }
 
+        public int? ParentId { get; set; }
         public Comment Parent { get; set; }
+
+        public ICollection<Comment> Childs { get; set; }
+
+        [Required]
+        public int ThreadId { get; set; }
+        public Thread Thread { get; set; }
 
         [Required]
         public DateTime Created { get; set; }

@@ -48,7 +48,7 @@ namespace Forum.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Tag",
+                name: "Tags",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -58,7 +58,7 @@ namespace Forum.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Tag", x => x.Id);
+                    table.PrimaryKey("PK_Tags", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -383,9 +383,9 @@ namespace Forum.Migrations
                 {
                     table.PrimaryKey("PK_TagThread", x => new { x.TagsId, x.ThreadsId });
                     table.ForeignKey(
-                        name: "FK_TagThread_Tag_TagsId",
+                        name: "FK_TagThread_Tags_TagsId",
                         column: x => x.TagsId,
-                        principalTable: "Tag",
+                        principalTable: "Tags",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -490,8 +490,8 @@ namespace Forum.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Tag_Name",
-                table: "Tag",
+                name: "IX_Tags_Name",
+                table: "Tags",
                 column: "Name",
                 unique: true);
 
@@ -582,7 +582,7 @@ namespace Forum.Migrations
                 name: "Chat");
 
             migrationBuilder.DropTable(
-                name: "Tag");
+                name: "Tags");
 
             migrationBuilder.DropTable(
                 name: "Threads");

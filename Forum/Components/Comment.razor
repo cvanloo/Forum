@@ -1,0 +1,53 @@
+﻿@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<Model.Database> DbContext
+
+<style>
+	.border-left {
+		border-left: 2px solid white !important;
+		border-radius: 0;
+	}
+</style>
+
+<div class="second needs-padding border-left" >
+	<p class="p-annotation-sm">
+		@CommentModel.Creator.AccountName
+		@CommentModel.Created.ToString("t"), @CommentModel.Created.ToString("d")
+	</p>
+	<pre class="txt-title">@CommentModel.Text</pre>
+	<button class="btn-mini" @onclick="ToggleCommentField" >Answer</button>
+	<div class="@_cfClass">
+		<CommentField ThreadId="@CommentModel.ThreadId" ParentId="@CommentModel.Id" />
+	</div>
+	
+	@foreach (Entity.Comment c in _childs)
+	{
+		<Comment CommentModel="c" />
+	}
+</div>
+ 
+
+@code {
+	[Parameter]
+	public Entity.Comment CommentModel { get; set; }
+
+	private List<Entity.Comment> _childs;
+	private string _cfClass = "hidden";
+
+	protected async override Task OnInitializedAsync()
+	{
+		using var db = DbContext.CreateDbContext();
+
+		_childs = db.Comments
+			.Include(c => c.Childs)
+				.ThenInclude(c => c.Creator)
+			.First(c => c.Id == CommentModel.Id).Childs.ToList();
+	}
+
+	private void ToggleCommentField()
+	{
+		if ("hidden" == _cfClass)
+			_cfClass = "";
+		else
+			_cfClass = "hidden";
+	}
+}

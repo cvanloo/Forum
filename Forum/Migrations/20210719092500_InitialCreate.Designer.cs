@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Forum.Migrations
 {
     [DbContext(typeof(Database))]
-    [Migration("20210713111951_InitialCreate")]
+    [Migration("20210719092500_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -264,7 +264,7 @@ namespace Forum.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("Tag");
+                    b.ToTable("Tags");
                 });
 
             modelBuilder.Entity("Forum.Entity.Thread", b =>
@@ -496,7 +496,7 @@ namespace Forum.Migrations
                         .IsRequired();
 
                     b.HasOne("Forum.Entity.Comment", "Parent")
-                        .WithMany()
+                        .WithMany("Childs")
                         .HasForeignKey("ParentId");
 
                     b.HasOne("Forum.Entity.Thread", null)
@@ -640,6 +640,11 @@ namespace Forum.Migrations
             modelBuilder.Entity("Forum.Entity.Chat", b =>
                 {
                     b.Navigation("Messages");
+                });
+
+            modelBuilder.Entity("Forum.Entity.Comment", b =>
+                {
+                    b.Navigation("Childs");
                 });
 
             modelBuilder.Entity("Forum.Entity.Forum", b =>
