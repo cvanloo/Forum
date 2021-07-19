@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -15,5 +16,8 @@ namespace Forum.Entity
 		public string Name { get; set; }
 
 		public ICollection<Thread> Threads { get; set; }
+
+		[NotMapped]
+		public int Popularity { get; set; } = 0;
 	}
 }

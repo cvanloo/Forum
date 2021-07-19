@@ -1,24 +1,39 @@
-﻿
+﻿@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<Model.Database> DbContext
+
 <style>
 	#tag_container {
 		width: inherit;
 		margin: 0;
 	}
 
-	#tag_container p {
-		margin-left: auto;
-		margin-right: auto;
-	}
+		#tag_container p {
+			margin-left: auto;
+			margin-right: auto;
+		}
 </style>
 
 <p>Trending Now</p>
-@*@foreach ()
+@foreach (var t in _tags)
 {
 	<div id="tag_container" class="row">
-		<a href="">#Tag1</a><p>12</p>
+		<a href="">#@t.Name</a><p>@t.Popularity</p>
 	</div>
-}*@
+}
 
 @code {
+	private List<Entity.Tag> _tags = new List<Entity.Tag>();
 
+	protected async override Task OnInitializedAsync()
+	{
+		using var db = DbContext.CreateDbContext();
+
+		// Get all threads from the last 24 hours
+		DateTime yesterday = DateTime.Now;
+		yesterday = yesterday.AddHours(24);
+		List<Entity.Thread> threads = db.Threads.Include(t => t.Tags).Where(t => t.Created.CompareTo(yesterday) < 0).ToList();
+
+		// Find out which tags were used the most
+
+	}
 }
