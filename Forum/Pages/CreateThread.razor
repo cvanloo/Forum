@@ -16,13 +16,12 @@
 			}
 		</select>
 		<input class="form-control" type="text" placeholder="Title" @bind-value="_title" />
-		<textarea class="form-control" placeholder="Content" />
-		<img />
-		<input class="form-control" type="text" placeholder="Add Tags" />
+		<textarea class="form-control" placeholder="Content" @bind="_content" />
+		<input class="form-control" type="text" placeholder="Add Tags" @bind-value="_tags" />
 		<input class="form-control" type="file" />
 		<div class="row">
-			<button @onclick="NavHome" class="accent-blue btn-bottom-left">Go Back</button>
-			<button @onclick="StoreThread" class="accent-green btn-bottom-right">Create Thread</button>
+			<button type="button" @onclick="NavHome" class="accent-blue btn-bottom-left">Go Back</button>
+			<button type="submit" @onclick="StoreThread" class="accent-green btn-bottom-right">Create Thread</button>
 		</div>
 	</div>
 </div>
@@ -34,6 +33,8 @@
 	private Entity.Forum[] _forums;
 	private int _forumId = 1;
 	private string _title;
+	private string _content;
+	private string _tags;
 
 	protected async override Task OnInitializedAsync()
 	{
@@ -49,6 +50,7 @@
 		string content = null;
 		var authState = await authenticationStateTask;
 		var user = db.Users.FirstOrDefault(u => u.AccountName == authState.User.Identity.Name);
+		var tags = ParseTags(db);
 
 		var newThread = new Entity.Thread()
 		{
@@ -56,7 +58,7 @@
 			Creator = user,
 			ForumId = _forumId,
 			Title = _title,
-
+			Tags = tags
 		};
 
 		db.Threads.Add(newThread);
@@ -66,5 +68,26 @@
 	private void NavHome()
 	{
 		NavMan.NavigateTo("/");
+	}
+
+	private List<Entity.Tag> ParseTags(Model.Database db)
+	{
+		List<Entity.Tag> tags = new List<Entity.Tag>();
+		string[] separatedTags = _tags.Split(new char[] { ' ', '#' });
+
+		foreach (string tagStr in separatedTags)
+		{
+			if (string.IsNullOrEmpty(tagStr)) continue;
+
+			// Get tag from db if it exists, create a new tag if it doesn't.
+			Entity.Tag tag = db.Tags.FirstOrDefault(t => t.Name == tagStr);
+
+			if (null != tag)
+				tags.Add(tag);
+			else
+				tags.Add(new Entity.Tag() { Name = tagStr });
+		}
+
+		return tags;
 	}
 }
