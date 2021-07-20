@@ -3,8 +3,10 @@
 @*@attribute [Authorize(Roles = "user")]*@
 @attribute [Authorize(Policy = "IsPoster")]
 @using Microsoft.EntityFrameworkCore
+@using Microsoft.Extensions.Configuration
 @inject IDbContextFactory<Model.Database> DbContext
-@inject NavigationManager NavMan 
+@inject NavigationManager NavMan
+@inject IConfiguration Config
 
 <div class="main text-center mt-5 ml-auto mr-auto form-bigger">
 	<div class="col">
@@ -18,7 +20,7 @@
 		<input class="form-control" type="text" placeholder="Title" @bind-value="_title" />
 		<textarea class="form-control" placeholder="Content" @bind="_content" />
 		<input class="form-control" type="text" placeholder="Add Tags" @bind-value="_tags" />
-		<input class="form-control" type="file" />
+		@*<input class="form-control" type="file" />*@
 		<div class="row">
 			<button type="button" @onclick="NavHome" class="accent-blue btn-bottom-left">Go Back</button>
 			<button type="submit" @onclick="StoreThread" class="accent-green btn-bottom-right">Create Thread</button>
@@ -47,22 +49,29 @@
 	{
 		using var db = DbContext.CreateDbContext();
 
-		string content = null;
+		string uploadPath = Config.GetValue<string>("UploadPath") + Guid.NewGuid().ToString();
 		var authState = await authenticationStateTask;
 		var user = db.Users.FirstOrDefault(u => u.AccountName == authState.User.Identity.Name);
-		var tags = ParseTags(db);
+		List<Entity.Tag> tags = null;
+		if (!string.IsNullOrEmpty(_tags)) tags = ParseTags(db);
 
 		var newThread = new Entity.Thread()
 		{
-			ContentPath = content,
+			ContentPath = uploadPath,
 			Creator = user,
 			ForumId = _forumId,
 			Title = _title,
 			Tags = tags
 		};
 
-		db.Threads.Add(newThread);
+		var threadEntity = db.Threads.Add(newThread);
 		db.SaveChanges();
+
+		System.IO.StreamWriter streamWriter = new System.IO.StreamWriter(uploadPath);
+		await streamWriter.WriteAsync(_content);
+		streamWriter.Close();
+
+		NavMan.NavigateTo("/thread/" + threadEntity.Entity.Id);
 	}
 
 	private void NavHome()
