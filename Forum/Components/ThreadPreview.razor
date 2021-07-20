@@ -36,7 +36,8 @@
 			char[] buffer = new char[50];
 			streamReader.Read(buffer);
 
-			_content = new string(buffer);
+			// strings in C# are _not_ null-terminated.
+			_content = new string(buffer).Trim('\0');
 		}
 	}
 

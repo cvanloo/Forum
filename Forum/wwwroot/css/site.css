@@ -14,6 +14,10 @@ html, body {
 	margin-right: auto;
 }
 
+*:disabled {
+	filter: brightness(80%);
+}
+
 h1 {
 	color: #FFF;
 }
@@ -26,6 +30,18 @@ h1 {
 
 .hidden {
 	display: none;
+}
+
+form {
+	width: 30em;
+}
+
+.form-sim {
+	width: 30rem;
+}
+
+.form-bigger {
+	width: 50rem;
 }
 
 /* Overwrites bootstraps form-control class */
@@ -59,20 +75,9 @@ a {
 		color: #9BAEC8;
 	}
 
-form {
-	width: 30em;
-}
-
-.form-sim {
-	width: 30rem;
-}
-
-.form-bigger {
-	width: 50rem;
-}
-
 pre {
 	margin: 0;
+	white-space: pre-wrap;
 }
 
 .main {
@@ -179,19 +184,48 @@ button {
 	font-size: 80%;
 }
 
+.btn-select {
+	width: inherit;
+	height: 30px;
+	margin: 0.25rem auto 0.25rem auto;
+}
+
+	.btn-select button {
+		background: #444954;
+		color: #FFF;
+		width: 0;
+		flex-grow: 1;
+		height: inherit;
+		padding: 0;
+	}
+
+	.btn-select .btn-active {
+		background: #778393;
+	}
+
+.btn-left {
+	border-bottom-left-radius: 0.25rem;
+	border-top-left-radius: 0.25rem;
+}
+
+.btn-right {
+	border-bottom-right-radius: 0.25rem;
+	border-top-right-radius: 0.25rem;
+}
+
 .accent-red {
-	/*background: #D03F3F;*/
+	/* red: background: #D03F3F;*/
 	background: #7c7c7c;
 }
 
 .accent-green {
-	/*background: #2E8427;*/
+	/* green: background: #2E8427;*/
 	background: #2fcad8;
 	/*background: #2f76d8;*/
 }
 
 .accent-blue {
-	/*background: #512DFC;*/
+	/* blue: background: #512DFC;*/
 	background: #7c7c7c;
 }
 
@@ -245,6 +279,7 @@ button {
 
 textarea {
 	margin-bottom: 0 !important;
+	height: 15rem !important;
 }
 
 .form-control:disabled {
@@ -253,38 +288,6 @@ textarea {
 	filter: brightness(80%);
 }
 
-.btn-select {
-	width: inherit;
-	height: 30px;
-	margin: 0.25rem auto 0.25rem auto;
-}
-
-	.btn-select button {
-		background: #444954;
-		color: #FFF;
-		width: 0;
-		flex-grow: 1;
-		height: inherit;
-		padding: 0;
-	}
-
-	.btn-select .btn-active {
-		background: #778393;
-	}
-
-.btn-left {
-	border-bottom-left-radius: 0.25rem;
-	border-top-left-radius: 0.25rem;
-}
-
-.btn-right {
-	border-bottom-right-radius: 0.25rem;
-	border-top-right-radius: 0.25rem;
-}
-
-textarea {
-	height: 15rem !important;
-}
 
 
 
@@ -296,7 +299,9 @@ textarea {
 
 
 
-/* Blazor Error Stuff */
+
+
+/* Blazor Error UI */
 .valid.modified:not([type=checkbox]) {
 	outline: 1px solid #26b050;
 }

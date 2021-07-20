@@ -12,7 +12,7 @@
 	<form @onsubmit="StoreThread" class="form-bigger">
 		<div class="col">
 			<h3 class="mt-2">Create Thread</h3>
-			<select class="form-control" @bind="_forumId">
+			<select disabled class="form-control" @bind="_forumId">
 				@foreach (Entity.Forum forum in _forums)
 				{
 					<option value="@forum.Id">@forum.Name</option>
