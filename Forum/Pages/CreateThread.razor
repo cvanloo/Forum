@@ -9,23 +9,28 @@
 @inject IConfiguration Config
 
 <div class="main text-center mt-5 ml-auto mr-auto form-bigger">
-	<div class="col">
-		<h3 class="mt-2">Create Thread</h3>
-		<select class="form-control" @bind="_forumId">
-			@foreach (Entity.Forum forum in _forums)
-			{
-				<option value="@forum.Id">@forum.Name</option>
-			}
-		</select>
-		<input class="form-control" type="text" placeholder="Title" @bind-value="_title" />
-		<textarea class="form-control" placeholder="Content" @bind="_content" />
-		<input class="form-control" type="text" placeholder="Add Tags" @bind-value="_tags" />
-		@*<input class="form-control" type="file" />*@
-		<div class="row">
-			<button type="button" @onclick="NavHome" class="accent-blue btn-bottom-left">Go Back</button>
-			<button type="submit" @onclick="StoreThread" class="accent-green btn-bottom-right">Create Thread</button>
+	<form @onsubmit="StoreThread" class="form-bigger">
+		<div class="col">
+			<h3 class="mt-2">Create Thread</h3>
+			<select class="form-control" @bind="_forumId">
+				@foreach (Entity.Forum forum in _forums)
+				{
+					<option value="@forum.Id">@forum.Name</option>
+				}
+			</select>
+			<input class="form-control" type="text" placeholder="Title" @bind-value="_title" />
+			<textarea class="form-control" placeholder="Content" @bind="_content" />
+			<input class="form-control" type="text" placeholder="Add Tags" @bind-value="_tags" />
+			<div class="row">
+				<button type="button" @onclick="NavHome" class="accent-blue btn-bottom-left">Go Back</button>
+				<button type="submit" class="accent-green btn-bottom-right">Create Thread</button>
+			</div>
 		</div>
-	</div>
+	</form>
+</div>
+
+<div class="div-error" style="">
+	<p>@_error</p>
 </div>
 
 @code {
@@ -37,6 +42,7 @@
 	private string _title;
 	private string _content;
 	private string _tags;
+	private string _error;
 
 	protected async override Task OnInitializedAsync()
 	{
@@ -47,29 +53,37 @@
 
 	private async void StoreThread()
 	{
-		using var db = DbContext.CreateDbContext();
+		Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry<Entity.Thread> threadEntity = null;
 
-		string uploadPath = Config.GetValue<string>("UploadPath") + Guid.NewGuid().ToString();
-		var authState = await authenticationStateTask;
-		var user = db.Users.FirstOrDefault(u => u.AccountName == authState.User.Identity.Name);
-		List<Entity.Tag> tags = null;
-		if (!string.IsNullOrEmpty(_tags)) tags = ParseTags(db);
-
-		var newThread = new Entity.Thread()
+		try
 		{
-			ContentPath = uploadPath,
-			Creator = user,
-			ForumId = _forumId,
-			Title = _title,
-			Tags = tags
-		};
+			using var db = DbContext.CreateDbContext();
+			string uploadPath = Config.GetValue<string>("UploadPath") + Guid.NewGuid().ToString();
+			var authState = await authenticationStateTask;
+			var user = db.Users.FirstOrDefault(u => u.AccountName == authState.User.Identity.Name);
+			List<Entity.Tag> tags = ParseTags(db);
 
-		var threadEntity = db.Threads.Add(newThread);
-		db.SaveChanges();
+			var newThread = new Entity.Thread()
+			{
+				ContentPath = uploadPath,
+				Creator = user,
+				ForumId = _forumId,
+				Title = _title,
+				Tags = tags
+			};
 
-		System.IO.StreamWriter streamWriter = new System.IO.StreamWriter(uploadPath);
-		await streamWriter.WriteAsync(_content);
-		streamWriter.Close();
+			threadEntity = db.Threads.Add(newThread);
+			db.SaveChanges();
+
+			System.IO.StreamWriter streamWriter = new System.IO.StreamWriter(uploadPath);
+			await streamWriter.WriteAsync(_content);
+			streamWriter.Close();
+		}
+		catch (Exception ex)
+		{
+			_error = "Failed uploading post.";
+			return;
+		}
 
 		NavMan.NavigateTo("/thread/" + threadEntity.Entity.Id);
 	}
@@ -81,6 +95,8 @@
 
 	private List<Entity.Tag> ParseTags(Model.Database db)
 	{
+		if (string.IsNullOrEmpty(_tags)) return null;
+
 		List<Entity.Tag> tags = new List<Entity.Tag>();
 		string[] separatedTags = _tags.Split(new char[] { ' ', '#' });
 

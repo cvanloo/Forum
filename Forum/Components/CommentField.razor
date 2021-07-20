@@ -1,5 +1,6 @@
 ﻿@using Microsoft.EntityFrameworkCore
 @inject IDbContextFactory<Model.Database> DbContext
+@inject EventService EventService 
 
 <style>
 	.form-control {
@@ -20,9 +21,6 @@
 
 	[Parameter]
 	public int? ParentId { get; set; }
-
-	[Parameter]
-	public EventHandler CommentStateChanged { get; set; }
 
 	private string _comment;
 	private string btnStyle = "display: none;";
@@ -65,7 +63,8 @@
 		await db.SaveChangesAsync();
 
 		_comment = null;
+		StateHasChanged();
 
-		CommentStateChanged?.Invoke(this, EventArgs.Empty);
+		EventService.UpdateStatus();
 	}
 }

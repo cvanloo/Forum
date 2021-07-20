@@ -1,5 +1,6 @@
 ﻿@using Microsoft.EntityFrameworkCore
 @inject IDbContextFactory<Model.Database> DbContext
+@inject EventService EventService
 
 <style>
 	.border-left {
@@ -8,7 +9,7 @@
 	}
 
 	.collapsed {
-		padding: 0 !important;
+		padding: 0 0.5rem !important;
 		color: gray;
 	}
 
@@ -22,13 +23,13 @@
 	<p class="p-annotation-sm">
 		@CommentModel.Creator.AccountName
 		@CommentModel.Created.ToString("t"), @CommentModel.Created.ToString("d")
-		<button class="btn-mini" @onclick="Collapse">--</button>
+		<button class="btn-mini" @onclick="Collapse">▬</button>
 	</p>
 	<span>
 		<pre class="txt-title">@CommentModel.Text</pre>
 		<button class="btn-mini" @onclick="ToggleCommentField" >Answer</button>
 		<div class="@_cfClass">
-			<CommentField ThreadId="@CommentModel.ThreadId" ParentId="@CommentModel.Id" CommentStateChanged="(o, e) => InvokeAsync(() => Update())" />
+			<CommentField ThreadId="@CommentModel.ThreadId" ParentId="@CommentModel.Id" />
 		</div>
 	
 		@foreach (Entity.Comment c in _childs)
@@ -49,6 +50,7 @@
 	protected async override Task OnInitializedAsync()
 	{
 		Update();
+		EventService.ChangedEvent += (o, e) => InvokeAsync(() => Update());
 	}
 
 	private void ToggleCommentField()

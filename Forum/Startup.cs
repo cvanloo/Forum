@@ -53,6 +53,9 @@ namespace Forum
                 .EnableSensitiveDataLogging()
                 .EnableDetailedErrors();
             });
+
+            // Comment update service
+            services.AddSingleton<EventService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
