@@ -1,7 +1,8 @@
 @import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
 
 html, body {
-	font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+	/*font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;*/
+	font-family: Roboto;
 	background: #191B22;
 	color: #FFF;
 
@@ -179,15 +180,19 @@ button {
 }
 
 .accent-red {
-	background: #D03F3F;
+	/*background: #D03F3F;*/
+	background: #7c7c7c;
 }
 
 .accent-green {
-	background: #2E8427;
+	/*background: #2E8427;*/
+	background: #2fcad8;
+	/*background: #2f76d8;*/
 }
 
 .accent-blue {
-	background: #512DFC;
+	/*background: #512DFC;*/
+	background: #7c7c7c;
 }
 
 .col-dark {
@@ -280,6 +285,7 @@ textarea {
 textarea {
 	height: 15rem !important;
 }
+
 
 
 
