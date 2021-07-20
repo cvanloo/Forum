@@ -28,7 +28,7 @@
 		<pre class="txt-title">@CommentModel.Text</pre>
 		<button class="btn-mini" @onclick="ToggleCommentField" >Answer</button>
 		<div class="@_cfClass">
-			<CommentField ThreadId="@CommentModel.ThreadId" ParentId="@CommentModel.Id" />
+			<CommentField ThreadId="@CommentModel.ThreadId" ParentId="@CommentModel.Id" CommentStateChanged="(o, e) => InvokeAsync(() => Update())" />
 		</div>
 	
 		@foreach (Entity.Comment c in _childs)
@@ -48,12 +48,7 @@
 
 	protected async override Task OnInitializedAsync()
 	{
-		using var db = DbContext.CreateDbContext();
-
-		_childs = db.Comments
-			.Include(c => c.Childs)
-				.ThenInclude(c => c.Creator)
-			.First(c => c.Id == CommentModel.Id).Childs.ToList();
+		Update();
 	}
 
 	private void ToggleCommentField()
@@ -70,5 +65,19 @@
 			_collapseClass = "";
 		else
 			_collapseClass = "collapsed";
+	}
+
+	private void Update()
+	{
+		using var db = DbContext.CreateDbContext();
+
+		_childs = db.Comments
+			.Include(c => c.Childs)
+				.ThenInclude(c => c.Creator)
+			.First(c => c.Id == CommentModel.Id).Childs.ToList();
+
+		_cfClass = "hidden";
+
+		StateHasChanged();
 	}
 }

@@ -21,6 +21,9 @@
 	[Parameter]
 	public int? ParentId { get; set; }
 
+	[Parameter]
+	public EventHandler CommentStateChanged { get; set; }
+
 	private string _comment;
 	private string btnStyle = "display: none;";
 
@@ -60,5 +63,9 @@
 		thread.Comments.Add(comment);
 
 		await db.SaveChangesAsync();
+
+		_comment = null;
+
+		CommentStateChanged?.Invoke(this, EventArgs.Empty);
 	}
 }
