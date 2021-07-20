@@ -55,7 +55,7 @@ namespace Forum
             });
 
             // Comment update service
-            services.AddSingleton<EventService>();
+            services.AddSingleton<CommentService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

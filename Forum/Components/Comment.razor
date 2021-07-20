@@ -1,6 +1,6 @@
 ﻿@using Microsoft.EntityFrameworkCore
 @inject IDbContextFactory<Model.Database> DbContext
-@inject EventService EventService
+@inject CommentService CommentService
 
 <style>
 	.border-left {
@@ -50,7 +50,12 @@
 	protected async override Task OnInitializedAsync()
 	{
 		Update();
-		EventService.ChangedEvent += (o, e) => InvokeAsync(() => Update());
+		// We want to assign the result of the method, which it doesn't has (void),
+		// which is why we need to pass the method _without_ parentheses.
+		CommentService.CommentEvent += Update;
+
+		// Alternatively a lambda expression could be used like this:
+		// CommentService.CommentEvent += () => Update();
 	}
 
 	private void ToggleCommentField()

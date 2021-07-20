@@ -5,7 +5,7 @@
 @inject IDbContextFactory<Model.Database> DbContext
 @inject NavigationManager NavMan
 @inject IJSRuntime iJsRuntime
-@inject EventService EventService 
+@inject CommentService CommentService 
 
 <div class="container-left" >
 	<div class="main row" >
@@ -77,7 +77,7 @@
 			.FirstOrDefault(t => t.Id == Id);
 
 		_comments = _thread.Comments.ToList();
-		EventService.ChangedEvent += (o, e) => InvokeAsync(() => Update());
+		CommentService.CommentEvent += Update;
 
 		var authenticationState = await authenticationStateTask;
 		Entity.User user = db.Users.Include(u => u.SavedThreads).First(u => u.AccountName == authenticationState.User.Identity.Name);
