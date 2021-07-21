@@ -25,7 +25,7 @@ namespace Forum.Data
 		/// is found or if the password doesn't match, else it returns the user
 		/// on success.
 		/// </summary>
-		/// <param name="username">Username of the user to log in.</param>
+		/// <param name="identifier">Accountname or Email of the user to log in.</param>
 		/// <param name="password">Password of the user to log in.</param>
 		/// <returns>
 		/// The User entity on success. Will throw an exception otherwise.

@@ -56,6 +56,9 @@ namespace Forum
 
             // Comment update service
             services.AddSingleton<CommentService>();
+
+            // Smtp Mail service
+            services.AddTransient<IMailService, SmtpMailService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Forum.Data;
 using System.Security.Claims;
 using Forum.Entity;
-using System.Text.Json;
 
 namespace Forum.Controller
 {
@@ -74,6 +73,7 @@ namespace Forum.Controller
 			{
 				new Claim(ClaimTypes.Name, user.AccountName),
 				new Claim(ClaimTypes.Role, "user"),
+				new Claim("Id", user.Id.ToString()),
 				new Claim("admin", "true"),
 				new Claim("poster", "true"),
 			};
