@@ -4,7 +4,7 @@
 
 <style>
 	.border-left {
-		border-left: 2px solid white !important;
+		border-left: 2px solid #9BAEC8 !important;
 		border-radius: 0;
 	}
 
@@ -23,7 +23,7 @@
 	<p class="p-annotation-sm">
 		@CommentModel.Creator.AccountName
 		@CommentModel.Created.ToString("t"), @CommentModel.Created.ToString("d")
-		<button class="btn-mini" @onclick="Collapse">▬</button>
+		<button class="btn-mini" @onclick="Collapse">[x]</button> @*▬*@
 	</p>
 	<span>
 		<pre class="txt-title">@CommentModel.Text</pre>
@@ -85,6 +85,6 @@
 
 		_cfClass = "hidden";
 
-		StateHasChanged();
+		InvokeAsync(() => StateHasChanged());
 	}
 }

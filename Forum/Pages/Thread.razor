@@ -7,7 +7,7 @@
 @inject IJSRuntime iJsRuntime
 @inject CommentService CommentService 
 
-<div class="container-left" >
+<div class="container-left fix-left" >
 	<div class="main row" >
 		<button class="btn-norm-sec" @onclick="NavHome">
 			<img width="50" height="50" src="/css/icons/Arrow_Back.png" alt="Back Arrow" />
@@ -42,7 +42,7 @@
 		<Comment CommentModel="c" />
 	}
 </div>
-<div class="container-right" >
+<div class="container-right fix-right" >
 	<div class="second needs-padding" >
 		<img width="100" height="100" src="/css/icons/Default.jpg" alt="Forum Image"/>
 		<h5>@_thread.Forum.Name</h5>
@@ -80,15 +80,23 @@
 		CommentService.CommentEvent += Update;
 
 		var authenticationState = await authenticationStateTask;
-		Entity.User user = db.Users.Include(u => u.SavedThreads).First(u => u.AccountName == authenticationState.User.Identity.Name);
+		Entity.User user = db.Users.Include(u => u.SavedThreads)
+			.First(u => u.AccountName == authenticationState.User.Identity.Name);
 		_saved = user.SavedThreads.Contains(_thread);
 
 		if (!string.IsNullOrEmpty(_thread.ContentPath))
 		{
-			string path = _thread.ContentPath;
-			StreamReader streamReader = new StreamReader(path);
-
-			_content = streamReader.ReadToEnd();
+			try
+			{
+				string path = _thread.ContentPath;
+				StreamReader streamReader = new StreamReader(path);
+				_content = streamReader.ReadToEnd();
+				streamReader.Close();
+			}
+			catch (Exception)
+			{
+				_content = "[Thread deleted.]";
+			}
 		}
 	}
 
@@ -148,6 +156,6 @@
 
 		_comments = _thread.Comments.ToList();
 
-		StateHasChanged();
+		InvokeAsync(() => StateHasChanged());
 	}
 }

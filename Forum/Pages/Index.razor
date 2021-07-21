@@ -21,7 +21,7 @@
 				<li>@claim.Type: @claim.Value</li>
 			}
 		</ul>*@
-		<div class="container-left">
+		<div class="container-left fix-left">
 			<div class="main needs-padding">
 				<img width="50" height="50" src="/css/icons/Default.jpg" alt="Profile Image" />
 				<h4>@_displayName</h4>
@@ -48,7 +48,7 @@
 				}
 			</div>
 		</div>
-		<div class="container-right">
+		<div class="container-right fix-right">
 			<div class="main needs-padding">
 				<h1>HOME <img src="/css/icons/Quick_Settings.png" width="40" height="40"/></h1>
 				<p>Sort by:</p>
@@ -86,7 +86,7 @@
 		if (!authenticationState.User.Identity.IsAuthenticated)
 		{
 			// Send unauthorized users to the login page
-			NavigationManager.NavigateTo("/login");
+			//NavigationManager.NavigateTo("/login");
 		}
 		else
 		{

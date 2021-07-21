@@ -29,15 +29,25 @@
 	{
 		if (!string.IsNullOrEmpty(ThreadModel.ContentPath))
 		{
-			string path = ThreadModel.ContentPath;
+			try
+			{
+				string path = ThreadModel.ContentPath;
 
-			StreamReader streamReader = new StreamReader(path);
+				StreamReader streamReader = new StreamReader(path);
 
-			char[] buffer = new char[50];
-			streamReader.Read(buffer);
+				char[] buffer = new char[1000];
+				streamReader.Read(buffer);
 
-			// strings in C# are _not_ null-terminated.
-			_content = new string(buffer).Trim('\0');
+				// Strings in C# are _not_ null-terminated.
+				_content = new string(buffer).Trim('\0');
+				_content = _content.Replace('\n', ' ');
+
+				streamReader.Close();
+			}
+			catch (Exception)
+			{
+				_content = "[Thread deleted.]";
+			}
 		}
 	}
 
@@ -45,5 +55,4 @@
 	{
 		NavMan.NavigateTo("/thread/" + ThreadModel.Id);
 	}
-
 }

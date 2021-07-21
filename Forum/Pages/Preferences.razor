@@ -13,22 +13,24 @@
 </style>
 
 <div class="main text-center mt-5 ml-auto mr-auto form-bigger">
-	<div class="col">
-		<h3 class="mt-2">User Preferences</h3>
-		<p>Username</p>
-		<input type="text" disabled class="form-control" placeholder="@_accountName (Cannot be changed)" />
-		<input type="text" class="form-control" placeholder="Displayname" @bind-value="@_displayName" />
-		<p>Email</p>
-		<input type="email" class="form-control" placeholder="Email Address" @bind-value="@_email" />
-		<p>Password</p>
-		<input type="password" class="form-control" placeholder="Current Password" @bind-value="@_currentPasswd" />
-		<input type="password" class="form-control" placeholder="New Password" @bind-value="@_newPasswd" />
-		<input type="password" class="form-control" placeholder="Repeat New Password" @bind-value="@_repNewPasswd" />
-		<div class="row">
-			<button type="button" @onclick="NavHome" class="accent-blue btn-bottom-left">Go Back</button>
-			<button type="submit" @onclick="UpdateAccount" class="accent-green btn-bottom-right">Update Account</button>
+	<EditForm OnValidSubmit="UpdateAccount" Model="testModel" class="form-bigger">
+		<div class="col">
+			<h3 class="mt-2">User Preferences</h3>
+			<p>Username</p>
+			<input type="text" disabled class="form-control" placeholder="@_accountName (Cannot be changed)" />
+			<input type="text" class="form-control" placeholder="Displayname" @bind-value="@_displayName" />
+			<p>Email</p>
+			<input type="email" class="form-control" placeholder="Email Address" @bind-value="@_email" />
+			<p>Password</p>
+			<input type="password" class="form-control" placeholder="Current Password" @bind-value="@_currentPasswd" />
+			<input type="password" class="form-control" placeholder="New Password" @bind-value="@_newPasswd" />
+			<input type="password" class="form-control" placeholder="Repeat New Password" @bind-value="@_repNewPasswd" />
+			<div class="row">
+				<button type="button" @onclick="NavHome" class="accent-blue btn-bottom-left">Go Back</button>
+				<button type="submit" class="accent-green btn-bottom-right">Update Account</button>
+			</div>
 		</div>
-	</div>
+	</EditForm>
 </div>
 
 @code {
@@ -38,6 +40,8 @@
 	private string _currentPasswd;
 	private string _newPasswd;
 	private string _repNewPasswd;
+
+	private TestModel testModel = new TestModel();
 
 	[CascadingParameter]
 	private Task<AuthenticationState> authenticationStateTask { get; set; }
@@ -79,5 +83,10 @@
 	private void NavHome()
 	{
 		NavMan.NavigateTo("/");
+	}
+
+	public class TestModel
+	{
+
 	}
 }

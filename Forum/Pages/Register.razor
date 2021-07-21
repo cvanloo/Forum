@@ -9,18 +9,34 @@
 @inject NavigationManager NavMan 
 @inject IConfiguration Config
 
-<div class="main text-center mt-5 ml-auto mr-auto form-sim">
+<div class="main text-center mt-5 ml-auto mr-auto form-bigger">
+	<EditForm class="form-bigger" Model="@_registerModel" OnValidSubmit="HashPw">
+		<DataAnnotationsValidator />
+		@*<ValidationSummary />*@
 	<div class="col">
 		<h3 class="mt-2">Create Account</h3>
-		<input class="form-control" type="text" @bind-value="_registerModel.AccountName" placeholder="Account Name" />
-		<input class="form-control" type="email" @bind-value="_registerModel.Email" placeholder="Email Address" />
-		<input class="form-control" type="password" @bind-value="_registerModel.Password" placeholder="Password" />
-		<input class="form-control" type="password" @bind-value="_registerModel.RepeatPassword" placeholder="Repeat Password" />
+		<div class="relative-span">
+			<InputText class="form-control" type="text" @bind-Value="_registerModel.AccountName" placeholder="Account Name" />
+			<ValidationMessage For="() => _registerModel.AccountName" />
+		</div>
+		<div class="relative-span">
+			<InputText class="form-control" type="email" @bind-Value="_registerModel.Email" placeholder="Email Address" />
+			<ValidationMessage For="() => _registerModel.Email" />
+		</div>
+		<div class="relative-span">
+			<InputText class="form-control" type="password" @bind-Value="_registerModel.Password" placeholder="Password" />
+			<ValidationMessage For="() => _registerModel.Password" />
+		</div>
+		<div class="relative-span">
+			<InputText class="form-control" type="password" @bind-Value="_registerModel.RepeatPassword" placeholder="Repeat Password" />
+			<ValidationMessage For="() => _registerModel.RepeatPassword" />
+		</div>
 		<div class="row">
 			<button type="button" class="accent-blue btn-bottom-left btn-grow-large" @onclick="NavLogin">Already have an account?</button>
-			<button type="submit" class="accent-green btn-bottom-right" @onclick="HashPw">Register</button>
+			<button type="submit" class="accent-green btn-bottom-right">Register</button>
 		</div>
 	</div>
+	</EditForm>
 </div>
 
 @code {
@@ -43,9 +59,17 @@
 
 	private async Task HashPw()
 	{
-		string pwHash = BCrypt.EnhancedHashPassword(_registerModel.Password, Config.GetValue<int>("Workfactor"));
+		string pwHash = BCrypt.EnhancedHashPassword(
+			_registerModel.Password,
+			Config.GetValue<int>("Workfactor"));
 
 		using var db = DbContext.CreateDbContext();
+
+		if (_registerModel.AccountName.Contains('@'))
+		{
+			_message = "Symbol '@' not allowed.";
+			return;
+		}
 
 		if (db.Users.Where(u => u.AccountName == _registerModel.AccountName).Any())
 		{
@@ -86,18 +110,20 @@
 
 	public class RegisterModel
 	{
-		[Required]
+		[Required(ErrorMessage = "The 'Account Name' field is required.")]
+		[RegularExpression(@"^(?!.*@).*$", ErrorMessage = "Accountname can't contain '@'.")]
 		public string AccountName { get; set; }
 
 		public string DisplayName { get; set; }
 
-		[Required]
+		[Required(ErrorMessage = "The 'Email' field is required.")]
+		[RegularExpression(@"^.+@.+$", ErrorMessage = "Not a valid Email address.")]
 		public string Email { get; set; }
 
-		[Required]
+		[Required(ErrorMessage = "The 'Password' field is required.")]
 		public string Password { get; set; }
 
-		[Required]
+		[Required(ErrorMessage = "The 'Repeat Password' field is required.")]
 		[Compare(nameof(Password), ErrorMessage = "Passwords don't match.")]
 		public string RepeatPassword { get; set; }
 	}

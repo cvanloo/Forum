@@ -19,7 +19,7 @@
 				}
 			</select>
 			<input class="form-control" type="text" placeholder="Title" @bind-value="_title" />
-			<textarea class="form-control" placeholder="Content" @bind="_content" />
+			<textarea class="form-control" placeholder="Content" @bind="_content" maxlength="20798"/>
 			<input class="form-control" type="text" placeholder="Add Tags" @bind-value="_tags" />
 			<div class="row">
 				<button type="button" @onclick="NavHome" class="accent-blue btn-bottom-left">Go Back</button>
@@ -53,14 +53,19 @@
 
 	private async void StoreThread()
 	{
-		Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry<Entity.Thread> threadEntity = null;
+		if (string.IsNullOrEmpty(_content))
+		{
+			_error = "Content needs to be between 1 and 20798 characters long.";
+			return;
+		}
 
 		try
 		{
-			using var db = DbContext.CreateDbContext();
-			string uploadPath = Config.GetValue<string>("UploadPath") + Guid.NewGuid().ToString();
 			var authState = await authenticationStateTask;
-			var user = db.Users.FirstOrDefault(u => u.AccountName == authState.User.Identity.Name);
+			using var db = DbContext.CreateDbContext();
+
+			string uploadPath = Config.GetValue<string>("UploadPath") + Guid.NewGuid().ToString();
+			Entity.User user = db.Users.FirstOrDefault(u => u.AccountName == authState.User.Identity.Name);
 			List<Entity.Tag> tags = ParseTags(db);
 
 			var newThread = new Entity.Thread()
@@ -72,20 +77,21 @@
 				Tags = tags
 			};
 
-			threadEntity = db.Threads.Add(newThread);
-			db.SaveChanges();
+			db.Threads.Add(newThread);
 
-			System.IO.StreamWriter streamWriter = new System.IO.StreamWriter(uploadPath);
-			await streamWriter.WriteAsync(_content);
-			streamWriter.Close();
+			System.IO.File.WriteAllText(uploadPath, _content);
+
+			NavMan.NavigateTo("/thread/" + newThread.Id);
 		}
 		catch (Exception ex)
 		{
-			_error = "Failed uploading post.";
+			Console.Error.WriteLine("\n\n\n!!!!!!!\n\n\n");
+			Console.Error.WriteLine(ex.ToString());
+			Console.Error.WriteLine("\n\n\n!!!!!!!\n\n\n");
+			_error = "Failed to upload post.";
 			return;
 		}
 
-		NavMan.NavigateTo("/thread/" + threadEntity.Entity.Id);
 	}
 
 	private void NavHome()

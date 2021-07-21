@@ -8,19 +8,26 @@
 
 <div class="main text-center mt-5 ml-auto mr-auto">
 	<AuthorizeView>
-		<NotAuthorized>
-			<form @onsubmit="SignIn">
+		<NotAuthorized Context="Auth">
+			<EditForm OnValidSubmit="SignIn" Model="_loginModel">
+				<DataAnnotationsValidator />
 				<div class="col">
 					<h3 class="mt-2">Login</h3>
-					<input class="form-control" type="text" placeholder="Username / Email" @bind-value="_loginModel.Identifier" />
-					<input class="form-control" type="password" placeholder="Password" @bind-value="_loginModel.Password" />
+					<div class="relative-span">
+						<InputText class="form-control" type="text" placeholder="Username / Email" @bind-Value="_loginModel.Identifier" />
+						<ValidationMessage For="() => _loginModel.Identifier" />
+					</div>
+					<div class="relative-span">
+						<InputText class="form-control" type="password" placeholder="Password" @bind-Value="_loginModel.Password" />
+						<ValidationMessage For="() => _loginModel.Password" />
+					</div>
 					<div class="row">
 						<button type="button" class="accent-red btn-bottom-left" @onclick="NavPwReset">Forgot Password</button>
 						<button type="button" class="accent-blue" @onclick="NavRegister">Create Account</button>
 						<button type="submit" class="accent-green btn-bottom-right">Log In</button>
 					</div>
 				</div>
-			</form>
+			</EditForm>
 		</NotAuthorized>
 		<Authorized>
 			<div class="form-sim">
@@ -46,11 +53,13 @@
 
 	private async Task SignIn()
 	{
-		if (!string.IsNullOrEmpty(_loginModel.Identifier) && !string.IsNullOrEmpty(_loginModel.Password))
+		if (!string.IsNullOrEmpty(_loginModel.Identifier) &&
+			!string.IsNullOrEmpty(_loginModel.Password))
 		{
 			try
 			{
-				await ((Forum.Controller.AuthenticationStateController)AuthProvider).ValidateLogin(_loginModel.Identifier, _loginModel.Password);
+				await ((Forum.Controller.AuthenticationStateController)AuthProvider)
+					.ValidateLogin(_loginModel.Identifier, _loginModel.Password);
 			}
 			catch (Exception ex)
 			{
@@ -81,30 +90,9 @@
 		NavigationManager.NavigateTo("/");
 	}
 
-	//private async Task SetSessionVar()
-	//{
-	//	using var db = DbContext.CreateDbContext();
-
-	//	var authenticationState = await authenticationStateTask;
-
-	//	string username = authenticationState.User.Identity.Name;
-
-	//	var user = db.Sessions.Include(s => s.User).Where(s => s.User.AccountName == username).FirstOrDefault().User;
-
-	//	var session = new Entity.Session()
-	//	{
-	//		UserId = user.Id,
-	//		Identifier = "Test",
-	//		Value = "tseT"
-	//	};
-
-	//	db.Sessions.Add(session);
-	//	db.SaveChanges();
-	//}
-
 	public class LoginModel
 	{
-		[Required]
+		[Required(ErrorMessage = "Enter an Email address or Accountname.")]
 		public string Identifier { get; set; }
 		[Required]
 		public string Password { get; set; }

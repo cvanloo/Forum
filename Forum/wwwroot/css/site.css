@@ -78,6 +78,8 @@ a {
 pre {
 	margin: 0;
 	white-space: pre-wrap;
+	word-break: break-all;
+	font-family: Roboto;
 }
 
 .main {
@@ -96,6 +98,16 @@ pre {
 	margin: 0.25rem;
 }
 
+.fix-left {
+	position: fixed;
+	left: 0;
+}
+
+.fix-right {
+	position: fixed;
+	right: 0;
+}
+
 .needs-padding {
 	padding: 0.5rem;
 }
@@ -108,6 +120,10 @@ pre {
 .clickable {
 	cursor: pointer;
 }
+
+	/*.clickable:hover {
+		letter-spacing: 1px;
+	}*/
 
 .container-middle {
 	margin-left: auto;
@@ -287,6 +303,19 @@ textarea {
 	color: #FFF;
 	filter: brightness(80%);
 }
+
+.relative-span {
+	position: relative;
+}
+
+.validation-message {
+	position: absolute;
+	bottom: -1.5rem;
+	z-index: 1;
+	font-size: 0.75em;
+}
+
+
 
 
 
