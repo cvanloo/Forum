@@ -1,10 +1,12 @@
 ﻿@page "/pwreset/{Token?}"
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.Extensions.Configuration
+@using System.Net.Mail; 
 @inject NavigationManager NavMan
 @inject IDbContextFactory<Model.Database> DbContext
 @inject NavigationManager NavMan 
 @inject IConfiguration Config
+@inject IMailService MailService
 
 @if (string.IsNullOrEmpty(Token))
 {
@@ -15,6 +17,18 @@
 			<div class="row">
 				<button type="button" class="accent-blue btn-bottom-left btn-grow-medium" @onclick="NavLogin">Go to Login</button>
 				<button type="submit" class="accent-green btn-bottom-right" @onclick="ProcessRequest">Request Reset Link</button>
+			</div>
+		</div>
+	</div>
+}
+else if (!ValidateRequest())
+{
+	<div class="main text-center mt-5 ml-auto mr-auto form-sim">
+		<div class="col">
+			<h3 class="mt-2 pt-5 pl-5 pr-5">Reset Request Invalid</h3>
+			<p class="pb-5">The reset request was already used or timed out.</p>
+			<div class="row">
+				<button type="button" class="accent-green btn-bottom-left btn-bottom-right" @onclick="NavLogin">Go to Login</button>
 			</div>
 		</div>
 	</div>
@@ -46,9 +60,9 @@ else
 	{
 		using var db = DbContext.CreateDbContext();
 
-		// TODO: Validate email
-
 		var user = db.Users.FirstOrDefault(u => u.Email == _email);
+
+		// TODO: Validate email
 
 		if (null != user)
 		{
@@ -64,8 +78,33 @@ else
 
 			await db.SaveChangesAsync();
 
-			// TODO: Send reset link with token
+			// Send reset link with token
+			var mail = new Model.Message()
+			{
+				Body = "localhost:5000/pwreset/" + pwReset.Token,
+				Subject = "Password Reset Request",
+				From = "sender@domaine.ch",
+				To = new string[] { pwReset.User.Email }
+			};
+
+			await MailService.Send(mail);
 		}
+	}
+
+	private bool ValidateRequest()
+	{
+		using var db = DbContext.CreateDbContext();
+
+		var pwReset = db.PwResets.Include(p => p.User).FirstOrDefault(p => p.Token == Token);
+
+		if (pwReset is null) return false;
+
+		DateTime expiring = pwReset.Timestamp;
+		expiring = expiring.AddMinutes(15);
+
+		if (pwReset.Used || DateTime.Now.CompareTo(expiring) >= 0)
+			return false;
+		return true;
 	}
 
 	private async void UpdatePassword()
@@ -74,21 +113,26 @@ else
 
 		var pwReset = db.PwResets.Include(p => p.User).FirstOrDefault(p => p.Token == Token);
 
-		DateTime expiring = pwReset.Timestamp;
-		expiring = expiring.AddMinutes(30);
-
-		if (!pwReset.Used && DateTime.Now.CompareTo(expiring) < 0)
+		if (!string.IsNullOrEmpty(_newPassword) && _repNewPassword == _newPassword)
 		{
-			if (!string.IsNullOrEmpty(_newPassword) && _repNewPassword == _newPassword)
-			{
-				string pwHash = BCrypt.Net.BCrypt.EnhancedHashPassword(_newPassword, Config.GetValue<int>("Workfactor"));
+			string pwHash = BCrypt.Net.BCrypt.EnhancedHashPassword(_newPassword, Config.GetValue<int>("Workfactor"));
 
-				pwReset.User.PwHash = pwHash;
-			}
+			pwReset.User.PwHash = pwHash;
 		}
 
 		pwReset.Used = true;
 		await db.SaveChangesAsync();
+
+		// Send email confirmation
+		var mail = new Model.Message()
+		{
+			Body = "Your password was successfully updated.",
+			Subject = "PASSWORD RESET",
+			From = "sender@domaine.ch",
+			To = new string[] { pwReset.User.Email }
+		};
+
+		await MailService.Send(mail);
 	}
 
 	private void NavLogin()
