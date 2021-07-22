@@ -14,6 +14,7 @@
 		<div class="col">
 			<h3 class="mt-2">Request Password Reset</h3>
 			<input class="form-control" @bind-value="_email" type="text" placeholder="Email" />
+			<p style="color: red">@_message</p>
 			<div class="row">
 				<button type="button" class="accent-blue btn-bottom-left btn-grow-medium" @onclick="NavLogin">Go to Login</button>
 				<button type="submit" class="accent-green btn-bottom-right" @onclick="ProcessRequest">Request Reset Link</button>
@@ -56,39 +57,43 @@ else
 	private string _newPassword;
 	private string _repNewPassword;
 
+	private string _message;
+
 	private async void ProcessRequest()
 	{
 		using var db = DbContext.CreateDbContext();
 
 		var user = db.Users.FirstOrDefault(u => u.Email == _email);
 
-		// TODO: Validate email
-
-		if (null != user)
+		if (user is null)
 		{
-			string rndToken = Guid.NewGuid().ToString();
-
-			var pwReset = new Entity.PwReset()
-			{
-				UserId = user.Id,
-				Token = rndToken
-			};
-
-			db.PwResets.Add(pwReset);
-
-			await db.SaveChangesAsync();
-
-			// Send reset link with token
-			var mail = new Model.Message()
-			{
-				Body = "localhost:5000/pwreset/" + pwReset.Token,
-				Subject = "Password Reset Request",
-				From = "sender@domaine.ch",
-				To = new string[] { pwReset.User.Email }
-			};
-
-			await MailService.Send(mail);
+			_message = "Email not found.";
+			return;
 		}
+
+		string rndToken = Guid.NewGuid().ToString();
+
+		var pwReset = new Entity.PwReset()
+		{
+			UserId = user.Id,
+			Token = rndToken
+		};
+
+		db.PwResets.Add(pwReset);
+
+		await db.SaveChangesAsync();
+
+		// Send reset link with token
+		var mail = new Model.Message()
+		{
+			Body = "localhost:5000/pwreset/" + pwReset.Token,
+			Subject = "PASSWORD RESET REQUEST",
+			From = "sender@domaine.ch",
+			To = new string[] { pwReset.User.Email }
+		};
+
+		await MailService.Send(mail);
+		_message = "Reset link sent.";
 	}
 
 	private bool ValidateRequest()
@@ -127,7 +132,7 @@ else
 		var mail = new Model.Message()
 		{
 			Body = "Your password was successfully updated.",
-			Subject = "PASSWORD RESET",
+			Subject = "PASSWORD RESET SUCCESSFUL",
 			From = "sender@domaine.ch",
 			To = new string[] { pwReset.User.Email }
 		};

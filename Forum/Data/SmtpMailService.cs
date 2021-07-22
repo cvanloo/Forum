@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Net.Mail;
+using System.Net;
 
 namespace Forum.Data
 {
@@ -12,6 +13,21 @@ namespace Forum.Data
 		{
 			using (var smtp = new SmtpClient())
 			{
+				/* Delivery via SMTP */
+				//smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
+				//
+				//var credentials = new NetworkCredential()
+				//{
+				//	UserName = "name@email.ch",
+				//	Password = "password"
+				//};
+				//
+				//smtp.Credentials = credentials;
+				//smtp.Host = "host";
+				//smtp.Port = 587;
+				//smtp.EnableSsl = true;
+
+				/* Dump mail to a local directory */
 				smtp.DeliveryMethod = SmtpDeliveryMethod.SpecifiedPickupDirectory;
 				smtp.PickupDirectoryLocation = @"C:\tmp\mail";
 
@@ -21,7 +37,7 @@ namespace Forum.Data
 					Subject = message.Subject,
 					From = new MailAddress(message.From)
 				};
-				mail.To.Add(string.Join(';', message.To));
+				mail.To.Add(string.Join(',', message.To));
 
 				await smtp.SendMailAsync(mail);
 			}
