@@ -2,6 +2,7 @@
 @using Microsoft.EntityFrameworkCore;
 @using System.Security.Claims;
 @using System.ComponentModel.DataAnnotations;
+@using System.Text.RegularExpressions;
 @inject IDbContextFactory<Model.Database> DbContext;
 @inject AuthenticationStateProvider AuthProvider;
 @inject NavigationManager NavigationManager;
@@ -60,13 +61,18 @@
 			{
 				await ((Forum.Controller.AuthenticationStateController)AuthProvider)
 					.ValidateLogin(_loginModel.Identifier, _loginModel.Password);
+
+				var uriBuilder = new UriBuilder(NavigationManager.Uri);
+				var url = System.Web.HttpUtility.ParseQueryString(uriBuilder.Query);
+				var returnUrl = url["returnUrl"] ?? "/";
+				var regex = new Regex(".*:?//");
+				if (!regex.IsMatch(returnUrl))
+					NavigationManager.NavigateTo(returnUrl);
 			}
 			catch (Exception ex)
 			{
 				_message = ex.Message;
 			}
-
-			_loginModel = new LoginModel();
 		}
 	}
 

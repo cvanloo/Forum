@@ -15,7 +15,7 @@
 			if (string.IsNullOrWhiteSpace(returnUrl))
 				NavMan.NavigateTo("/login", true);
 			else
-				NavMan.NavigateTo("login?returnUrl={returnUrl}", true);
+				NavMan.NavigateTo("login?returnUrl=" + returnUrl, true);
 		}
 	}
 }

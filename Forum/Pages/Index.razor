@@ -1,5 +1,5 @@
 @page "/"
-@*attribute [Authorize(Roles = "user")]*@
+@attribute [Authorize(Roles = "user")]
 @using Microsoft.EntityFrameworkCore
 @using System.Security.Claims
 @inject IDbContextFactory<Model.Database> DbContext
@@ -66,9 +66,6 @@
 			</div>
 		</div>
 	</Authorized>
-	<NotAuthorized>
-		<label><b style="color: red;">You are not authorized.</b></label>
-	</NotAuthorized>
 </AuthorizeView>
 
 @code {

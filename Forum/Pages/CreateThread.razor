@@ -78,8 +78,8 @@
 			};
 
 			db.Threads.Add(newThread);
-
 			System.IO.File.WriteAllText(uploadPath, _content);
+			await db.SaveChangesAsync();
 
 			NavMan.NavigateTo("/thread/" + newThread.Id);
 		}

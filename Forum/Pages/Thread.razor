@@ -5,7 +5,8 @@
 @inject IDbContextFactory<Model.Database> DbContext
 @inject NavigationManager NavMan
 @inject IJSRuntime iJsRuntime
-@inject CommentService CommentService 
+@inject CommentService CommentService
+@implements IDisposable
 
 <div class="container-left fix-left" >
 	<div class="main row" >
@@ -35,7 +36,7 @@
 	<div class="main">
 		<CommentField ThreadId="@_thread.Id" />
 	</div>
-	@foreach (Entity.Comment c in _comments)
+	@foreach (Entity.Comment c in _thread.Comments)
 	{
 		if (null != c.Parent) continue;
 
@@ -62,7 +63,6 @@
 	private Entity.Thread _thread;
 	private string _content;
 	private bool _saved;
-	private List<Entity.Comment> _comments;
 
 	protected async override Task OnInitializedAsync()
 	{
@@ -76,7 +76,6 @@
 				.ThenInclude(c => c.Creator)
 			.FirstOrDefault(t => t.Id == Id);
 
-		_comments = _thread.Comments.ToList();
 		CommentService.CommentEvent += Update;
 
 		var authenticationState = await authenticationStateTask;
@@ -154,8 +153,11 @@
 				.ThenInclude(c => c.Creator)
 			.FirstOrDefault(t => t.Id == Id);
 
-		_comments = _thread.Comments.ToList();
-
 		InvokeAsync(() => StateHasChanged());
+	}
+
+	public void Dispose()
+	{
+		CommentService.CommentEvent -= Update;
 	}
 }

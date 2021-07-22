@@ -3,6 +3,7 @@
         <Found Context="routeData">
             <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
                 <NotAuthorized>
+                    @* Called on protected pages (those with `@attribute [Authorize]`) *@
                     <RedirectToLogin />
                 </NotAuthorized>
             </AuthorizeRouteView>
