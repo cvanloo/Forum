@@ -11,9 +11,13 @@
 			position: absolute;
 			margin-left: 50%;
 		}
+
+	#underline {
+		border-bottom: 0.1em solid #9BAEC8;
+	}
 </style>
 
-<p>Trending Now</p>
+<p id="underline">Trending Now</p>
 @foreach (var t in _tags)
 {
 	@if (0 == t.Popularity) continue;
@@ -31,8 +35,8 @@
 		using var db = DbContext.CreateDbContext();
 		
 		List<Entity.Tag> tags = db.Tags.Include(t => t.Threads).ToList();
-
 		tags.Sort();
+
 		_tags = tags.GetRange(0, 3);
 	}
 }

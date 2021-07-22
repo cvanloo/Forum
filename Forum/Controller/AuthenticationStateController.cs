@@ -78,8 +78,8 @@ namespace Forum.Controller
 				new Claim("poster", "true"),
 			};
 
-			// "Authentication Type": If you don't pass a string here, authentication using the <AuthorizeView>-tags
-			// won't work.
+			// "Authentication Type": If you don't pass a string here, authentication using the 
+			// <AuthorizeView>-tags won't work.
 			return new ClaimsIdentity(claims, "Authentication Type");
 		}
 	}
