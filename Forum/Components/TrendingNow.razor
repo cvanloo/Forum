@@ -8,16 +8,18 @@
 	}
 
 		#tag_container p {
-			margin-left: auto;
-			margin-right: auto;
+			position: absolute;
+			margin-left: 50%;
 		}
 </style>
 
 <p>Trending Now</p>
 @foreach (var t in _tags)
 {
+	@if (0 == t.Popularity) continue;
+
 	<div id="tag_container" class="row">
-		<a href="">#@t.Name</a><p>@t.Popularity</p>
+		<a href="/search?q=#@t.Name">#@t.Name</a><p>@t.Popularity</p>
 	</div>
 }
 
@@ -27,13 +29,10 @@
 	protected async override Task OnInitializedAsync()
 	{
 		using var db = DbContext.CreateDbContext();
+		
+		List<Entity.Tag> tags = db.Tags.Include(t => t.Threads).ToList();
 
-		// Get all threads from the last 24 hours
-		DateTime yesterday = DateTime.Now;
-		yesterday = yesterday.AddHours(24);
-		List<Entity.Thread> threads = db.Threads.Include(t => t.Tags).Where(t => t.Created.CompareTo(yesterday) < 0).ToList();
-
-		// Find out which tags were used the most
-
+		tags.Sort();
+		_tags = tags.GetRange(0, 3);
 	}
 }
