@@ -1,12 +1,13 @@
 ﻿@page "/pwreset/{Token?}"
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.Extensions.Configuration
-@using System.Net.Mail; 
+@using System.Net.Mail;
 @inject NavigationManager NavMan
 @inject IDbContextFactory<Model.Database> DbContext
-@inject NavigationManager NavMan 
+@inject NavigationManager NavMan
 @inject IConfiguration Config
 @inject IMailService MailService
+@inject Data.InfoMessage MessageService
 
 @if (string.IsNullOrEmpty(Token))
 {
@@ -14,7 +15,6 @@
 		<div class="col">
 			<h3 class="mt-2">Request Password Reset</h3>
 			<input class="form-control" @bind-value="_email" type="text" placeholder="Email" />
-			<p style="color: red">@_message</p>
 			<div class="row">
 				<button type="button" class="accent-blue btn-bottom-left btn-grow-medium" @onclick="NavLogin">Go to Login</button>
 				<button type="submit" class="accent-green btn-bottom-right" @onclick="ProcessRequest">Request Reset Link</button>
@@ -57,8 +57,6 @@ else
 	private string _newPassword;
 	private string _repNewPassword;
 
-	private string _message;
-
 	private async void ProcessRequest()
 	{
 		using var db = DbContext.CreateDbContext();
@@ -67,7 +65,7 @@ else
 
 		if (user is null)
 		{
-			_message = "Email not found.";
+			MessageService.Message = "Email not found.";
 			return;
 		}
 
@@ -93,7 +91,7 @@ else
 		};
 
 		await MailService.Send(mail);
-		_message = "Reset link sent.";
+		MessageService.Message = "Reset link sent.";
 	}
 
 	private bool ValidateRequest()
@@ -138,6 +136,9 @@ else
 		};
 
 		await MailService.Send(mail);
+
+		MessageService.Message = "Password updated.";
+		NavLogin();
 	}
 
 	private void NavLogin()

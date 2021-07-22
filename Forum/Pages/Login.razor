@@ -1,11 +1,13 @@
 ﻿@page "/login"
-@using Microsoft.EntityFrameworkCore;
-@using System.Security.Claims;
-@using System.ComponentModel.DataAnnotations;
-@using System.Text.RegularExpressions;
-@inject IDbContextFactory<Model.Database> DbContext;
-@inject AuthenticationStateProvider AuthProvider;
-@inject NavigationManager NavigationManager;
+@using Microsoft.EntityFrameworkCore
+@using System.Security.Claims
+@using System.ComponentModel.DataAnnotations
+@using System.Text.RegularExpressions
+@inject IDbContextFactory<Model.Database> DbContext
+@inject AuthenticationStateProvider AuthProvider
+@inject NavigationManager NavigationManager
+@inject IMailService MailService
+@inject Data.InfoMessage MessageService
 
 <div class="main text-center mt-5 ml-auto mr-auto">
 	<AuthorizeView>
@@ -47,7 +49,6 @@
 
 @code {
 	private LoginModel _loginModel = new LoginModel();
-	private string _message;
 
 	[CascadingParameter]
 	private Task<AuthenticationState> authenticationStateTask { get; set; }
@@ -62,6 +63,8 @@
 				await ((Forum.Controller.AuthenticationStateController)AuthProvider)
 					.ValidateLogin(_loginModel.Identifier, _loginModel.Password);
 
+				MessageService.Message = "You are now logged in.";
+
 				var uriBuilder = new UriBuilder(NavigationManager.Uri);
 				var url = System.Web.HttpUtility.ParseQueryString(uriBuilder.Query);
 				var returnUrl = url["returnUrl"] ?? "/";
@@ -71,7 +74,7 @@
 			}
 			catch (Exception ex)
 			{
-				_message = ex.Message;
+				MessageService.Message = "Login failed.";
 			}
 		}
 	}

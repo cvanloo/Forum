@@ -8,6 +8,7 @@
 @inject NavigationManager NavigationManager 
 @inject NavigationManager NavMan 
 @inject IConfiguration Config
+@inject Data.InfoMessage MessageService 
 
 <div class="main text-center mt-5 ml-auto mr-auto form-bigger">
 	<EditForm class="form-bigger" Model="@_registerModel" OnValidSubmit="HashPw">
@@ -95,6 +96,7 @@
 			await db.Users.AddAsync(user);
 			await db.SaveChangesAsync();
 
+			MessageService.Message = "Account created successfully.";
 			NavigationManager.NavigateTo("/login");
 		}
 		catch (Exception ex)

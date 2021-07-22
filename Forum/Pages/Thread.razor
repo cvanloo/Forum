@@ -24,6 +24,14 @@
 		</p>
 		<h5 class="txt-title">@_thread.Title</h5>
 		<pre class="txt-title">@_content</pre>
+		@{
+			string tagText = "";
+			@foreach (var t in _thread.Tags)
+			{
+				tagText += ' ' + t.Name;
+			}
+		}
+		<small>Tags: @tagText</small>
 	</div>
 	<div class="second row">
 		@* Number of Pages, 20 Comments per Page
@@ -70,6 +78,7 @@
 
 		_thread = db.Threads
 			.Include(t => t.Creator)
+			.Include(t => t.Tags)
 			.Include(t => t.Forum)
 				.ThenInclude(f => f.Members)
 			.Include(t => t.Comments)

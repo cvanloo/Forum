@@ -59,6 +59,9 @@ namespace Forum
 
             // Smtp Mail service
             services.AddTransient<IMailService, SmtpMailService>();
+
+            // Info Message service
+            services.AddSingleton<InfoMessage>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
