@@ -14,13 +14,6 @@
 
 <AuthorizeView>
 	<Authorized>
-		@*<label>Hello @context.User.Identity.Name!</label>
-		<ul>
-			@foreach (Claim claim in @context.User.Claims)
-			{
-				<li>@claim.Type: @claim.Value</li>
-			}
-		</ul>*@
 		<div class="container-left fix-left">
 			<div class="main needs-padding">
 				<img width="50" height="50" src="/css/icons/Default.jpg" alt="Profile Image" />
@@ -46,6 +39,7 @@
 				{
 					<ThreadPreview ThreadModel="thread" />
 				}
+				<button @onclick="LoadThreads" style="width: 100%;" class="btn-norm">Load more</button>
 			</div>
 		</div>
 		<div class="container-right fix-right">
@@ -69,8 +63,8 @@
 </AuthorizeView>
 
 @code {
-	[CascadingParameter]
-	private Task<AuthenticationState> authenticationStateTask { get; set; }
+		[CascadingParameter]
+		private Task<AuthenticationState> authenticationStateTask { get; set; }
 
 	private string _displayName;
 	private string _accountName;
@@ -80,35 +74,33 @@
 	{
 		var authenticationState = await authenticationStateTask;
 
-		if (!authenticationState.User.Identity.IsAuthenticated)
+		using (var db = DbContext.CreateDbContext())
 		{
-			// Send unauthorized users to the login page
-			//NavigationManager.NavigateTo("/login");
-		}
-		else
-		{
-			using (var db = DbContext.CreateDbContext())
-			{
-				Entity.User user = db.Users.First(u => u.AccountName == authenticationState.User.Identity.Name);
-				_displayName = user.DisplayName;
-				_accountName = user.AccountName;
-			}
-
-			await LoadThreads();
+			Entity.User user = db.Users.First(u => u.AccountName == authenticationState.User.Identity.Name);
+			_displayName = user.DisplayName;
+			_accountName = user.AccountName;
 		}
 
+		await LoadThreads();
 	}
 
 	private async Task LoadThreads()
 	{
 		using var db = DbContext.CreateDbContext();
 
-		_threads = db.Threads
-			.Include(t => t.Creator)
-			.Include(t => t.Forum)
-			.Include(t => t.Tags)
-			.OrderBy(o => o.Created)
-			.Take(50).ToList();
+		DateTime lastTimeStamp = _threads.LastOrDefault()?.Created ?? DateTime.Now;
+
+		_threads.AddRange(
+			db.Threads
+				.Include(t => t.Creator)
+				.Include(t => t.Forum)
+				.Include(t => t.Tags)
+				.OrderByDescending(o => o.Created)
+				.Where(t => t.Created.CompareTo(lastTimeStamp) < 0)
+				.Take(50).ToList()
+		);
+
+		//_threads.Sort((t1, t2) => t2.Created.CompareTo(t1.Created));
 	}
 
 	private void NavCreatePost()
