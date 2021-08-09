@@ -7,6 +7,7 @@
 @inject IDbContextFactory<Model.Database> DbContext
 @inject NavigationManager NavMan
 @inject IConfiguration Config
+@inject Data.InfoMessage MessageService 
 
 <div class="main text-center mt-5 ml-auto mr-auto form-bigger">
 	<form @onsubmit="StoreThread" class="form-bigger">
@@ -81,6 +82,7 @@
 			System.IO.File.WriteAllText(uploadPath, _content);
 			await db.SaveChangesAsync();
 
+			MessageService.Message = "Thread uploded.";
 			NavMan.NavigateTo("/thread/" + newThread.Id);
 		}
 		catch (Exception ex)

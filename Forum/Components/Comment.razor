@@ -14,25 +14,28 @@
 		color: gray;
 	}
 
-	.collapsed span {
-		display: none;
-	}
+		.collapsed span {
+			display: none;
+		}
 
+	button {
+		width: auto !important;
+	}
 </style>
 
-<div class="second needs-padding border-left @_collapseClass" >
+<div class="second needs-padding border-left @_collapseClass">
 	<p class="p-annotation-sm">
 		@CommentModel.Creator.AccountName
 		@CommentModel.Created.ToString("t"), @CommentModel.Created.ToString("d")
-		<button class="btn-mini" @onclick="Collapse">[-]</button> @*▬*@
+		<button class="btn-mini" @onclick="Collapse">[@_clpMsg]</button> @*▬*@
 	</p>
 	<span>
 		<pre class="txt-title">@CommentModel.Text</pre>
-		<button class="btn-mini" @onclick="ToggleCommentField" >Answer</button>
+		<button class="btn-mini" @onclick="ToggleCommentField">Answer</button>
 		<div class="@_cfClass">
 			<CommentField ThreadId="@CommentModel.ThreadId" ParentId="@CommentModel.Id" />
 		</div>
-	
+
 		@foreach (Entity.Comment c in _childs)
 		{
 			<Comment CommentModel="c" />
@@ -47,6 +50,7 @@
 	private List<Entity.Comment> _childs;
 	private string _cfClass = "hidden";
 	private string _collapseClass = "";
+	private string _clpMsg = "-";
 
 	protected async override Task OnInitializedAsync()
 	{
@@ -54,6 +58,7 @@
 		// We want to assign the result of the method, which it doesn't has (void),
 		// which is why we need to pass the method _without_ parentheses.
 		CommentService.CommentEvent += Update;
+		//CommentService.CommentEvent += Update();
 
 		// Alternatively a lambda expression could be used like this:
 		// CommentService.CommentEvent += () => Update();
@@ -70,9 +75,15 @@
 	private void Collapse()
 	{
 		if ("collapsed" == _collapseClass)
+		{
 			_collapseClass = "";
+			_clpMsg = "-";
+		}
 		else
+		{
 			_collapseClass = "collapsed";
+			_clpMsg = "+";
+		}
 	}
 
 	private void Update()

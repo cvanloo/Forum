@@ -73,7 +73,6 @@ namespace Forum.Controller
 			{
 				new Claim(ClaimTypes.Name, user.AccountName),
 				new Claim(ClaimTypes.Role, "user"),
-				new Claim("Id", user.Id.ToString()),
 				new Claim("admin", "true"),
 				new Claim("poster", "true"),
 			};

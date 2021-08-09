@@ -1,10 +1,11 @@
 ﻿@page "/pref"
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.Extensions.Configuration
 @attribute [Authorize]
 @inject NavigationManager NavMan
 @inject IDbContextFactory<Model.Database> DbContext
 @inject IConfiguration Config
-@using Microsoft.EntityFrameworkCore
-@using Microsoft.Extensions.Configuration
+@inject Data.InfoMessage MessageService 
 
 <style>
 	p {
@@ -60,14 +61,26 @@
 
 	private async void UpdateAccount()
 	{
+		string msg = "";
 		var authenticationState = await authenticationStateTask;
 		using var db = DbContext.CreateDbContext();
 
 		Entity.User user = db.Users.First(u => u.AccountName == authenticationState.User.Identity.Name);
 
-		user.DisplayName = string.IsNullOrEmpty(_displayName) ? user.DisplayName : _displayName;
-		// TODO: Send email
-		user.Email = string.IsNullOrEmpty(_email) ? user.Email : _email;
+		if (!string.IsNullOrWhiteSpace(_displayName) &&
+			_displayName != user.DisplayName)
+		{
+			user.DisplayName = _displayName;
+			msg += "Displayname, ";
+		}
+
+		if (!string.IsNullOrWhiteSpace(_email) &&
+			_email != user.Email)
+		{
+			user.Email = _email;
+			msg += "Email, ";
+			// TODO: Send email
+		}
 
 		if (!string.IsNullOrEmpty(_newPasswd) &&
 			!string.IsNullOrEmpty(_repNewPasswd) &&
@@ -75,9 +88,12 @@
 			BCrypt.Net.BCrypt.EnhancedVerify(_currentPasswd, user.PwHash))
 		{
 			user.PwHash = BCrypt.Net.BCrypt.EnhancedHashPassword(_newPasswd, Config.GetValue<int>("Workfactor"));
+			msg += "Password ";
 		}
 
 		await db.SaveChangesAsync();
+		msg += "changed.";
+		MessageService.Message = msg;
 	}
 
 	private void NavHome()

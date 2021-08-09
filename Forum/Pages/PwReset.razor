@@ -130,8 +130,8 @@ else
 		var mail = new Model.Message()
 		{
 			Body = "Your password was successfully updated.",
-			Subject = "PASSWORD RESET SUCCESSFUL",
-			From = "sender@domaine.ch",
+			Subject = "PASSWORD CHANGED",
+			From = "user@domaine.ch",
 			To = new string[] { pwReset.User.Email }
 		};
 

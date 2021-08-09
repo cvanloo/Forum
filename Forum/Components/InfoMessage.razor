@@ -16,10 +16,16 @@
 		background: #909090;
 		border: 2px groove #ffffff;
 	}
+
+	#txt-span {
+		display: inline-block;
+		vertical-align: middle;
+		line-height: normal;
+	}
 </style>
 
 <div id="helper-container" style="@_style">
-	@_message
+	<span id="txt-span">@_message</span>
 </div>
 
 @code {
