@@ -32,7 +32,6 @@ namespace Forum.Entity
         public bool IsArchived { get; set; }
 
         [Required]
-        public bool IsDeleted { get; set; }
-        
+        public bool IsDeleted { get; set; }       
     }
 }

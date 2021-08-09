@@ -27,7 +27,11 @@
 
 	protected async override Task OnInitializedAsync()
 	{
-		if (!string.IsNullOrEmpty(ThreadModel.ContentPath))
+		if (ThreadModel.IsDeleted)
+		{
+			_content = "[ Thread deleted. ]";
+		}
+		else if (!string.IsNullOrEmpty(ThreadModel.ContentPath))
 		{
 			try
 			{
@@ -46,7 +50,7 @@
 			}
 			catch (Exception)
 			{
-				_content = "[Thread deleted.]";
+				_content = "[ An error occurred. ]";
 			}
 		}
 	}

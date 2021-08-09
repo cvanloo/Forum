@@ -6,17 +6,18 @@
 @inject NavigationManager NavMan
 @inject IJSRuntime iJsRuntime
 @inject CommentService CommentService
+@inject Data.InfoMessage MessageService 
 @implements IDisposable
 
-<div class="container-left fix-left" >
-	<div class="main row" >
+<div class="container-left fix-left">
+	<div class="main row">
 		<button class="btn-norm-sec" @onclick="NavHome">
 			<img width="50" height="50" src="/css/icons/Arrow_Back.png" alt="Back Arrow" />
 			Go Back
 		</button>
 	</div>
 </div>
-<div class="container-middle" >
+<div class="container-middle">
 	<div class="main needs-padding">
 		<p class="p-annotation-sm">
 			@_thread.Creator.AccountName@@@_thread.Forum.Name
@@ -35,11 +36,16 @@
 	</div>
 	<div class="second row">
 		@* Number of Pages, 20 Comments per Page
-		 * ( number_of_comments + comments_per_page - 1 ) / comments_per_page
-		 *@
+			* ( number_of_comments + comments_per_page - 1 ) / comments_per_page
+		*@
 		<p class="p-annotation-sm txt-dark needs-space-lr">@_thread.Comments.Count Comments (@((_thread.Comments.Count + 19 ) / 20) Pages)</p>
 		<p @onclick="CopyLink" class="p-annotation-sm txt-dark needs-space-lr clickable shiny">@_copyLabel</p>
 		<p @onclick="SaveThread" class="p-annotation-sm txt-dark needs-space-lr clickable shiny">@(_saved ? "Saved!" : "Save")</p>
+		@if (!_thread.IsDeleted && 
+			_thread.Creator == _dbContext.Users.First(u => u.AccountName == _authState.User.Identity.Name))
+		{ 
+			<p @onclick="Delete" class="p-annotation-sm txt-dark needs-space-lr clickable shiny">Delete</p>
+		}
 	</div>
 	<div class="main">
 		<CommentField ThreadId="@_thread.Id" />
@@ -51,9 +57,9 @@
 		<Comment CommentModel="c" />
 	}
 </div>
-<div class="container-right fix-right" >
-	<div class="second needs-padding" >
-		<img width="100" height="100" src="/css/icons/Default.jpg" alt="Forum Image"/>
+<div class="container-right fix-right">
+	<div class="second needs-padding">
+		<img width="100" height="100" src="/css/icons/Default.jpg" alt="Forum Image" />
 		<h5>@_thread.Forum.Name</h5>
 		<p class="p-annotation-sm">@_thread.Forum.Members.Count Mem. / Created @_thread.Forum.Created.ToString("d")</p>
 		<pre class="txt-title">@_thread.Forum.Description</pre>
@@ -67,6 +73,9 @@
 	[CascadingParameter]
 	private Task<AuthenticationState> authenticationStateTask { get; set; }
 
+	private Model.Database _dbContext;
+	private AuthenticationState _authState;
+
 	private string _copyLabel = "Copy Link";
 	private Entity.Thread _thread;
 	private string _content;
@@ -74,9 +83,9 @@
 
 	protected async override Task OnInitializedAsync()
 	{
-		using var db = DbContext.CreateDbContext();
+		_dbContext = DbContext.CreateDbContext();
 
-		_thread = db.Threads
+		_thread = _dbContext.Threads
 			.Include(t => t.Creator)
 			.Include(t => t.Tags)
 			.Include(t => t.Forum)
@@ -85,14 +94,11 @@
 				.ThenInclude(c => c.Creator)
 			.FirstOrDefault(t => t.Id == Id);
 
-		CommentService.CommentEvent += Update;
-
-		var authenticationState = await authenticationStateTask;
-		Entity.User user = db.Users.Include(u => u.SavedThreads)
-			.First(u => u.AccountName == authenticationState.User.Identity.Name);
-		_saved = user.SavedThreads.Contains(_thread);
-
-		if (!string.IsNullOrEmpty(_thread.ContentPath))
+		if (_thread.IsDeleted)
+		{
+			_content = "[ Thread deleted. ]";
+		}
+		else
 		{
 			try
 			{
@@ -103,9 +109,18 @@
 			}
 			catch (Exception)
 			{
-				_content = "[Thread deleted.]";
+				_content = "[ An error occurred. ]";
 			}
 		}
+
+		CommentService.CommentEvent += Update;
+
+		_authState = await authenticationStateTask;
+
+		Entity.User user = _dbContext.Users.Include(u => u.SavedThreads)
+			.First(u => u.AccountName == _authState.User.Identity.Name);
+
+		_saved = user.SavedThreads.Contains(_thread);
 	}
 
 	private void NavHome()
@@ -122,39 +137,50 @@
 
 	private async void SaveThread()
 	{
-		using var db = DbContext.CreateDbContext();
-
-		var authenticationState = await authenticationStateTask;
-
-		Entity.User user = db.Users
+		Entity.User user = _dbContext.Users
 			.Include(u => u.SavedThreads)
 			.Include(u => u.Forums)
-			.First(u => u.AccountName == authenticationState.User.Identity.Name);
+			.First(u => u.AccountName == _authState.User.Identity.Name);
 
-		// Get the thread again, because it needs to come from the _same_ db-context.
+		@*// Get the thread again, because it needs to come from the _same_ db-context.
 		// Using `_thread` would not work.
-		Entity.Thread thread = db.Threads.First(t => t.Id == _thread.Id);
+		Entity.Thread thread = db.Threads.First(t => t.Id == _thread.Id);*@
 
 		if (_saved)
 		{
-			user.SavedThreads.Remove(thread);
+			user.SavedThreads.Remove(_thread);
+			_saved = false;
 		}
 		else
 		{
-			user.SavedThreads.Add(thread);
+			user.SavedThreads.Add(_thread);
+			_saved = true;
 		}
 
-		await db.SaveChangesAsync();
+		await _dbContext.SaveChangesAsync();
 
-		_saved = !_saved;
 		StateHasChanged();
+	}
+
+	private async void Delete()
+	{
+
+		if (_thread.Creator == _dbContext.Users.First(u => u.AccountName == _authState.User.Identity.Name))
+		{
+			bool confirm = await iJsRuntime.InvokeAsync<bool>("confirm", "Delete this thread?");
+
+			if (confirm) 
+			{ 
+				_thread.IsDeleted = true;
+				await _dbContext.SaveChangesAsync();
+				MessageService.Message = "Thread deleted.";
+			}
+		}
 	}
 
 	private void Update()
 	{
-		using var db = DbContext.CreateDbContext();
-
-		_thread = db.Threads
+		_thread = _dbContext.Threads
 			.Include(t => t.Creator)
 			.Include(t => t.Forum)
 				.ThenInclude(f => f.Members)
