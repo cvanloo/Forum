@@ -1,13 +1,10 @@
 ﻿@page "/post"
-@*TODO: Policies?*@
 @*@attribute [Authorize(Roles = "user")]*@
 @attribute [Authorize(Policy = "IsPoster")]
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.Extensions.Configuration
-@inject IDbContextFactory<Model.Database> DbContext
 @inject NavigationManager NavMan
 @inject IConfiguration Config
-@inject Data.InfoMessage MessageService 
 
 <div class="main text-center mt-5 ml-auto mr-auto form-bigger">
 	<form @onsubmit="StoreThread" class="form-bigger">
@@ -30,44 +27,39 @@
 	</form>
 </div>
 
-<div class="div-error" style="">
-	<p>@_error</p>
-</div>
-
 @code {
 	[CascadingParameter]
 	private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+	[CascadingParameter]
+	private Model.Database DbContext { get; set; }
 
 	private Entity.Forum[] _forums;
 	private int _forumId = 1;
 	private string _title;
 	private string _content;
 	private string _tags;
-	private string _error;
 
 	protected async override Task OnInitializedAsync()
 	{
-		using var db = DbContext.CreateDbContext();
-
-		_forums = db.Forums.ToArray();
+		_forums = DbContext.Forums.ToArray();
 	}
 
 	private async void StoreThread()
 	{
 		if (string.IsNullOrEmpty(_content))
 		{
-			_error = "Content needs to be between 1 and 20798 characters long.";
+			// TODO: Display info "Content needs to be between 1 and 20798 characters long."
 			return;
 		}
 
 		try
 		{
 			var authState = await authenticationStateTask;
-			using var db = DbContext.CreateDbContext();
 
 			string uploadPath = Config.GetValue<string>("UploadPath") + Guid.NewGuid().ToString();
-			Entity.User user = db.Users.FirstOrDefault(u => u.AccountName == authState.User.Identity.Name);
-			List<Entity.Tag> tags = ParseTags(db);
+			Entity.User user = DbContext.Users.FirstOrDefault(u => u.AccountName == authState.User.Identity.Name);
+			List<Entity.Tag> tags = ParseTags();
 
 			var newThread = new Entity.Thread()
 			{
@@ -78,11 +70,11 @@
 				Tags = tags
 			};
 
-			db.Threads.Add(newThread);
+			DbContext.Threads.Add(newThread);
 			System.IO.File.WriteAllText(uploadPath, _content);
-			await db.SaveChangesAsync();
+			await DbContext.SaveChangesAsync();
 
-			MessageService.Message = "Thread uploded.";
+			// TODO: Display info "Thread uploaded."
 			NavMan.NavigateTo("/thread/" + newThread.Id);
 		}
 		catch (Exception ex)
@@ -90,10 +82,8 @@
 			Console.Error.WriteLine("\n\n\n!!!!!!!\n\n\n");
 			Console.Error.WriteLine(ex.ToString());
 			Console.Error.WriteLine("\n\n\n!!!!!!!\n\n\n");
-			_error = "Failed to upload post.";
-			return;
+			// TODO: Display info "Failed to upload post."
 		}
-
 	}
 
 	private void NavHome()
@@ -101,19 +91,19 @@
 		NavMan.NavigateTo("/");
 	}
 
-	private List<Entity.Tag> ParseTags(Model.Database db)
+	private List<Entity.Tag> ParseTags()
 	{
 		if (string.IsNullOrEmpty(_tags)) return null;
 
-		List<Entity.Tag> tags = new List<Entity.Tag>();
+		var tags = new List<Entity.Tag>();
 		string[] separatedTags = _tags.Split(new char[] { ' ', '#' });
 
-		foreach (string tagStr in separatedTags)
+		foreach (var tagStr in separatedTags)
 		{
 			if (string.IsNullOrEmpty(tagStr)) continue;
 
 			// Get tag from db if it exists, create a new tag if it doesn't.
-			Entity.Tag tag = db.Tags.FirstOrDefault(t => t.Name == tagStr);
+			var tag = DbContext.Tags.FirstOrDefault(t => t.Name == tagStr);
 
 			if (null != tag)
 				tags.Add(tag);

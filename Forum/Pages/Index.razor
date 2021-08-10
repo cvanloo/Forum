@@ -2,7 +2,6 @@
 @attribute [Authorize(Roles = "user")]
 @using Microsoft.EntityFrameworkCore
 @using System.Security.Claims
-@inject IDbContextFactory<Model.Database> DbContext
 @inject NavigationManager NavigationManager
 
 <style>
@@ -63,35 +62,34 @@
 </AuthorizeView>
 
 @code {
-		[CascadingParameter]
-		private Task<AuthenticationState> authenticationStateTask { get; set; }
+	[CascadingParameter]
+	private Task<AuthenticationState> authenticationStateTask { get; set; }
 
+	[CascadingParameter]
+	private Model.Database DbContext { get; set; }
+	
 	private string _displayName;
 	private string _accountName;
-	private List<Entity.Thread> _threads = new List<Entity.Thread>();
+	private readonly List<Entity.Thread> _threads = new();
 
-	protected async override Task OnInitializedAsync()
+	protected override async Task OnInitializedAsync()
 	{
-		var authenticationState = await authenticationStateTask;
+		var authState = await authenticationStateTask;
 
-		using (var db = DbContext.CreateDbContext())
-		{
-			Entity.User user = db.Users.First(u => u.AccountName == authenticationState.User.Identity.Name);
-			_displayName = user.DisplayName;
-			_accountName = user.AccountName;
-		}
+		Entity.User user = DbContext.Users.First(u => u.AccountName == authState.User.Identity.Name);
+		_displayName = user.DisplayName;
+		_accountName = user.AccountName;
 
 		await LoadThreads();
 	}
 
 	private async Task LoadThreads()
 	{
-		using var db = DbContext.CreateDbContext();
-
-		DateTime lastTimeStamp = _threads.LastOrDefault()?.Created ?? DateTime.Now;
+		// Only retrieve threads that are older than our oldest already retrieved thread.
+		var lastTimeStamp = _threads.LastOrDefault()?.Created ?? DateTime.Now;
 
 		_threads.AddRange(
-			db.Threads
+			DbContext.Threads
 				.Include(t => t.Creator)
 				.Include(t => t.Forum)
 				.Include(t => t.Tags)

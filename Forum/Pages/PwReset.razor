@@ -3,11 +3,8 @@
 @using Microsoft.Extensions.Configuration
 @using System.Net.Mail;
 @inject NavigationManager NavMan
-@inject IDbContextFactory<Model.Database> DbContext
-@inject NavigationManager NavMan
 @inject IConfiguration Config
 @inject IMailService MailService
-@inject Data.InfoMessage MessageService
 
 @if (string.IsNullOrEmpty(Token))
 {
@@ -52,24 +49,24 @@ else
 	[Parameter]
 	public string Token { get; set; }
 
-	private string _email;
+    [CascadingParameter]
+    private Model.Database DbContext { get; set; }
 
+	private string _email;
 	private string _newPassword;
 	private string _repNewPassword;
 
 	private async void ProcessRequest()
 	{
-		using var db = DbContext.CreateDbContext();
-
-		var user = db.Users.FirstOrDefault(u => u.Email == _email);
+		var user = DbContext.Users.FirstOrDefault(u => u.Email == _email);
 
 		if (user is null)
 		{
-			MessageService.Message = "Email not found.";
+			// TODO: Display info "Email not found."
 			return;
 		}
 
-		string rndToken = Guid.NewGuid().ToString();
+		var rndToken = Guid.NewGuid().ToString();
 
 		var pwReset = new Entity.PwReset()
 		{
@@ -77,9 +74,9 @@ else
 			Token = rndToken
 		};
 
-		db.PwResets.Add(pwReset);
+		DbContext.PwResets.Add(pwReset);
 
-		await db.SaveChangesAsync();
+		await DbContext.SaveChangesAsync();
 
 		// Send reset link with token
 		var mail = new Model.Message()
@@ -87,18 +84,16 @@ else
 			Body = "localhost:5000/pwreset/" + pwReset.Token,
 			Subject = "PASSWORD RESET REQUEST",
 			From = "sender@domaine.ch",
-			To = new string[] { pwReset.User.Email }
+			To = new[] { pwReset.User.Email }
 		};
 
 		await MailService.Send(mail);
-		MessageService.Message = "Reset link sent.";
+		// TODO: Display info "Reset link sent."
 	}
 
 	private bool ValidateRequest()
 	{
-		using var db = DbContext.CreateDbContext();
-
-		var pwReset = db.PwResets.Include(p => p.User).FirstOrDefault(p => p.Token == Token);
+		var pwReset = DbContext.PwResets.Include(p => p.User).FirstOrDefault(p => p.Token == Token);
 
 		if (pwReset is null) return false;
 
@@ -112,19 +107,19 @@ else
 
 	private async void UpdatePassword()
 	{
-		using var db = DbContext.CreateDbContext();
+		var pwReset = DbContext.PwResets.Include(p => p.User).FirstOrDefault(p => p.Token == Token);
 
-		var pwReset = db.PwResets.Include(p => p.User).FirstOrDefault(p => p.Token == Token);
+		if (null == pwReset) return;
 
 		if (!string.IsNullOrEmpty(_newPassword) && _repNewPassword == _newPassword)
 		{
-			string pwHash = BCrypt.Net.BCrypt.EnhancedHashPassword(_newPassword, Config.GetValue<int>("Workfactor"));
+			var pwHash = BCrypt.Net.BCrypt.EnhancedHashPassword(_newPassword, Config.GetValue<int>("Workfactor"));
 
 			pwReset.User.PwHash = pwHash;
 		}
 
 		pwReset.Used = true;
-		await db.SaveChangesAsync();
+		await DbContext.SaveChangesAsync();
 
 		// Send email confirmation
 		var mail = new Model.Message()
@@ -137,13 +132,13 @@ else
 
 		await MailService.Send(mail);
 
-		MessageService.Message = "Password updated.";
+		// TODO: Display info "Password updated."
 		NavLogin();
 	}
 
 	private void NavLogin()
 	{
-		NavMan.NavigateTo("/login");
+		NavMan.NavigateTo("/login"); // TODO: Use <a href />
 	}
 }
 

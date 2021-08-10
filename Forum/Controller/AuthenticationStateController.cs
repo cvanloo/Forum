@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.JSInterop;
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Forum.Data;
@@ -11,48 +10,48 @@ namespace Forum.Controller
 {
 	public class AuthenticationStateController : AuthenticationStateProvider
 	{
-		private readonly IJSRuntime jsRuntime;
-		private readonly IUserService userService;
+		private readonly IJSRuntime _jsRuntime;
+		private readonly IUserService _userService;
 
-		private User cachedUser;
+		private User _cachedUser;
 
 		public AuthenticationStateController(IJSRuntime jsRuntime, IUserService userService)
 		{
-			this.jsRuntime = jsRuntime;
-			this.userService = userService;
+			_jsRuntime = jsRuntime;
+			_userService = userService;
 		}
 
 		public override async Task<AuthenticationState> GetAuthenticationStateAsync()
 		{
-			if (null == cachedUser)
+			if (null == _cachedUser)
 			{
-				string token = await jsRuntime.InvokeAsync<string>("sessionStorage.getItem", "SESSION_ID");
+				var token = await _jsRuntime.InvokeAsync<string>("sessionStorage.getItem", "SESSION_ID");
 
 				// Not important to check if token is null or empty
-				cachedUser = userService.GetUserFromSessionToken(token);
+				_cachedUser = _userService.GetUserFromSessionToken(token);
 
-				if (null == cachedUser)
+				if (null == _cachedUser)
 				{
 					return await Task.FromResult(new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity())));
 				}
 			}
 
-			ClaimsIdentity identity = SetupClaims(cachedUser);
+			var identity = SetupClaims(_cachedUser);
 
-			ClaimsPrincipal claimsPrincipal = new ClaimsPrincipal(identity);
+			var claimsPrincipal = new ClaimsPrincipal(identity);
 			return await Task.FromResult(new AuthenticationState(claimsPrincipal));
 		}
 
 		public async Task ValidateLogin(string identifier, string password)
 		{
-			User user = userService.ValidateUser(identifier, password);
+			var user = _userService.ValidateUser(identifier, password);
 
-			ClaimsIdentity identity = SetupClaims(user);
+			var identity = SetupClaims(user);
 
-			string rndToken = userService.StoreSessionToken(user);
-			await jsRuntime.InvokeVoidAsync("sessionStorage.setItem", "SESSION_ID", rndToken);
+			var rndToken = _userService.StoreSessionToken(user);
+			await _jsRuntime.InvokeVoidAsync("sessionStorage.setItem", "SESSION_ID", rndToken);
 			
-			cachedUser = user;
+			_cachedUser = user;
 
 			NotifyAuthenticationStateChanged(
 				Task.FromResult(new AuthenticationState(new ClaimsPrincipal(identity))));
@@ -60,21 +59,21 @@ namespace Forum.Controller
 
 		public async Task Logout()
 		{
-			userService.RemoveSession(cachedUser);
-			cachedUser = null;
-			await jsRuntime.InvokeVoidAsync("sessionStorage.setItem", "SESSION_ID", "");
+			_userService.RemoveSession(_cachedUser);
+			_cachedUser = null;
+			await _jsRuntime.InvokeVoidAsync("sessionStorage.setItem", "SESSION_ID", "");
 			var user = new ClaimsPrincipal(new ClaimsIdentity());
 			NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(user)));
 		}
 
 		private ClaimsIdentity SetupClaims(User user)
 		{
-			List<Claim> claims = new List<Claim>()
+			var claims = new List<Claim>()
 			{
 				new Claim(ClaimTypes.Name, user.AccountName),
 				new Claim(ClaimTypes.Role, "user"),
 				new Claim("admin", "true"),
-				new Claim("poster", "true"),
+				new Claim("poster", "true")
 			};
 
 			// "Authentication Type": If you don't pass a string here, authentication using the 

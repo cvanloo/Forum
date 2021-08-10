@@ -25,7 +25,7 @@
 
 	private string _content;
 
-	protected async override Task OnInitializedAsync()
+	protected override async Task OnInitializedAsync()
 	{
 		if (ThreadModel.IsDeleted)
 		{
@@ -35,11 +35,11 @@
 		{
 			try
 			{
-				string path = ThreadModel.ContentPath;
+				var path = ThreadModel.ContentPath;
 
-				StreamReader streamReader = new StreamReader(path);
+				var streamReader = new StreamReader(path);
 
-				char[] buffer = new char[1000];
+				var buffer = new char[1000];
 				streamReader.Read(buffer);
 
 				// Strings in C# are _not_ null-terminated.

@@ -3,11 +3,9 @@
 @using System.Security.Claims
 @using System.ComponentModel.DataAnnotations
 @using System.Text.RegularExpressions
-@inject IDbContextFactory<Model.Database> DbContext
 @inject AuthenticationStateProvider AuthProvider
 @inject NavigationManager NavigationManager
 @inject IMailService MailService
-@inject Data.InfoMessage MessageService
 
 <div class="main text-center mt-5 ml-auto mr-auto">
 	<AuthorizeView>
@@ -48,10 +46,10 @@
 </div>
 
 @code {
-	private LoginModel _loginModel = new LoginModel();
+	private readonly LoginModel _loginModel = new();
 
 	[CascadingParameter]
-	private Task<AuthenticationState> authenticationStateTask { get; set; }
+	private Task<AuthenticationState> AuthenticationStateTask { get; set; }
 
 	private async Task SignIn()
 	{
@@ -63,7 +61,7 @@
 				await ((Forum.Controller.AuthenticationStateController)AuthProvider)
 					.ValidateLogin(_loginModel.Identifier, _loginModel.Password);
 
-				MessageService.Message = "You are now logged in.";
+				// TODO: Display info "You are now logged in."
 
 				var uriBuilder = new UriBuilder(NavigationManager.Uri);
 				var url = System.Web.HttpUtility.ParseQueryString(uriBuilder.Query);
@@ -74,7 +72,7 @@
 			}
 			catch (Exception ex)
 			{
-				MessageService.Message = "Login failed.";
+				// TODO: Display info "Login failed."
 			}
 		}
 	}
@@ -86,17 +84,17 @@
 
 	private void NavPwReset()
 	{
-		NavigationManager.NavigateTo("/pwreset");
+		NavigationManager.NavigateTo("/pwreset"); // TODO: use <a href />
 	}
 
 	private void NavRegister()
 	{
-		NavigationManager.NavigateTo("/register");
+		NavigationManager.NavigateTo("/register"); // TODO: use <a href />
 	}
 
 	private void NavHome()
 	{
-		NavigationManager.NavigateTo("/");
+		NavigationManager.NavigateTo("/"); // TODO: use <a href />
 	}
 
 	public class LoginModel

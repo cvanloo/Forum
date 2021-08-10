@@ -1,6 +1,4 @@
 ﻿@using Microsoft.EntityFrameworkCore
-@inject IDbContextFactory<Model.Database> DbContext
-@inject CommentService CommentService 
 
 <style>
 	.form-control {
@@ -10,61 +8,58 @@
 </style>
 
 <input @onfocusin="Activate" @onfocusout="Deactivate" type="text" class="form-control" placeholder="Write a comment" @bind-value="@_comment" />
-<button @onclick="CreateComment" type="submit" class="form-control" style="@btnStyle">Comment</button>
+<button @onclick="CreateComment" type="submit" class="form-control" style="@_btnStyle">Comment</button>
 
 @code {
+	[Parameter]
+	public Entity.Thread Thread { get; set; }
+	
+	[Parameter]
+	public Entity.Comment Comment { get; set; }
+
 	[CascadingParameter]
-	private Task<AuthenticationState> authenticationStateTask { get; set; }
+	private Task<AuthenticationState> AuthenticationStateTask { get; set; }
 
-	[Parameter]
-	public int ThreadId { get; set; }
-
-	[Parameter]
-	public int? ParentId { get; set; }
+	[CascadingParameter]
+	private Model.Database DbContext { get; set; }
 
 	private string _comment;
-	private string btnStyle = "display: none;";
+	private string _btnStyle = "display: none;";
 
 	private void Activate()
 	{
-		btnStyle = "";
+		_btnStyle = "";
 	}
 
-	private async void Deactivate()
+	private void Deactivate()
 	{
+		// TODO: Without sleep the button disappears before the 'button-pressed'-event can be registered.
 		System.Threading.Thread.Sleep(100);
-		btnStyle = "display: none;";
+		_btnStyle = "display: none;";
 	}
 
 	private async void CreateComment()
 	{
 		if (string.IsNullOrEmpty(_comment)) return;
 
-		var authenticationState = await authenticationStateTask;
-		using var db = DbContext.CreateDbContext();
+		var authState = await AuthenticationStateTask;
+		var user = DbContext.Users.First(u => u.AccountName == authState.User.Identity.Name);
 
-		Entity.User user = db.Users.First(u => u.AccountName == authenticationState.User.Identity.Name);
-
-		Entity.Comment comment = new Entity.Comment()
+		var comment = new Entity.Comment
 		{
 			Creator = user,
 			Text = _comment,
-			ParentId = ParentId
+			Parent = Comment
 		};
 
-		await db.Comments.AddAsync(comment);
+		await DbContext.Comments.AddAsync(comment);
+		Thread.Comments.Add(comment);
 
-		Entity.Thread thread = db.Threads
-			.Include(t => t.Comments)
-			.First(t => t.Id == ThreadId);
-
-		thread.Comments.Add(comment);
-
-		await db.SaveChangesAsync();
+		await DbContext.SaveChangesAsync();
 
 		_comment = null;
+		
+		// TODO: Update page
 		StateHasChanged();
-
-		CommentService.RaiseCommentEvent();
 	}
 }

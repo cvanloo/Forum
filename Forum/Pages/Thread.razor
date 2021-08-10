@@ -2,12 +2,8 @@
 @attribute [Authorize]
 @using Microsoft.EntityFrameworkCore
 @using System.IO
-@inject IDbContextFactory<Model.Database> DbContext
 @inject NavigationManager NavMan
-@inject IJSRuntime iJsRuntime
-@inject CommentService CommentService
-@inject Data.InfoMessage MessageService 
-@implements IDisposable
+@inject IJSRuntime IJsRuntime
 
 <div class="container-left fix-left">
 	<div class="main row">
@@ -42,13 +38,13 @@
 		<p @onclick="CopyLink" class="p-annotation-sm txt-dark needs-space-lr clickable shiny">@_copyLabel</p>
 		<p @onclick="SaveThread" class="p-annotation-sm txt-dark needs-space-lr clickable shiny">@(_saved ? "Saved!" : "Save")</p>
 		@if (!_thread.IsDeleted && 
-			_thread.Creator == _dbContext.Users.First(u => u.AccountName == _authState.User.Identity.Name))
+			_thread.Creator == DbContext.Users.First(u => u.AccountName == _authState.User.Identity.Name))
 		{ 
 			<p @onclick="Delete" class="p-annotation-sm txt-dark needs-space-lr clickable shiny">Delete</p>
 		}
 	</div>
 	<div class="main">
-		<CommentField ThreadId="@_thread.Id" />
+		<CommentField Thread="@_thread" />
 	</div>
 	@foreach (Entity.Comment c in _thread.Comments)
 	{
@@ -71,21 +67,22 @@
 	public int Id { get; set; }
 
 	[CascadingParameter]
-	private Task<AuthenticationState> authenticationStateTask { get; set; }
+	private Task<AuthenticationState> AuthenticationStateTask { get; set; }
+	[CascadingParameter]
+	private Model.Database DbContext { get; set; }
 
-	private Model.Database _dbContext;
-	private AuthenticationState _authState;
-
-	private string _copyLabel = "Copy Link";
 	private Entity.Thread _thread;
+	private AuthenticationState _authState;
+	
+	private string _copyLabel = "Copy Link";
 	private string _content;
 	private bool _saved;
 
-	protected async override Task OnInitializedAsync()
+	protected override async Task OnInitializedAsync()
 	{
-		_dbContext = DbContext.CreateDbContext();
-
-		_thread = _dbContext.Threads
+		_authState = await AuthenticationStateTask; 
+		
+		_thread = DbContext.Threads
 			.Include(t => t.Creator)
 			.Include(t => t.Tags)
 			.Include(t => t.Forum)
@@ -94,6 +91,8 @@
 				.ThenInclude(c => c.Creator)
 			.FirstOrDefault(t => t.Id == Id);
 
+		if (null == _thread) return; // TODO: Display proper message
+		
 		if (_thread.IsDeleted)
 		{
 			_content = "[ Thread deleted. ]";
@@ -113,11 +112,7 @@
 			}
 		}
 
-		CommentService.CommentEvent += Update;
-
-		_authState = await authenticationStateTask;
-
-		Entity.User user = _dbContext.Users.Include(u => u.SavedThreads)
+		var user = DbContext.Users.Include(u => u.SavedThreads)
 			.First(u => u.AccountName == _authState.User.Identity.Name);
 
 		_saved = user.SavedThreads.Contains(_thread);
@@ -125,26 +120,22 @@
 
 	private void NavHome()
 	{
-		NavMan.NavigateTo("/");
+		NavMan.NavigateTo("/"); // TODO: Use <a href/> instead
 	}
 
 	private async void CopyLink()
 	{
 		_copyLabel = "Copied!";
 		string link = NavMan.Uri;
-		await iJsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", link);
+		await IJsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", link);
 	}
 
 	private async void SaveThread()
 	{
-		Entity.User user = _dbContext.Users
+		var user = DbContext.Users
 			.Include(u => u.SavedThreads)
 			.Include(u => u.Forums)
 			.First(u => u.AccountName == _authState.User.Identity.Name);
-
-		@*// Get the thread again, because it needs to come from the _same_ db-context.
-		// Using `_thread` would not work.
-		Entity.Thread thread = db.Threads.First(t => t.Id == _thread.Id);*@
 
 		if (_saved)
 		{
@@ -157,30 +148,27 @@
 			_saved = true;
 		}
 
-		await _dbContext.SaveChangesAsync();
+		await DbContext.SaveChangesAsync();
 
 		StateHasChanged();
 	}
 
 	private async void Delete()
 	{
+		if (_thread.Creator != DbContext.Users.First(u => u.AccountName == _authState.User.Identity.Name)) return;
+		bool confirm = await IJsRuntime.InvokeAsync<bool>("confirm", "Delete this thread?");
 
-		if (_thread.Creator == _dbContext.Users.First(u => u.AccountName == _authState.User.Identity.Name))
-		{
-			bool confirm = await iJsRuntime.InvokeAsync<bool>("confirm", "Delete this thread?");
-
-			if (confirm) 
-			{ 
-				_thread.IsDeleted = true;
-				await _dbContext.SaveChangesAsync();
-				MessageService.Message = "Thread deleted.";
-			}
+		if (confirm) 
+		{ 
+			_thread.IsDeleted = true;
+			await DbContext.SaveChangesAsync();
+			// TODO: Display info "Thread deleted."
 		}
 	}
 
 	private void Update()
 	{
-		_thread = _dbContext.Threads
+		_thread = DbContext.Threads
 			.Include(t => t.Creator)
 			.Include(t => t.Forum)
 				.ThenInclude(f => f.Members)
@@ -189,10 +177,5 @@
 			.FirstOrDefault(t => t.Id == Id);
 
 		InvokeAsync(() => StateHasChanged());
-	}
-
-	public void Dispose()
-	{
-		CommentService.CommentEvent -= Update;
 	}
 }

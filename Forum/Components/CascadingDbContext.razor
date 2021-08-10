@@ -1,0 +1,22 @@
+﻿@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<Model.Database> DbContext
+@implements IDisposable
+
+<CascadingValue TValue="Model.Database" Value="@_dbContext" ChildContent="@ChildContent" />
+
+@code {
+    private Model.Database _dbContext;
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    protected override void OnInitialized()
+    {
+        _dbContext = DbContext.CreateDbContext();
+    }
+
+    public void Dispose()
+    {
+        _dbContext?.Dispose();
+    }
+}

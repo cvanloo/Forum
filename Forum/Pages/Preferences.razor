@@ -3,9 +3,8 @@
 @using Microsoft.Extensions.Configuration
 @attribute [Authorize]
 @inject NavigationManager NavMan
-@inject IDbContextFactory<Model.Database> DbContext
 @inject IConfiguration Config
-@inject Data.InfoMessage MessageService 
+@inject IMailService MailService
 
 <style>
 	p {
@@ -14,7 +13,7 @@
 </style>
 
 <div class="main text-center mt-5 ml-auto mr-auto form-bigger">
-	<EditForm OnValidSubmit="UpdateAccount" Model="testModel" class="form-bigger">
+	<EditForm OnValidSubmit="UpdateAccount" Model="_testModel" class="form-bigger">
 		<div class="col">
 			<h3 class="mt-2">User Preferences</h3>
 			<p>Username</p>
@@ -42,17 +41,19 @@
 	private string _newPasswd;
 	private string _repNewPasswd;
 
-	private TestModel testModel = new TestModel();
+	private readonly TestModel _testModel = new();
 
 	[CascadingParameter]
-	private Task<AuthenticationState> authenticationStateTask { get; set; }
+	private Task<AuthenticationState> AuthenticationStateTask { get; set; }
+	
+	[CascadingParameter]
+	private Model.Database DbContext { get; set; }
 
-	protected async override Task OnInitializedAsync()
+	protected override async Task OnInitializedAsync()
 	{
-		var authenticationState = await authenticationStateTask;
-		using var db = DbContext.CreateDbContext();
+		var authState = await AuthenticationStateTask;
 
-		Entity.User user = db.Users.First(u => u.AccountName == authenticationState.User.Identity.Name);
+		Entity.User user = DbContext.Users.First(u => u.AccountName == authState.User.Identity.Name);
 
 		_accountName = user.AccountName;
 		_displayName = user.DisplayName;
@@ -62,10 +63,9 @@
 	private async void UpdateAccount()
 	{
 		string msg = "";
-		var authenticationState = await authenticationStateTask;
-		using var db = DbContext.CreateDbContext();
+		var authState = await AuthenticationStateTask;
 
-		Entity.User user = db.Users.First(u => u.AccountName == authenticationState.User.Identity.Name);
+		Entity.User user = DbContext.Users.First(u => u.AccountName == authState.User.Identity.Name);
 
 		if (!string.IsNullOrWhiteSpace(_displayName) &&
 			_displayName != user.DisplayName)
@@ -79,7 +79,6 @@
 		{
 			user.Email = _email;
 			msg += "Email, ";
-			// TODO: Send email
 		}
 
 		if (!string.IsNullOrEmpty(_newPasswd) &&
@@ -91,18 +90,28 @@
 			msg += "Password ";
 		}
 
-		await db.SaveChangesAsync();
+		await DbContext.SaveChangesAsync();
 		msg += "changed.";
-		MessageService.Message = msg;
+
+		var mail = new Model.Message()
+		{
+			Body = "Your account information has been updated.",
+			Subject = "ACCOUNT INFORMATION CHANGED",
+			From = "user@domaine.ch",
+			To = new string[] { user.Email }
+		};
+		await MailService.Send(mail);
+		
+		// TODO: Display info `msg`
 	}
 
 	private void NavHome()
 	{
-		NavMan.NavigateTo("/");
+		NavMan.NavigateTo("/"); // TODO: Use <a href />
 	}
 
 	public class TestModel
 	{
-
+		// TODO: Use model for input validation
 	}
 }

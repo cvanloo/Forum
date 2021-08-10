@@ -1,5 +1,4 @@
 ﻿@using Microsoft.EntityFrameworkCore
-@inject IDbContextFactory<Model.Database> DbContext
 
 <style>
 	#tag_container {
@@ -28,13 +27,14 @@
 }
 
 @code {
-	private List<Entity.Tag> _tags = new List<Entity.Tag>();
+	[CascadingParameter]
+	private Model.Database DbContext { get; set; }
+	
+	private List<Entity.Tag> _tags = new();
 
-	protected async override Task OnInitializedAsync()
+	protected override async Task OnInitializedAsync()
 	{
-		using var db = DbContext.CreateDbContext();
-		
-		List<Entity.Tag> tags = db.Tags.Include(t => t.Threads).ToList();
+		var tags = DbContext.Tags.Include(t => t.Threads).ToList();
 		tags.Sort();
 
 		_tags = tags.GetRange(0, 3);
