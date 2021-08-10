@@ -33,7 +33,7 @@
 
 	private void Deactivate()
 	{
-		// TODO: Without sleep the button disappears before the 'button-pressed'-event can be registered.
+		// TODO: Fix: Without sleep the button disappears before the 'button-pressed'-event can be registered.
 		System.Threading.Thread.Sleep(100);
 		_btnStyle = "display: none;";
 	}
@@ -59,7 +59,7 @@
 
 		_comment = null;
 		
-		// TODO: Update page
+		// TODO: Update page; We need to update our parent, not our child elements
 		StateHasChanged();
 	}
 }

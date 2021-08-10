@@ -1,12 +1,11 @@
 ﻿@page "/register"
 @using BCrypt.Net;
-@using Microsoft.EntityFrameworkCore; 
-@using Forum.Entity;
 @using System.ComponentModel.DataAnnotations;
 @using Microsoft.Extensions.Configuration 
 @inject NavigationManager NavigationManager 
 @inject NavigationManager NavMan 
 @inject IConfiguration Config
+@inject Data.InfoMessage MessageService
 
 <div class="main text-center mt-5 ml-auto mr-auto form-bigger">
 	<EditForm class="form-bigger" Model="@_registerModel" OnValidSubmit="HashPw">
@@ -65,17 +64,17 @@
 
 		if (DbContext.Users.Where(u => u.AccountName == _registerModel.AccountName).Any())
 		{
-			// TODO: Display info "Username already exists."
+			MessageService.Message = "Username already exists.";
 			return;
 		}
 
 		if (DbContext.Users.Where(u => u.Email == _registerModel.Email).Any())
 		{
-			// TODO: Display info "There already is an account with this email address."
+			MessageService.Message = "There already is an account with this email address.";
 			return;
 		}
 
-		var user = new User()
+		var user = new Entity.User()
 		{
 			AccountName = _registerModel.AccountName,
 			Email = _registerModel.Email,
@@ -87,7 +86,7 @@
 			await DbContext.Users.AddAsync(user);
 			await DbContext.SaveChangesAsync();
 
-			// TODO: Display info "Account created successfully."
+			MessageService.Message = "Account created successfully.";
 			NavigationManager.NavigateTo("/login");
 		}
 		catch (Exception ex)

@@ -1,0 +1,79 @@
+﻿@using System.Timers 
+@inject Data.InfoMessage MessageService
+@implements IDisposable
+
+<style>
+	#helper-container {
+		position: absolute;
+		@*top: 0; right: 0; bottom: 0; left: 0;*@
+		bottom: 5%; right: 0; left: 0;
+		margin: auto;
+		width: 25rem;
+		height: 5rem;
+		line-height: 5rem;
+		text-align: center;
+
+		background: #909090;
+		border: 2px groove #ffffff;
+	}
+
+	#txt-span {
+		display: inline-block;
+		vertical-align: middle;
+		line-height: normal;
+	}
+</style>
+
+<div id="helper-container" style="@_style" @onclick="Close">
+	<span id="txt-span">@_message</span>
+</div>
+
+@code {
+	private const string CSS = "display: none;";
+	
+	private string _message;
+	private string _style = CSS;
+	private Timer _timer;
+
+	protected override async Task OnInitializedAsync()
+	{
+		MessageService.MessageEvent += () =>
+		{
+			InvokeAsync(() =>
+			{
+				_message = MessageService.Message;
+				Show();
+			});
+		};
+
+		_timer = new Timer(2000);
+		_timer.Elapsed += (s, e) =>
+		{
+			InvokeAsync(Hide); // The timer will invoke elapsed only once, therefore we don't need to call Stop() on it.
+		};
+	}
+
+	private void Show()
+	{
+		_style = "";
+		StateHasChanged();
+		_timer?.Start();
+	}
+
+	private void Hide()
+	{
+		_style = CSS;
+		StateHasChanged();
+	}
+
+	private void Close()
+	{
+		_style = CSS;
+		_timer?.Stop(); // This probably happens before elapsed is called, so we need to stop the timer.
+	}
+
+	public void Dispose()
+	{
+		_timer?.Dispose();
+	}
+}

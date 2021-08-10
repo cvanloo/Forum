@@ -5,6 +5,7 @@
 @inject NavigationManager NavMan
 @inject IConfiguration Config
 @inject IMailService MailService
+@inject Data.InfoMessage MessageService
 
 @if (string.IsNullOrEmpty(Token))
 {
@@ -62,7 +63,7 @@ else
 
 		if (user is null)
 		{
-			// TODO: Display info "Email not found."
+			MessageService.Message = "Email not found.";
 			return;
 		}
 
@@ -88,7 +89,7 @@ else
 		};
 
 		await MailService.Send(mail);
-		// TODO: Display info "Reset link sent."
+		MessageService.Message = "Reset link sent.";
 	}
 
 	private bool ValidateRequest()
@@ -132,7 +133,7 @@ else
 
 		await MailService.Send(mail);
 
-		// TODO: Display info "Password updated."
+		MessageService.Message = "Password updated.";
 		NavLogin();
 	}
 

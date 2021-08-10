@@ -4,6 +4,7 @@
 @using System.IO
 @inject NavigationManager NavMan
 @inject IJSRuntime IJsRuntime
+@inject Data.InfoMessage MessageService
 
 <div class="container-left fix-left">
 	<div class="main row">
@@ -162,20 +163,7 @@
 		{ 
 			_thread.IsDeleted = true;
 			await DbContext.SaveChangesAsync();
-			// TODO: Display info "Thread deleted."
+			MessageService.Message = "Thread deleted.";
 		}
-	}
-
-	private void Update()
-	{
-		_thread = DbContext.Threads
-			.Include(t => t.Creator)
-			.Include(t => t.Forum)
-				.ThenInclude(f => f.Members)
-			.Include(t => t.Comments)
-				.ThenInclude(c => c.Creator)
-			.FirstOrDefault(t => t.Id == Id);
-
-		InvokeAsync(() => StateHasChanged());
 	}
 }

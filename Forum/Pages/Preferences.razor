@@ -1,10 +1,10 @@
 ﻿@page "/pref"
-@using Microsoft.EntityFrameworkCore
 @using Microsoft.Extensions.Configuration
 @attribute [Authorize]
 @inject NavigationManager NavMan
 @inject IConfiguration Config
 @inject IMailService MailService
+@inject Data.InfoMessage MessageService
 
 <style>
 	p {
@@ -102,7 +102,7 @@
 		};
 		await MailService.Send(mail);
 		
-		// TODO: Display info `msg`
+		MessageService.Message = msg;
 	}
 
 	private void NavHome()

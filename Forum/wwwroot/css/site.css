@@ -55,7 +55,6 @@ form {
 	background: #131419;
 	color: white;
 
-	border: none;
 	margin: 2rem 0;
 	width: 100%;
 	border-radius: 0.5rem;
@@ -84,7 +83,7 @@ pre {
 	margin: 0;
 	white-space: pre-wrap;
 	word-break: break-all;
-	font-family: Roboto;
+	font-family: "JetBrains Mono", monospace;
 }
 
 .main {

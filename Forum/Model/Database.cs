@@ -12,7 +12,6 @@ namespace Forum.Model
     {
         public DbSet<User> Users { get; set; }
         public DbSet<Entity.Forum> Forums { get; set; }
-        public DbSet<UserForum> UserForums { get; set; }
         public DbSet<Thread> Threads { get; set; }
         public DbSet<Comment> Comments { get; set; }
         public DbSet<Session> Sessions { get; set; }
@@ -82,17 +81,17 @@ namespace Forum.Model
                 .HasDefaultValue(false);
 
             // UserForum
-            modelBuilder.Entity<UserForum>()
-                .Property(uf => uf.Joined)
-                .HasDefaultValueSql("NOW()");
+            //modelBuilder.Entity<UserForum>()
+            //    .Property(uf => uf.Joined)
+            //    .HasDefaultValueSql("NOW()");
 
-            modelBuilder.Entity<UserForum>()
-                .Property(uf => uf.IsBlocked)
-                .HasDefaultValue(false);
+            //modelBuilder.Entity<UserForum>()
+            //    .Property(uf => uf.IsBlocked)
+            //    .HasDefaultValue(false);
 
-            modelBuilder.Entity<UserForum>()
-                .Property(uf => uf.ModLevel)
-                .HasDefaultValue(0);
+            //modelBuilder.Entity<UserForum>()
+            //    .Property(uf => uf.ModLevel)
+            //    .HasDefaultValue(0);
 
             // Chat
             modelBuilder.Entity<Chat>()
