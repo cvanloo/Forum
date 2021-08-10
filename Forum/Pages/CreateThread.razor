@@ -1,9 +1,7 @@
 ﻿@page "/post"
 @*@attribute [Authorize(Roles = "user")]*@
 @attribute [Authorize(Policy = "IsPoster")]
-@using Microsoft.EntityFrameworkCore
 @using Microsoft.Extensions.Configuration
-@using InfoMessage = Forum.Data.InfoMessage
 @inject NavigationManager NavMan
 @inject IConfiguration Config
 @inject Data.InfoMessage MessageService
@@ -19,7 +17,7 @@
 				}
 			</select>
 			<input class="form-control" type="text" placeholder="Title" @bind-value="_title" />
-			<textarea class="form-control" placeholder="Content" @bind="_content" maxlength="20798"/>
+			<textarea class="form-control" placeholder="Content" @bind="_content" maxlength="20798"></textarea>
 			<input class="form-control" type="text" placeholder="Add Tags" @bind-value="_tags" />
 			<div class="row">
 				<button type="button" @onclick="NavHome" class="accent-blue btn-bottom-left">Go Back</button>
@@ -31,7 +29,7 @@
 
 @code {
 	[CascadingParameter]
-	private Task<AuthenticationState> authenticationStateTask { get; set; }
+	private Task<AuthenticationState> AuthenticationStateTask { get; set; }
 
 	[CascadingParameter]
 	private Model.Database DbContext { get; set; }
@@ -57,11 +55,11 @@
 
 		try
 		{
-			var authState = await authenticationStateTask;
+			var authState = await AuthenticationStateTask;
 
-			string uploadPath = Config.GetValue<string>("UploadPath") + Guid.NewGuid().ToString();
-			Entity.User user = DbContext.Users.FirstOrDefault(u => u.AccountName == authState.User.Identity.Name);
-			List<Entity.Tag> tags = ParseTags();
+			var uploadPath = Config.GetValue<string>("UploadPath") + Guid.NewGuid();
+			var user = DbContext.Users.FirstOrDefault(u => u.AccountName == authState.User.Identity.Name);
+			var tags = ParseTags();
 
 			var newThread = new Entity.Thread()
 			{
@@ -82,9 +80,7 @@
 		}
 		catch (Exception ex)
 		{
-			Console.Error.WriteLine("\n\n\n!!!!!!!\n\n\n");
-			Console.Error.WriteLine(ex.ToString());
-			Console.Error.WriteLine("\n\n\n!!!!!!!\n\n\n");
+			await Console.Error.WriteLineAsync(ex.ToString());
 
 			MessageService.Message = "Failed to upload post.";
 		}
@@ -100,8 +96,9 @@
 		if (string.IsNullOrEmpty(_tags)) return null;
 
 		var tags = new List<Entity.Tag>();
-		string[] separatedTags = _tags.Split(new char[] { ' ', '#' });
+		var separatedTags = _tags.Split(' ', '#');
 
+		// ReSharper disable once LoopCanBeConvertedToQuery
 		foreach (var tagStr in separatedTags)
 		{
 			if (string.IsNullOrEmpty(tagStr)) continue;
@@ -109,10 +106,17 @@
 			// Get tag from db if it exists, create a new tag if it doesn't.
 			var tag = DbContext.Tags.FirstOrDefault(t => t.Name == tagStr);
 
-			if (null != tag)
+			if (null == tag)
+			{
+				var newTag = new Entity.Tag {Name = tagStr};
+				DbContext.Tags.Add(newTag);
+				DbContext.SaveChanges();
+				tags.Add(newTag);
+			}
+			else if (!tags.Contains(tag))
+			{
 				tags.Add(tag);
-			else
-				tags.Add(new Entity.Tag() { Name = tagStr });
+			}
 		}
 
 		return tags;

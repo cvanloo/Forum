@@ -46,10 +46,12 @@
 			});
 		};
 
-		_timer = new Timer(2000);
+		_timer = new Timer(2500);
+		_timer.AutoReset = false;
 		_timer.Elapsed += (s, e) =>
 		{
-			InvokeAsync(Hide); // The timer will invoke elapsed only once, therefore we don't need to call Stop() on it.
+			InvokeAsync(Hide); // The timer will invoke elapsed only once (AutoReset = false),
+							   // therefore we don't need to call Stop() on it.
 		};
 	}
 

@@ -62,10 +62,10 @@
 
 	private async void UpdateAccount()
 	{
-		string msg = "";
+		var msg = "";
 		var authState = await AuthenticationStateTask;
 
-		Entity.User user = DbContext.Users.First(u => u.AccountName == authState.User.Identity.Name);
+		var user = DbContext.Users.First(u => u.AccountName == authState.User.Identity.Name);
 
 		if (!string.IsNullOrWhiteSpace(_displayName) &&
 			_displayName != user.DisplayName)
