@@ -1,9 +1,13 @@
 ﻿@page "/pref"
 @using Microsoft.Extensions.Configuration
 @attribute [Authorize]
+@* ReSharper disable once InconsistentNaming *@
 @inject NavigationManager NavMan
+@* ReSharper disable once InconsistentNaming *@
 @inject IConfiguration Config
+@* ReSharper disable once InconsistentNaming *@
 @inject IMailService MailService
+@* ReSharper disable once InconsistentNaming *@
 @inject Data.InfoMessage MessageService
 
 <style>
@@ -98,7 +102,7 @@
 			Body = "Your account information has been updated.",
 			Subject = "ACCOUNT INFORMATION CHANGED",
 			From = "user@domaine.ch",
-			To = new string[] { user.Email }
+			To = new[] { user.Email }
 		};
 		await MailService.Send(mail);
 		

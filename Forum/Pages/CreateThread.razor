@@ -2,8 +2,11 @@
 @*@attribute [Authorize(Roles = "user")]*@
 @attribute [Authorize(Policy = "IsPoster")]
 @using Microsoft.Extensions.Configuration
+@* ReSharper disable once InconsistentNaming *@
 @inject NavigationManager NavMan
+@* ReSharper disable once InconsistentNaming *@
 @inject IConfiguration Config
+@* ReSharper disable once InconsistentNaming *@
 @inject Data.InfoMessage MessageService
 
 <div class="main text-center mt-5 ml-auto mr-auto form-bigger">
@@ -40,7 +43,7 @@
 	private string _content;
 	private string _tags;
 
-	protected override async Task OnInitializedAsync()
+	protected override void OnInitialized()
 	{
 		_forums = DbContext.Forums.ToArray();
 	}

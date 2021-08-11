@@ -33,6 +33,7 @@
 			<CommentField Thread="@CommentModel.Thread" Comment="@CommentModel" UpdateHandler="Update" /> @* TODO: .Thread AND Model? *@
 		</div>
 
+		@* ReSharper disable once UnusedVariable *@
 		@foreach (var c in _children)
 		{
 			<Comment CommentModel="c" />

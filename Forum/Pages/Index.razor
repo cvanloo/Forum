@@ -1,7 +1,7 @@
 @page "/"
 @attribute [Authorize(Roles = "user")]
 @using Microsoft.EntityFrameworkCore
-@using System.Security.Claims
+@* ReSharper disable once InconsistentNaming *@
 @inject NavigationManager NavigationManager
 
 <style>
@@ -63,7 +63,7 @@
 
 @code {
 	[CascadingParameter]
-	private Task<AuthenticationState> authenticationStateTask { get; set; }
+	private Task<AuthenticationState> AuthenticationStateTask { get; set; }
 
 	[CascadingParameter]
 	private Model.Database DbContext { get; set; }
@@ -74,9 +74,9 @@
 
 	protected override async Task OnInitializedAsync()
 	{
-		var authState = await authenticationStateTask;
+		var authState = await AuthenticationStateTask;
 
-		Entity.User user = DbContext.Users.First(u => u.AccountName == authState.User.Identity.Name);
+		var user = DbContext.Users.First(u => u.AccountName == authState.User.Identity.Name);
 		_displayName = user.DisplayName;
 		_accountName = user.AccountName;
 

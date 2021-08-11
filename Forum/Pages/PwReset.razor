@@ -1,10 +1,13 @@
 ﻿@page "/pwreset/{Token?}"
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.Extensions.Configuration
-@using System.Net.Mail;
+@* ReSharper disable once InconsistentNaming *@
 @inject NavigationManager NavMan
+@* ReSharper disable once InconsistentNaming *@
 @inject IConfiguration Config
+@* ReSharper disable once InconsistentNaming *@
 @inject IMailService MailService
+@* ReSharper disable once InconsistentNaming *@
 @inject Data.InfoMessage MessageService
 
 @if (string.IsNullOrEmpty(Token))
@@ -128,7 +131,7 @@ else
 			Body = "Your password was successfully updated.",
 			Subject = "PASSWORD CHANGED",
 			From = "user@domaine.ch",
-			To = new string[] { pwReset.User.Email }
+			To = new[] { pwReset.User.Email }
 		};
 
 		await MailService.Send(mail);

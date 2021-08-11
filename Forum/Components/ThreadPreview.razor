@@ -1,5 +1,6 @@
 ﻿@using Forum.Entity
 @using System.IO 
+@* ReSharper disable once InconsistentNaming *@
 @inject NavigationManager NavMan 
 
 <div @onclick="OpenThread" style="border-bottom: 0.1rem solid #9BAEC8; border-radius: 0; cursor: pointer" class="needs-padding shiny">
@@ -10,8 +11,8 @@
 	<h5 class="txt-title">@ThreadModel.Title</h5>
 	<pre class="main">@_content</pre>
 	@{
-		string tagText = "";
-		@foreach (Tag t in ThreadModel.Tags)
+		var tagText = "";
+		@foreach (var t in ThreadModel.Tags)
 		{
 			tagText += ' ' + t.Name;
 		}
@@ -40,7 +41,7 @@
 				var streamReader = new StreamReader(path);
 
 				var buffer = new char[1000];
-				streamReader.Read(buffer);
+				await streamReader.ReadAsync(buffer);
 
 				// Strings in C# are _not_ null-terminated.
 				_content = new string(buffer).Trim('\0');

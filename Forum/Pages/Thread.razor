@@ -2,8 +2,11 @@
 @attribute [Authorize]
 @using Microsoft.EntityFrameworkCore
 @using System.IO
+@* ReSharper disable once InconsistentNaming *@
 @inject NavigationManager NavMan
-@inject IJSRuntime IJsRuntime
+@* ReSharper disable once InconsistentNaming *@
+@inject IJSRuntime JSRuntime
+@* ReSharper disable once InconsistentNaming *@
 @inject Data.InfoMessage MessageService
 
 <div class="container-left fix-left">
@@ -14,55 +17,67 @@
 		</button>
 	</div>
 </div>
-<div class="container-middle">
-	<div class="main needs-padding">
-		<p class="p-annotation-sm">
-			@_thread.Creator.AccountName@@@_thread.Forum.Name
-			@_thread.Created.ToString("t"), @_thread.Created.ToString("d")
-		</p>
-		<h5 class="txt-title">@_thread.Title</h5>
-		<pre class="txt-title">@_content</pre>
-		@{
-			var tagText = "";
-			// ReSharper disable once LoopCanBeConvertedToQuery
-			@foreach (var t in _thread.Tags)
-			{
-				tagText += ' ' + t.Name;
+@if (null != _thread)
+{
+	<div class="container-middle">
+		<div class="main needs-padding">
+			<p class="p-annotation-sm">
+				@_thread.Creator.AccountName@@@_thread.Forum.Name
+				@_thread.Created.ToString("t"), @_thread.Created.ToString("d")
+			</p>
+			<h5 class="txt-title">@_thread?.Title</h5>
+			<pre class="txt-title">@_content</pre>
+			@{
+				var tagText = "";
+				// ReSharper disable once LoopCanBeConvertedToQuery
+				foreach (var t in _thread.Tags)
+				{
+					tagText += ' ' + t.Name;
+				}
 			}
-		}
-		<small>Tags: @tagText</small>
-	</div>
-	<div class="second row">
-		@* Number of Pages, 20 Comments per Page
-			* ( number_of_comments + comments_per_page - 1 ) / comments_per_page
-		*@
-		<p class="p-annotation-sm txt-dark needs-space-lr">@_thread.Comments.Count Comments (@((_thread.Comments.Count + 19 ) / 20) Pages)</p>
-		<p @onclick="CopyLink" class="p-annotation-sm txt-dark needs-space-lr clickable shiny">@_copyLabel</p>
-		<p @onclick="SaveThread" class="p-annotation-sm txt-dark needs-space-lr clickable shiny">@(_saved ? "Saved!" : "Save")</p>
-		@if (!_thread.IsDeleted && 
-			_thread.Creator == DbContext.Users.First(u => u.AccountName == _authState.User.Identity.Name))
-		{ 
-			<p @onclick="Delete" class="p-annotation-sm txt-dark needs-space-lr clickable shiny">Delete</p>
-		}
-	</div>
-	<div class="main">
-		<CommentField Thread="@_thread" UpdateHandler="StateHasChanged"/>
-	</div>
-	@foreach (var c in _thread.Comments)
-	{
-		if (null != c.Parent) continue;
+			<small>Tags: @tagText</small>
+		</div>
+		<div class="second row">
+			@* Number of Pages, 20 Comments per Page
+		 * ( number_of_comments + comments_per_page - 1 ) / comments_per_page
+		 *@
+			<p class="p-annotation-sm txt-dark needs-space-lr">@_thread.Comments.Count Comments (@((_thread.Comments.Count + 19) / 20) Pages)</p>
+			<p @onclick="CopyLink" class="p-annotation-sm txt-dark needs-space-lr clickable shiny">@_copyLabel</p>
+			<p @onclick="SaveThread" class="p-annotation-sm txt-dark needs-space-lr clickable shiny">@(_saved ? "Saved!" : "Save")</p>
+			@if (!_thread.IsDeleted &&
+			     _thread.Creator == DbContext.Users.First(u => u.AccountName == _authState.User.Identity.Name))
+			{
+				<p @onclick="Delete" class="p-annotation-sm txt-dark needs-space-lr clickable shiny">Delete</p>
+			}
+		</div>
+		<div class="main">
+			<CommentField Thread="@_thread" UpdateHandler="StateHasChanged"/>
+		</div>
+		@foreach (var c in _thread.Comments)
+		{
+			if (null != c.Parent) continue;
 
-		<Comment CommentModel="c" />
-	}
-</div>
-<div class="container-right fix-right">
-	<div class="second needs-padding">
-		<img width="100" height="100" src="/css/icons/Default.jpg" alt="Forum Image" />
-		<h5>@_thread.Forum.Name</h5>
-		<p class="p-annotation-sm">@_thread.Forum.Members.Count Mem. / Created @_thread.Forum.Created.ToString("d")</p>
-		<pre class="txt-title">@_thread.Forum.Description</pre>
+			<Comment CommentModel="c"/>
+		}
 	</div>
-</div>
+	<div class="container-right fix-right">
+		<div class="second needs-padding">
+			<img width="100" height="100" src="/css/icons/Default.jpg" alt="Forum Image" />
+			<h5>@_thread.Forum.Name</h5>
+			<p class="p-annotation-sm">@_thread.Forum.Members.Count Mem. / Created @_thread.Forum.Created.ToString("d")</p>
+			<pre class="txt-title">@_thread.Forum.Description</pre>
+		</div>
+	</div>
+}
+else
+{
+	<div class="container-middle">
+		<div class="main needs-padding">
+			<h5 class="txt-title">Thread not found.</h5>
+            <pre class="txt-title">Thread @Id doesn't seem to exist.</pre>
+		</div>
+	</div>
+}
 
 @code {
 	[Parameter]
@@ -103,9 +118,9 @@
 		{
 			try
 			{
-				string path = _thread.ContentPath;
-				StreamReader streamReader = new StreamReader(path);
-				_content = streamReader.ReadToEnd();
+				var path = _thread.ContentPath;
+				var streamReader = new StreamReader(path);
+				_content = await streamReader.ReadToEndAsync();
 				streamReader.Close();
 			}
 			catch (Exception)
@@ -129,7 +144,7 @@
 	{
 		_copyLabel = "Copied!";
 		var link = NavMan.Uri;
-		await IJsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", link);
+		await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", link);
 	}
 
 	private async void SaveThread()
@@ -158,8 +173,9 @@
 	private async void Delete()
 	{
 		if (_thread.Creator != DbContext.Users.First(u => u.AccountName == _authState.User.Identity.Name)) return;
-		var confirm = await IJsRuntime.InvokeAsync<bool>("confirm", "Delete this thread?");
+		var confirm = await JSRuntime.InvokeAsync<bool>("confirm", "Delete this thread?");
 
+		// ReSharper disable once InvertIf
 		if (confirm) 
 		{ 
 			_thread.IsDeleted = true;

@@ -1,7 +1,5 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Forum.Entity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace Forum.Model
 {

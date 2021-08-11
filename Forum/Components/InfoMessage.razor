@@ -1,4 +1,5 @@
 ﻿@using System.Timers 
+@* ReSharper disable once InconsistentNaming *@
 @inject Data.InfoMessage MessageService
 @implements IDisposable
 
@@ -29,13 +30,14 @@
 </div>
 
 @code {
+	// ReSharper disable once InconsistentNaming
 	private const string CSS = "display: none;";
 	
 	private string _message;
 	private string _style = CSS;
 	private Timer _timer;
 
-	protected override async Task OnInitializedAsync()
+	protected override void OnInitialized()
 	{
 		MessageService.MessageEvent += () =>
 		{
@@ -48,7 +50,7 @@
 
 		_timer = new Timer(2500);
 		_timer.AutoReset = false;
-		_timer.Elapsed += (s, e) =>
+		_timer.Elapsed += (_, _) =>
 		{
 			InvokeAsync(Hide); // The timer will invoke elapsed only once (AutoReset = false),
 							   // therefore we don't need to call Stop() on it.

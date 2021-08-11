@@ -1,14 +1,19 @@
 ﻿@page "/login"
 @using System.ComponentModel.DataAnnotations
 @using System.Text.RegularExpressions
+@* ReSharper disable once InconsistentNaming *@
 @inject AuthenticationStateProvider AuthProvider
+@* ReSharper disable once InconsistentNaming *@
 @inject NavigationManager NavigationManager
+@* ReSharper disable once InconsistentNaming *@
 @inject IMailService MailService
+@* ReSharper disable once InconsistentNaming *@
 @inject Data.InfoMessage MessageService
 
 <div class="main text-center mt-5 ml-auto mr-auto">
 	<AuthorizeView>
-		<NotAuthorized Context="Auth">
+		@* ReSharper disable once UnusedParameter.Local*@
+		<NotAuthorized Context="auth">
 			<EditForm OnValidSubmit="SignIn" Model="_loginModel">
 				<DataAnnotationsValidator />
 				<div class="col">
@@ -69,7 +74,7 @@
 				if (!regex.IsMatch(returnUrl))
 					NavigationManager.NavigateTo(returnUrl);
 			}
-			catch (Exception ex)
+			catch (Exception)
 			{
 				MessageService.Message = "Login failed.";
 			}

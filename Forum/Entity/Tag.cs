@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace Forum.Entity
 {
@@ -22,8 +21,9 @@ namespace Forum.Entity
 		{
 			get
 			{
-				DateTime yesterday = DateTime.Now;
+				var yesterday = DateTime.Now;
 				yesterday = yesterday.AddHours(-24);
+				// ReSharper disable once InconsistentNaming
 				var last24hThreads = Threads.Where(t => t.Created.CompareTo(yesterday) > 0).ToList();
 				return last24hThreads.Count;
 			}
@@ -33,8 +33,9 @@ namespace Forum.Entity
 		{
 			if (null == obj) return 1;
 
-			Tag otherTag = obj as Tag;
+			var otherTag = obj as Tag;
 
+			// ReSharper disable once PossibleNullReferenceException
 			if (otherTag.Popularity > Popularity)
 				return 1;
 

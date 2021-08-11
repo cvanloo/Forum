@@ -32,7 +32,7 @@
 	
 	private List<Entity.Tag> _tags = new();
 
-	protected override async Task OnInitializedAsync()
+	protected override void OnInitialized()
 	{
 		var tags = DbContext.Tags.Include(t => t.Threads).ToList();
 		tags.Sort();
