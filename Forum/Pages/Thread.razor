@@ -23,7 +23,8 @@
 		<h5 class="txt-title">@_thread.Title</h5>
 		<pre class="txt-title">@_content</pre>
 		@{
-			string tagText = "";
+			var tagText = "";
+			// ReSharper disable once LoopCanBeConvertedToQuery
 			@foreach (var t in _thread.Tags)
 			{
 				tagText += ' ' + t.Name;
@@ -45,9 +46,9 @@
 		}
 	</div>
 	<div class="main">
-		<CommentField Thread="@_thread" />
+		<CommentField Thread="@_thread" UpdateHandler="StateHasChanged"/>
 	</div>
-	@foreach (Entity.Comment c in _thread.Comments)
+	@foreach (var c in _thread.Comments)
 	{
 		if (null != c.Parent) continue;
 
@@ -127,7 +128,7 @@
 	private async void CopyLink()
 	{
 		_copyLabel = "Copied!";
-		string link = NavMan.Uri;
+		var link = NavMan.Uri;
 		await IJsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", link);
 	}
 
@@ -157,7 +158,7 @@
 	private async void Delete()
 	{
 		if (_thread.Creator != DbContext.Users.First(u => u.AccountName == _authState.User.Identity.Name)) return;
-		bool confirm = await IJsRuntime.InvokeAsync<bool>("confirm", "Delete this thread?");
+		var confirm = await IJsRuntime.InvokeAsync<bool>("confirm", "Delete this thread?");
 
 		if (confirm) 
 		{ 

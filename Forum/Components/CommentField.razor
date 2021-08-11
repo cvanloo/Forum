@@ -1,4 +1,5 @@
 ﻿@using Microsoft.EntityFrameworkCore
+@using System.ComponentModel.DataAnnotations
 
 <style>
 	.form-control {
@@ -16,6 +17,13 @@
 	
 	[Parameter]
 	public Entity.Comment Comment { get; set; }
+
+	[Parameter]
+	public Update UpdateHandler { get; set; }
+	
+	// In order to update the view and display the new comment, we take a function here that allows us to update the
+	// parent element.
+	public delegate void Update();
 
 	[CascadingParameter]
 	private Task<AuthenticationState> AuthenticationStateTask { get; set; }
@@ -59,7 +67,7 @@
 
 		_comment = null;
 		
-		// TODO: Update page; We need to update our parent, not our child elements
-		StateHasChanged();
+		// Update page; We need to update our parent, not our child elements
+		UpdateHandler();
 	}
 }

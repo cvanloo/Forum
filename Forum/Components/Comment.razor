@@ -30,7 +30,7 @@
 		<pre class="txt-title">@CommentModel.Text</pre>
 		<button class="btn-mini" @onclick="ToggleCommentField">Answer</button>
 		<div class="@_cfClass">
-			<CommentField Thread="@CommentModel.Thread" Comment="@CommentModel" /> @* TODO: .Thread AND Model? *@
+			<CommentField Thread="@CommentModel.Thread" Comment="@CommentModel" UpdateHandler="Update" /> @* TODO: .Thread AND Model? *@
 		</div>
 
 		@foreach (var c in _children)
@@ -54,18 +54,25 @@
 
 	protected override void OnInitialized()
 	{
-		_children = DbContext.Comments
-			.Include(c => c.Childs)
-			.ThenInclude(c => c.Creator)
-			.First(c => c.Id == CommentModel.Id).Childs.ToList();
+		Update();
 	}
 
 	private void ToggleCommentField()
 	{
-		if ("hidden" == _cfClass)
-			_cfClass = "";
+		if ("" == _cfClass)
+			CloseCommentField();
 		else
-			_cfClass = "hidden";
+			OpenCommentField();
+	}
+
+	private void CloseCommentField()
+	{
+		_cfClass = "hidden";
+	}
+
+	private void OpenCommentField()
+	{
+		_cfClass = "";
 	}
 
 	private void Collapse()
@@ -80,5 +87,15 @@
 			_collapseClass = "collapsed";
 			_clpMsg = "+";
 		}
+	}
+
+	private void Update()
+	{
+		_children = DbContext.Comments
+    		.Include(c => c.Childs)
+    		.ThenInclude(c => c.Creator)
+    		.First(c => c.Id == CommentModel.Id).Childs.ToList();
+		CloseCommentField();
+		StateHasChanged();
 	}
 }
