@@ -1,6 +1,7 @@
 @page "/"
 @attribute [Authorize(Roles = "user")]
 @using Microsoft.EntityFrameworkCore
+@using System.Web
 @* ReSharper disable once InconsistentNaming *@
 @inject NavigationManager NavigationManager
 
@@ -15,9 +16,10 @@
 	<Authorized>
 		<div class="container-left fix-left">
 			<div class="main needs-padding">
-				<img width="50" height="50" src="/css/icons/Default.jpg" alt="Profile Image" />
-				<h4>@_displayName</h4>
-				<p class="p-annotation-lg">@_accountName</p>
+				@* <img width="50" height="50" src="/css/icons/Default.jpg" alt="Profile Image" /> *@
+				<h4>Hello, @_displayName</h4>
+				<p class="p-annotation-lg">Logged in as: @_accountName</p>
+				<button @onclick="NavLogout" class="btn-norm btn-danger">Logout</button>
 			</div>
 			<div class="main row">
 				<button @onclick="NavCreatePost" class="btn-norm">Start a Thread</button>
@@ -43,7 +45,7 @@
 		</div>
 		<div class="container-right fix-right">
 			<div class="main needs-padding">
-				<h1>HOME <img src="/css/icons/Quick_Settings.png" width="40" height="40" alt="Settings"/></h1>
+				@* <h1>HOME <img src="/css/icons/Quick_Settings.png" width="40" height="40" alt="Settings"/></h1> *@
 				<p>Sort by:</p>
 				<div class="row btn-select">
 					<button class="btn-left">New</button>
@@ -52,7 +54,9 @@
 				</div>
 			</div>
 			<div class="main row">
-				<input id="search_bar" class="input-fg needs-padding" type="text" placeholder="Search @@User, #Tags or Posts" />
+				<form @onsubmit="NavSearch">
+					<input @bind-value="_searchQuery" id="search_bar" class="input-fg needs-padding" type="text" placeholder="Search @@User, #Tags or Posts"/>
+				</form>
 			</div>
 			<div class="main needs-padding">
 				<TrendingNow />
@@ -71,6 +75,7 @@
 	private string _displayName;
 	private string _accountName;
 	private readonly List<Entity.Thread> _threads = new();
+	private string _searchQuery;
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -80,11 +85,29 @@
 		_displayName = user.DisplayName;
 		_accountName = user.AccountName;
 
-		await LoadThreads();
+		// Anonymous methods should get automatically disposed/unsubscribed
+		NavigationManager.LocationChanged += (_, _) =>
+		{
+			LocationChanged();
+			StateHasChanged();
+		};
+		
+		LocationChanged();
 	}
 
-	private async Task LoadThreads()
+	private void LocationChanged()
 	{
+		var uriBuilder = new UriBuilder(NavigationManager.Uri.Replace("#", "%23"));
+		var q = HttpUtility.ParseQueryString(uriBuilder.Query);
+		var query = q["q"];
+	
+		if (query is null) LoadThreads();
+		else Search(query);
+	}
+
+	private void LoadThreads()
+	{
+		// TODO: Load more on search results
 		// Only retrieve threads that are older than our oldest already retrieved thread.
 		var lastTimeStamp = _threads.LastOrDefault()?.Created ?? DateTime.Now;
 
@@ -97,12 +120,51 @@
 				.Where(t => t.Created.CompareTo(lastTimeStamp) < 0)
 				.Take(50).ToList()
 		);
-
-		//_threads.Sort((t1, t2) => t2.Created.CompareTo(t1.Created));
 	}
 
 	private void NavCreatePost()
 	{
 		NavigationManager.NavigateTo("/post");
+	}
+
+	private void NavLogout()
+	{
+		NavigationManager.NavigateTo("/login");
+	}
+
+	private void NavSearch()
+	{
+		//var encoded = HttpUtility.UrlEncode(_searchQuery);
+		if (!string.IsNullOrEmpty(_searchQuery)) NavigationManager.NavigateTo("/?q=" + _searchQuery);
+		else NavigationManager.NavigateTo("/");
+	}
+
+	private void Search(string query)
+	{
+		if (query is null || query.Count() <= 0) return;
+		
+		var search = new Module.Search(DbContext);
+		List<Entity.Thread> results;
+		
+		switch (query[0])
+		{
+			case '@':
+				// if '@' -> search for posts by user
+				var searchUser = query[1..];
+            	results = search.SearchThreadsByUser(searchUser);
+				break;
+			case '#':
+				// else if '#' -> search for posts containing tags
+                var searchTags = Entity.Tag.ParseTags(DbContext, query[1..]);
+               	results = search.SearchThreadsByTag(searchTags);
+				break;
+			default:
+				// else -> search for posts with title
+				results = search.SearchThreadsByTitle(query);
+				break;
+		}
+		
+		_threads.Clear();
+		_threads.AddRange(results);
 	}
 }

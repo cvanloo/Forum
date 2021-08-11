@@ -62,7 +62,7 @@
 
 			var uploadPath = Config.GetValue<string>("UploadPath") + Guid.NewGuid();
 			var user = DbContext.Users.FirstOrDefault(u => u.AccountName == authState.User.Identity.Name);
-			var tags = ParseTags();
+			var tags = Entity.Tag.ParseTags(DbContext, _tags);
 
 			var newThread = new Entity.Thread()
 			{
@@ -94,34 +94,5 @@
 		NavMan.NavigateTo("/");
 	}
 
-	private List<Entity.Tag> ParseTags()
-	{
-		if (string.IsNullOrEmpty(_tags)) return null;
-
-		var tags = new List<Entity.Tag>();
-		var separatedTags = _tags.Split(' ', '#');
-
-		// ReSharper disable once LoopCanBeConvertedToQuery
-		foreach (var tagStr in separatedTags)
-		{
-			if (string.IsNullOrEmpty(tagStr)) continue;
-
-			// Get tag from db if it exists, create a new tag if it doesn't.
-			var tag = DbContext.Tags.FirstOrDefault(t => t.Name == tagStr);
-
-			if (tag == null)
-			{
-				var newTag = new Entity.Tag {Name = tagStr};
-				DbContext.Tags.Add(newTag);
-				DbContext.SaveChanges();
-				tags.Add(newTag);
-			}
-			else if (!tags.Contains(tag))
-			{
-				tags.Add(tag);
-			}
-		}
-
-		return tags;
-	}
+	
 }

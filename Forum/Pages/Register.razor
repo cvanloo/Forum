@@ -54,6 +54,7 @@
 	{
 		var authState = await AuthenticationStateTask;
 
+		// ReSharper disable once PossibleNullReferenceException
 		if (authState.User.Identity.IsAuthenticated)
 		{
 			NavigationManager.NavigateTo("/");

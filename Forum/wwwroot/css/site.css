@@ -149,6 +149,7 @@ pre {
 }
 
 button {
+	min-width: max-content;
 	border: none;
 	display: inline-block;
 	padding: 0.5rem;

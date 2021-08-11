@@ -20,7 +20,7 @@
 @* NOTE: '==' and '!=' call the equality operator _which can be overridden_:
  *     public static bool operator ==(<object> a, <object> b) { } 
  * 'is' and 'is not' load the values on the stack and do a simple bit-by-bit
- * comparison, which is therefore more efficient and cannot lie to you.
+ * comparison, which is more efficient and cannot lie to you.
  *@
 @if (_thread is not null)
 {
@@ -113,7 +113,7 @@ else
 				.ThenInclude(c => c.Creator)
 			.FirstOrDefault(t => t.Id == Id);
 
-		if (_thread is null) return; // TODO: Display proper message
+		if (_thread is null) return;
 		
 		if (_thread.IsDeleted)
 		{

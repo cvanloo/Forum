@@ -45,7 +45,7 @@
 
 	private void Deactivate()
 	{
-		// TODO: Fix: Without sleep the button disappears before the 'button-pressed'-event can be registered.
+		// TODO: Use css animation instead of sleep?
 		System.Threading.Thread.Sleep(100);
 		_btnStyle = "display: none;";
 	}

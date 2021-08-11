@@ -44,5 +44,36 @@ namespace Forum.Entity
 
 			return 0;
 		}
+		
+		public static List<Tag> ParseTags(Model.Database dbContext, string strTags)
+        {
+        	if (string.IsNullOrEmpty(strTags)) return null;
+       
+       		var tags = new List<Tag>();
+       		var separatedTags = strTags.Split(' ', '#');
+       
+       		// ReSharper disable once LoopCanBeConvertedToQuery
+       		foreach (var tagStr in separatedTags)
+       		{
+       			if (string.IsNullOrEmpty(tagStr)) continue;
+        
+       			// Get tag from db if it exists, create a new tag if it doesn't.
+       			var tag = dbContext.Tags.FirstOrDefault(t => t.Name == tagStr);
+        
+       			if (tag == null)
+       			{
+       				var newTag = new Tag { Name = tagStr };
+       				dbContext.Tags.Add(newTag);
+       				dbContext.SaveChanges();
+       				tags.Add(newTag);
+       			}
+       			else if (!tags.Contains(tag))
+       			{
+       				tags.Add(tag);
+       			}
+       		}
+       
+       		return tags;
+        }
 	}
 }
