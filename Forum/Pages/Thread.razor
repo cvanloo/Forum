@@ -17,7 +17,12 @@
 		</button>
 	</div>
 </div>
-@if (null != _thread)
+@* NOTE: '==' and '!=' call the equality operator _which can be overridden_:
+ *     public static bool operator ==(<object> a, <object> b) { } 
+ * 'is' and 'is not' load the values on the stack and do a simple bit-by-bit
+ * comparison, which is therefore more efficient and cannot lie to you.
+ *@
+@if (_thread is not null)
 {
 	<div class="container-middle">
 		<div class="main needs-padding">
@@ -55,7 +60,7 @@
 		</div>
 		@foreach (var c in _thread.Comments)
 		{
-			if (null != c.Parent) continue;
+			if (c.Parent is not null) continue;
 
 			<Comment CommentModel="c"/>
 		}
@@ -108,7 +113,7 @@ else
 				.ThenInclude(c => c.Creator)
 			.FirstOrDefault(t => t.Id == Id);
 
-		if (null == _thread) return; // TODO: Display proper message
+		if (_thread is null) return; // TODO: Display proper message
 		
 		if (_thread.IsDeleted)
 		{

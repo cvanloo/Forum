@@ -34,7 +34,7 @@
 		</div>
 		<div class="container-middle">
 			<div class="main">
-				@foreach (Entity.Thread thread in _threads)
+				@foreach (var thread in _threads)
 				{
 					<ThreadPreview ThreadModel="thread" />
 				}
@@ -43,7 +43,7 @@
 		</div>
 		<div class="container-right fix-right">
 			<div class="main needs-padding">
-				<h1>HOME <img src="/css/icons/Quick_Settings.png" width="40" height="40"/></h1>
+				<h1>HOME <img src="/css/icons/Quick_Settings.png" width="40" height="40" alt="Settings"/></h1>
 				<p>Sort by:</p>
 				<div class="row btn-select">
 					<button class="btn-left">New</button>

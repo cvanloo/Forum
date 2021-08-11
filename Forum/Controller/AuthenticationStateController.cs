@@ -23,14 +23,14 @@ namespace Forum.Controller
 
 		public override async Task<AuthenticationState> GetAuthenticationStateAsync()
 		{
-			if (null == _cachedUser)
+			if (_cachedUser is null)
 			{
 				var token = await _jsRuntime.InvokeAsync<string>("sessionStorage.getItem", "SESSION_ID");
 
 				// Not important to check if token is null or empty
 				_cachedUser = _userService.GetUserFromSessionToken(token);
 
-				if (null == _cachedUser)
+				if (_cachedUser is null)
 				{
 					return await Task.FromResult(new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity())));
 				}

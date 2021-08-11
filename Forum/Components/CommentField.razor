@@ -17,12 +17,16 @@
 	
 	[Parameter]
 	public Entity.Comment Comment { get; set; }
-
-	[Parameter]
-	public Update UpdateHandler { get; set; }
 	
 	// In order to update the view and display the new comment, we take a function here that allows us to update the
 	// parent element.
+	[Parameter]
+	public Update UpdateHandler { get; set; }
+	
+	/* Delegate: A type that represents references to methods with particular parameters and return type. Any method
+	 * that matches the parameters and return type can be assigned to it. The assigned method can then be invoked/called
+	 * through the delegate instance.
+	 */
 	public delegate void Update();
 
 	[CascadingParameter]

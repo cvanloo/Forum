@@ -109,7 +109,7 @@
 			// Get tag from db if it exists, create a new tag if it doesn't.
 			var tag = DbContext.Tags.FirstOrDefault(t => t.Name == tagStr);
 
-			if (null == tag)
+			if (tag == null)
 			{
 				var newTag = new Entity.Tag {Name = tagStr};
 				DbContext.Tags.Add(newTag);

@@ -101,7 +101,7 @@ else
 
 		if (pwReset is null) return false;
 
-		DateTime expiring = pwReset.Timestamp;
+		var expiring = pwReset.Timestamp;
 		expiring = expiring.AddMinutes(15);
 
 		if (pwReset.Used || DateTime.Now.CompareTo(expiring) >= 0)
@@ -113,7 +113,7 @@ else
 	{
 		var pwReset = DbContext.PwResets.Include(p => p.User).FirstOrDefault(p => p.Token == Token);
 
-		if (null == pwReset) return;
+		if (pwReset is null) return;
 
 		if (!string.IsNullOrEmpty(_newPassword) && _repNewPassword == _newPassword)
 		{
@@ -123,7 +123,7 @@ else
 		}
 
 		pwReset.Used = true;
-		await DbContext.SaveChangesAsync();
+		DbContext.SaveChanges(); // TODO: NOTE: awaiting will for some reason cause the DbContext-object to be disposed.
 
 		// Send email confirmation
 		var mail = new Model.Message()

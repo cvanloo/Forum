@@ -43,7 +43,7 @@ namespace Forum.Data
 				user = db.Users.Where(u => u.AccountName == identifier).FirstOrDefault();
 			}
 
-			if (null == user)
+			if (user is null)
 			{
 				throw new Exception("User not found.");
 			}

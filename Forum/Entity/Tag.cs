@@ -31,7 +31,7 @@ namespace Forum.Entity
 
 		public int CompareTo(object obj)
 		{
-			if (null == obj) return 1;
+			if (obj is null) return 1;
 
 			var otherTag = obj as Tag;
 
