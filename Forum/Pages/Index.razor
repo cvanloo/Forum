@@ -130,8 +130,10 @@
 	{
 		var search = new Module.Search(DbContext)
 		{
-			// Only retrieve threads that are older than our oldest already retrieved thread.
-			LastTimeStamp = _threads.LastOrDefault()?.Created ?? (Module.Search.SortOrder.NewestFirst == _sortBy ? DateTime.Now : new DateTime(1997, 1, 1)),
+			// Only retrieve threads that are older than our oldest (or newer than our newest, when sorting by oldest
+			// first) already retrieved thread.
+			LastTimeStamp = _threads.LastOrDefault()?.Created ??
+				(Module.Search.SortOrder.NewestFirst == _sortBy ? DateTime.Now : new DateTime(1997, 1, 1)),
 			SortBy = _sortBy
 		};
 
@@ -144,8 +146,10 @@
 
 		var search = new Module.Search(DbContext)
 		{
-			// Only retrieve threads that are older than our oldest already retrieved thread.
-			LastTimeStamp = _threads.LastOrDefault()?.Created ?? (Module.Search.SortOrder.NewestFirst == _sortBy ? DateTime.Now : new DateTime(1997, 1, 1)),
+			// Only retrieve threads that are older than our oldest (or newer than our newest, when sorting by oldest
+            // first) already retrieved thread.
+            LastTimeStamp = _threads.LastOrDefault()?.Created ??
+            	(Module.Search.SortOrder.NewestFirst == _sortBy ? DateTime.Now : new DateTime(1997, 1, 1)),
 			SortBy = _sortBy
 		};
 
