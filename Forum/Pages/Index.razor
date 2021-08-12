@@ -1,6 +1,5 @@
 @page "/"
 @attribute [Authorize(Roles = "user")]
-@using Microsoft.EntityFrameworkCore
 @using System.Web
 @* ReSharper disable once InconsistentNaming *@
 @inject NavigationManager NavigationManager
@@ -47,7 +46,11 @@
 		<div class="container-right fix-right">
 			<div class="main needs-padding">
 				@* <h1>HOME <img src="/css/icons/Quick_Settings.png" width="40" height="40" alt="Settings"/></h1> *@
-				<ButtonSwitch Caption="Sort by:" BtnLeft="New" BtnRight="Old" BtnLeftClicked="SortByNew" BtnRightClicked="SortByOld"/>
+				<p>Sort by:</p>
+                <div class="row btn-select">
+                	<button @onclick="SortByNew" class="btn-left @(_sortBy == Module.Search.SortOrder.NewestFirst ? "btn-active" : "")">New</button>
+                	<button @onclick="SortByOld" class="btn-right @(_sortBy == Module.Search.SortOrder.OldestFirst? "btn-active" : "")">Old</button>
+                </div>
 			</div>
 			<div class="main row">
 				<form @onsubmit="NavSearch">
@@ -72,6 +75,8 @@
 	private string _accountName;
 	private readonly List<Entity.Thread> _threads = new();
 	private string _searchQuery;
+	private Module.Search.SortOrder _sortBy = Module.Search.SortOrder.NewestFirst;
+	
 	private EventHandler<LocationChangedEventArgs> _locationChangedHandler;
 
 	private string SearchQuery
@@ -126,7 +131,8 @@
 		var search = new Module.Search(DbContext)
 		{
 			// Only retrieve threads that are older than our oldest already retrieved thread.
-			LastTimeStamp = _threads.LastOrDefault()?.Created ?? DateTime.Now
+			LastTimeStamp = _threads.LastOrDefault()?.Created ?? (Module.Search.SortOrder.NewestFirst == _sortBy ? DateTime.Now : new DateTime(1997, 1, 1)),
+			SortBy = _sortBy
 		};
 
 		_threads.AddRange(search.GetThreads());
@@ -139,7 +145,8 @@
 		var search = new Module.Search(DbContext)
 		{
 			// Only retrieve threads that are older than our oldest already retrieved thread.
-			LastTimeStamp = _threads.LastOrDefault()?.Created ?? DateTime.Now
+			LastTimeStamp = _threads.LastOrDefault()?.Created ?? (Module.Search.SortOrder.NewestFirst == _sortBy ? DateTime.Now : new DateTime(1997, 1, 1)),
+			SortBy = _sortBy
 		};
 
 		List<Entity.Thread> results;
@@ -179,17 +186,19 @@
 	{
 		//var encoded = HttpUtility.UrlEncode(_searchQuery);
 		if (!string.IsNullOrEmpty(_searchQuery)) NavigationManager.NavigateTo("/?q=" + _searchQuery);
-		else NavigationManager.NavigateTo("/"); // TODO: Threads need to be cleared first, because of the timestamp
+		else NavigationManager.NavigateTo("/");
 	}
 
 	private void SortByNew()
 	{
-		Console.Out.WriteLine("New...");
+		_sortBy = Module.Search.SortOrder.NewestFirst;
+		LocationChanged();
 	}
 
 	private void SortByOld()
 	{
-		Console.Out.WriteLine("Old...");
+		_sortBy = Module.Search.SortOrder.OldestFirst;
+		LocationChanged();
 	}
 
 	public void Dispose()

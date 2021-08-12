@@ -9,7 +9,7 @@
 		@ThreadModel.Created.ToString("t"), @ThreadModel.Created.ToString("d")
 	</p>
 	<h5 class="txt-title">@ThreadModel.Title</h5>
-	<pre class="main">@_content</pre>
+	<pre class="main">@Content</pre>
 	@{
 		var tagText = "";
 		@foreach (var t in ThreadModel.Tags)
@@ -24,34 +24,32 @@
 	[Parameter]
 	public Thread ThreadModel { get; set; }
 
-	private string _content;
-
-	protected override async Task OnInitializedAsync()
+	private string Content
 	{
-		if (ThreadModel.IsDeleted)
+		get
 		{
-			_content = "[ Thread deleted. ]";
-		}
-		else if (!string.IsNullOrEmpty(ThreadModel.ContentPath))
-		{
+			if (ThreadModel.IsDeleted)
+			{
+				return "[ Thread deleted. ]";
+			}
+
+			if (string.IsNullOrEmpty(ThreadModel.ContentPath)) return "";
+			
 			try
 			{
 				var path = ThreadModel.ContentPath;
-
 				var streamReader = new StreamReader(path);
-
 				var buffer = new char[1000];
-				await streamReader.ReadAsync(buffer);
-
-				// Strings in C# are _not_ null-terminated.
-				_content = new string(buffer).Trim('\0');
-				_content = _content.Replace('\n', ' ');
-
+				streamReader.Read(buffer);
 				streamReader.Close();
+				
+				// Strings in C# are _not_ null-terminated.
+				var trimmed = new string(buffer).Trim('\0');
+				return trimmed.Replace('\n', ' ');
 			}
 			catch (Exception)
 			{
-				_content = "[ An error occurred. ]";
+				return "[ An error occurred. ]";
 			}
 		}
 	}
