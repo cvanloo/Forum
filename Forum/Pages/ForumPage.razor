@@ -1,0 +1,73 @@
+﻿@page "/forum/{ForumName}"
+@using Microsoft.EntityFrameworkCore
+@attribute [Authorize]
+@* ReSharper disable once InconsistentNaming *@
+@inject NavigationManager NavMan
+
+<div class="container-left fix-left">
+	<div class="main row">
+		<button class="btn-norm-sec" @onclick="NavHome">
+			<img width="50" height="50" src="/css/icons/Arrow_Back.png" alt="Back Arrow" />
+			Go Back
+		</button>
+	</div>
+</div>
+@if (_forum is null)
+{
+	<div class="container-middle">
+    	<div class="main needs-padding">
+    		<p>Forum '@ForumName' not found.</p>
+    	</div>
+    </div>
+}
+else
+{
+	<div class="container-middle">
+		<div class="main needs-padding">
+			<h4>@_forum.Name</h4>
+			<p>Forum created on: @_forum.Created.ToString("d"), @_forum.Members.Count Member(s), @_forum.Threads.Count Thread(s)</p>
+			<pre class="main">@_forum.Description</pre>
+			<div style="border-bottom: 0.1rem solid #9BAEC8; border-radius: 0;" class="needs-padding shiny" ></div>
+			<button>Show Members</button>
+			@foreach (var member in _forum.Members)
+			{
+				<a href="/user/@member.AccountName">@member.DisplayName</a>	
+			}
+			<button>Show Threads</button>
+			@foreach (var thread in _forum.Threads)
+			{
+				<ThreadPreview ThreadModel="thread" />
+			}
+		</div> 
+    </div>
+}
+
+@code {
+	private Entity.Forum _forum;
+	
+    [Parameter]
+    public string ForumName { get; set; }
+
+	[CascadingParameter]
+	public Model.Database DbContext { get; set; }
+	
+	protected override async Task OnInitializedAsync()
+	{
+		// Foreach `ThenInclude` the object needs to be `Include`d again.
+		// EF Core will still only retrieve the objects once.
+		_forum = await DbContext.Forums
+			.Include(f => f.Members)
+			.Include(f => f.Threads)
+				.ThenInclude(t => t.Tags)
+			.Include(f => f.Threads)
+				.ThenInclude(t => t.Creator)
+			.Include(f => f.Threads)
+				.ThenInclude(t => t.Forum)
+			.FirstOrDefaultAsync(f => f.Name == ForumName);
+	}
+
+	private void NavHome()
+	{
+		NavMan.NavigateTo("/");
+	}
+}

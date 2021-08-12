@@ -1,0 +1,65 @@
+﻿@page "/user/{AccountName}"
+@using Microsoft.EntityFrameworkCore
+@attribute [Authorize]
+@* ReSharper disable once InconsistentNaming *@
+@inject NavigationManager NavMan
+
+<div class="container-left fix-left">
+	<div class="main row">
+		<button class="btn-norm-sec" @onclick="NavHome">
+			<img width="50" height="50" src="/css/icons/Arrow_Back.png" alt="Back Arrow" />
+			Go Back
+		</button>
+	</div>
+</div>
+@if (_user is null)
+{
+	<div class="container-middle">
+    	<div class="main needs-padding">
+    		<p>User '@AccountName' not found.</p>
+    	</div>
+    </div>
+}
+else
+{
+	<div class="container-middle">
+		<div class="main needs-padding">
+			<h4>@_user.DisplayName</h4>
+			<p class="p-annotation-lg">@_user.AccountName</p>
+			<p>Account created on: @_user.Created.ToString("d")</p>
+			<div style="border-bottom: 0.1rem solid #9BAEC8; border-radius: 0;" class="needs-padding shiny" ></div>
+			@foreach (var thread in _user.Threads)
+			{
+				<ThreadPreview ThreadModel="thread" />
+			}
+		</div> 
+    </div>
+}
+
+
+@code {
+	private Entity.User _user;
+	
+    [Parameter]
+    public string AccountName { get; set; }
+
+	[CascadingParameter]
+	public Model.Database DbContext { get; set; }
+	
+	protected override async Task OnInitializedAsync()
+	{
+		_user = await DbContext.Users
+			.Include(u => u.Threads)
+				.ThenInclude(t => t.Tags)
+			.Include(u => u.Threads)
+				.ThenInclude(t => t.Creator)
+			.Include(u => u.Threads)
+				.ThenInclude(t => t.Forum)
+			.FirstOrDefaultAsync(u => u.AccountName == AccountName);
+	}
+
+	private void NavHome()
+	{
+		NavMan.NavigateTo("/");
+	}
+}

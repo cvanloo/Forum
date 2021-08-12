@@ -8,12 +8,19 @@ namespace Forum.Model
     /// </summary>
     public class Database : DbContext
     {
+        // ReSharper disable once UnusedAutoPropertyAccessor.Global
         public DbSet<User> Users { get; set; }
+        // ReSharper disable once UnusedAutoPropertyAccessor.Global
         public DbSet<Entity.Forum> Forums { get; set; }
+        // ReSharper disable once UnusedAutoPropertyAccessor.Global
         public DbSet<Thread> Threads { get; set; }
+        // ReSharper disable once UnusedAutoPropertyAccessor.Global
         public DbSet<Comment> Comments { get; set; }
+        // ReSharper disable once UnusedAutoPropertyAccessor.Global
         public DbSet<Session> Sessions { get; set; }
+        // ReSharper disable once UnusedAutoPropertyAccessor.Global
         public DbSet<PwReset> PwResets { get; set; }
+        // ReSharper disable once UnusedAutoPropertyAccessor.Global
         public DbSet<Tag> Tags { get; set; }
 
         public Database(DbContextOptions<Database> options) : base(options) { } 
@@ -154,18 +161,20 @@ namespace Forum.Model
              * Multiple relations between two tables need to be
              * mapped manually.
              */
+            // One-to-Many
             modelBuilder.Entity<User>()
                 .HasMany(u => u.Threads)
                 .WithOne(t => t.Creator)
                 .HasForeignKey(t => t.CreatorId);
 
+            // Many-to-Many
             modelBuilder.Entity<User>()
                 .HasMany(u => u.SavedThreads)
                 .WithMany(t => t.Saviors);
         }
 
-        /* NOTE: In order to make properties from Entities readonly,
-         * use a private setter and a contstructor
+        /* NOTE1: In order to make properties from Entities readonly,
+         * use a private setter and a constructor
          * 
          * public User Creator { get; private set; }
          * 
@@ -176,15 +185,15 @@ namespace Forum.Model
          * 
          * NOTE2: Use the [NotMapped] annotation to indicate that a property
          * should not be mapped to the database.
-         * 
+         *
          * NOTE3: The [Required] annotation is ignored, except when the foreign key is explicitly
          * marked as one:
          * 
          * [ForeignKey("CreatorId"),Required] // Without the Fk annotation the Required anno. is ignored
          * public User Creator { get; set; }
          * 
-         * NOTE4 (one-to-many): In the ORM the fk is displayed in 'Forum', in the db it is in 'Thread'.
-         * In order to make the fk in 'Thread' non-nullable it has to be spicified in the
+         * NOTE4: (one-to-many): In the ORM the fk is displayed in 'Forum', in the db it is in 'Thread'.
+         * In order to make the fk in 'Thread' non-nullable it has to be specified in the
          * 'Thread' class of the orm too, as an int.
          * 
          * public class Forum {
@@ -195,6 +204,18 @@ namespace Forum.Model
          *     [Required]
          *     public int ForumId { get; set; }
          * }
+         *
+         * NOTE5: Multiple relationships between the same two tables require to be manually mapped.
+         * Relationship 1; One-to-Many
+         * modelBuilder.Entity<User>()
+         *     .HasMany(u => u.Threads)
+         *     .WithOne(t => t.Creator)
+         *     .HasForeignKey(t => t.CreatorId);
+         *
+         * Relationship 2; Many-to-Many
+         * modelBuilder.Entity<User>()
+         *     .HasMany(u => u.SavedThreads)
+         *     .WithMany(t => t.Saviors);
          */
     }
 }

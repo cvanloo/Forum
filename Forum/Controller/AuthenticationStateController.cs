@@ -28,7 +28,7 @@ namespace Forum.Controller
 		{
 			if (_hostEnvironment.IsDevelopment())
 			{
-				ValidateLogin("Testikus", "t");
+				await ValidateLogin("Testikus", "t");
 			}
 			
 			if (_cachedUser is null)

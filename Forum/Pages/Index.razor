@@ -197,6 +197,7 @@
 	private void NavSearch()
 	{
 		//var encoded = HttpUtility.UrlEncode(_searchQuery);
+		// ReSharper disable once InconsistentNaming
 		var targetURI = string.IsNullOrEmpty(_searchQuery) ? "/" : "/?q=" + _searchQuery;
 		NavigationManager.NavigateTo(targetURI);
 	}
