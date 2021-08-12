@@ -4,6 +4,7 @@
 @using System.Web
 @* ReSharper disable once InconsistentNaming *@
 @inject NavigationManager NavigationManager
+@implements IDisposable
 
 <style>
 	#search_bar {
@@ -40,18 +41,13 @@
 				{
 					<ThreadPreview ThreadModel="thread" />
 				}
-				<button @onclick="LoadThreads" style="width: 100%;" class="btn-norm">Load more</button>
+				<button @onclick="LoadMore" style="width: 100%;" class="btn-norm">Load more</button>
 			</div>
 		</div>
 		<div class="container-right fix-right">
 			<div class="main needs-padding">
 				@* <h1>HOME <img src="/css/icons/Quick_Settings.png" width="40" height="40" alt="Settings"/></h1> *@
-				<p>Sort by:</p>
-				<div class="row btn-select">
-					<button class="btn-left">New</button>
-					<button class="btn-active">Trending</button>
-					<button class="btn-right">Old</button>
-				</div>
+				<ButtonSwitch Caption="Sort by:" BtnLeft="New" BtnRight="Old" BtnLeftClicked="SortByNew" BtnRightClicked="SortByOld"/>
 			</div>
 			<div class="main row">
 				<form @onsubmit="NavSearch">
@@ -76,7 +72,18 @@
 	private string _accountName;
 	private readonly List<Entity.Thread> _threads = new();
 	private string _searchQuery;
+	private EventHandler<LocationChangedEventArgs> _locationChangedHandler;
 
+	private string SearchQuery
+	{
+		get
+		{
+			var uriBuilder = new UriBuilder(NavigationManager.Uri.Replace("#", "%23"));
+			var q = HttpUtility.ParseQueryString(uriBuilder.Query);
+			return q["q"];
+		}
+	}
+	
 	protected override async Task OnInitializedAsync()
 	{
 		var authState = await AuthenticationStateTask;
@@ -85,65 +92,56 @@
 		_displayName = user.DisplayName;
 		_accountName = user.AccountName;
 
-		// Anonymous methods should get automatically disposed/unsubscribed
-		NavigationManager.LocationChanged += (_, _) =>
+		_locationChangedHandler = (_, _) =>
 		{
 			LocationChanged();
 			StateHasChanged();
 		};
+
+		NavigationManager.LocationChanged += _locationChangedHandler; 
 		
 		LocationChanged();
 	}
 
 	private void LocationChanged()
 	{
-		var uriBuilder = new UriBuilder(NavigationManager.Uri.Replace("#", "%23"));
-		var q = HttpUtility.ParseQueryString(uriBuilder.Query);
-		var query = q["q"];
-	
+		var query = SearchQuery;
+		_threads.Clear(); // New search query, delete old results first
+
+		if (query is null) LoadThreads();
+		else Search(query);
+	}
+
+	private void LoadMore()
+	{
+		var query = SearchQuery;
+		// Load more of the same search query, don't delete old results
+
 		if (query is null) LoadThreads();
 		else Search(query);
 	}
 
 	private void LoadThreads()
 	{
-		// TODO: Load more on search results
-		// Only retrieve threads that are older than our oldest already retrieved thread.
-		var lastTimeStamp = _threads.LastOrDefault()?.Created ?? DateTime.Now;
+		var search = new Module.Search(DbContext)
+		{
+			// Only retrieve threads that are older than our oldest already retrieved thread.
+			LastTimeStamp = _threads.LastOrDefault()?.Created ?? DateTime.Now
+		};
 
-		_threads.AddRange(
-			DbContext.Threads
-				.Include(t => t.Creator)
-				.Include(t => t.Forum)
-				.Include(t => t.Tags)
-				.OrderByDescending(o => o.Created)
-				.Where(t => t.Created.CompareTo(lastTimeStamp) < 0)
-				.Take(50).ToList()
-		);
-	}
-
-	private void NavCreatePost()
-	{
-		NavigationManager.NavigateTo("/post");
-	}
-
-	private void NavLogout()
-	{
-		NavigationManager.NavigateTo("/login");
-	}
-
-	private void NavSearch()
-	{
-		//var encoded = HttpUtility.UrlEncode(_searchQuery);
-		if (!string.IsNullOrEmpty(_searchQuery)) NavigationManager.NavigateTo("/?q=" + _searchQuery);
-		else NavigationManager.NavigateTo("/");
+		_threads.AddRange(search.GetThreads());
 	}
 
 	private void Search(string query)
 	{
 		if (query is null || query.Count() <= 0) return;
-		
-		var search = new Module.Search(DbContext);
+
+		var search = new Module.Search(DbContext)
+		{
+			// Only retrieve threads that are older than our oldest already retrieved thread.
+			LastTimeStamp = _threads.LastOrDefault()?.Created ?? DateTime.Now
+		};
+
 		List<Entity.Thread> results;
 		
 		switch (query[0])
@@ -164,7 +162,38 @@
 				break;
 		}
 		
-		_threads.Clear();
 		_threads.AddRange(results);
+	}
+	
+	private void NavCreatePost()
+	{
+		NavigationManager.NavigateTo("/post");
+	}
+
+	private void NavLogout()
+	{
+		NavigationManager.NavigateTo("/login");
+	}
+
+	private void NavSearch()
+	{
+		//var encoded = HttpUtility.UrlEncode(_searchQuery);
+		if (!string.IsNullOrEmpty(_searchQuery)) NavigationManager.NavigateTo("/?q=" + _searchQuery);
+		else NavigationManager.NavigateTo("/"); // TODO: Threads need to be cleared first, because of the timestamp
+	}
+
+	private void SortByNew()
+	{
+		Console.Out.WriteLine("New...");
+	}
+
+	private void SortByOld()
+	{
+		Console.Out.WriteLine("Old...");
+	}
+
+	public void Dispose()
+	{
+		NavigationManager.LocationChanged -= _locationChangedHandler;
 	}
 }
