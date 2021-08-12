@@ -65,6 +65,10 @@ form {
 		color: white;
 	}
 
+input[type=text], textarea {
+	font-family: "JetBrains Mono", monospace;
+}	
+	
 div {
 	border-radius: 0.5rem;
 }

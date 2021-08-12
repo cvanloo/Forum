@@ -19,8 +19,11 @@
 				@* <img width="50" height="50" src="/css/icons/Default.jpg" alt="Profile Image" /> *@
 				<h4>Hello, @_displayName</h4>
 				<p class="p-annotation-lg">Logged in as: @_accountName</p>
-				<button @onclick="NavLogout" class="btn-norm btn-danger">Logout</button>
-			</div>
+				<div class="row btn-select">
+					<button @onclick="NavHome" class="btn-primary btn-left">Home</button>
+					<button @onclick="NavLogout" class="btn-danger btn-right">Logout</button>
+				</div>
+                </div>
 			<div class="main row">
 				<button @onclick="NavCreatePost" class="btn-norm">Start a Thread</button>
 			</div>
@@ -77,12 +80,15 @@
 	private string _searchQuery;
 	private Module.Search.SortOrder _sortBy = Module.Search.SortOrder.NewestFirst;
 	
+	// Stores our anonymous event handler to give us the possibility to unsubscribe it on dispose.
 	private EventHandler<LocationChangedEventArgs> _locationChangedHandler;
 
 	private string SearchQuery
 	{
 		get
 		{
+			// Everything inside an URI after an '#' counts as a "fragment" and will be ignored by
+			// the parser. Escaping '#' with '%23' solves this problem.
 			var uriBuilder = new UriBuilder(NavigationManager.Uri.Replace("#", "%23"));
 			var q = HttpUtility.ParseQueryString(uriBuilder.Query);
 			return q["q"];
@@ -133,6 +139,7 @@
 			// Only retrieve threads that are older than our oldest (or newer than our newest, when sorting by oldest
 			// first) already retrieved thread.
 			LastTimeStamp = _threads.LastOrDefault()?.Created ??
+				// just make sure it's enough far in the past
 				(Module.Search.SortOrder.NewestFirst == _sortBy ? DateTime.Now : new DateTime(1997, 1, 1)),
 			SortBy = _sortBy
 		};
@@ -149,6 +156,7 @@
 			// Only retrieve threads that are older than our oldest (or newer than our newest, when sorting by oldest
             // first) already retrieved thread.
             LastTimeStamp = _threads.LastOrDefault()?.Created ??
+				// just make sure it's enough far in the past
             	(Module.Search.SortOrder.NewestFirst == _sortBy ? DateTime.Now : new DateTime(1997, 1, 1)),
 			SortBy = _sortBy
 		};
@@ -189,8 +197,13 @@
 	private void NavSearch()
 	{
 		//var encoded = HttpUtility.UrlEncode(_searchQuery);
-		if (!string.IsNullOrEmpty(_searchQuery)) NavigationManager.NavigateTo("/?q=" + _searchQuery);
-		else NavigationManager.NavigateTo("/");
+		var targetURI = string.IsNullOrEmpty(_searchQuery) ? "/" : "/?q=" + _searchQuery;
+		NavigationManager.NavigateTo(targetURI);
+	}
+
+	private void NavHome()
+	{
+		NavigationManager.NavigateTo("/");
 	}
 
 	private void SortByNew()

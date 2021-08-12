@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Forum.Data;
 using System.Security.Claims;
 using Forum.Entity;
+using Microsoft.Extensions.Hosting;
 
 namespace Forum.Controller
 {
@@ -12,17 +13,24 @@ namespace Forum.Controller
 	{
 		private readonly IJSRuntime _jsRuntime;
 		private readonly IUserService _userService;
+		private readonly IHostEnvironment _hostEnvironment;
 
 		private User _cachedUser;
 
-		public AuthenticationStateController(IJSRuntime jsRuntime, IUserService userService)
+		public AuthenticationStateController(IJSRuntime jsRuntime, IUserService userService, IHostEnvironment hostEnvironment)
 		{
 			_jsRuntime = jsRuntime;
 			_userService = userService;
+			_hostEnvironment = hostEnvironment;
 		}
 
 		public override async Task<AuthenticationState> GetAuthenticationStateAsync()
 		{
+			if (_hostEnvironment.IsDevelopment())
+			{
+				ValidateLogin("Testikus", "t");
+			}
+			
 			if (_cachedUser is null)
 			{
 				var token = await _jsRuntime.InvokeAsync<string>("sessionStorage.getItem", "SESSION_ID");

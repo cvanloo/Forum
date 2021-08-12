@@ -61,7 +61,7 @@
 	{
 		_style = "";
 		StateHasChanged();
-		_timer?.Start();
+		try { _timer?.Start(); } catch (ObjectDisposedException) { }
 	}
 
 	private void Hide()
