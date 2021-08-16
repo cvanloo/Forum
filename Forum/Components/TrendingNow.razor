@@ -35,8 +35,15 @@
 	protected override void OnInitialized()
 	{
 		var tags = DbContext.Tags.Include(t => t.Threads).ToList();
+
+		if (tags.Count == 0) return;
+		
 		tags.Sort();
 
-		_tags = tags.GetRange(0, 3);
+		try
+		{
+			_tags = tags.GetRange(0, 3);
+		}
+		catch (ArgumentException) { }
 	}
 }
