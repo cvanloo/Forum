@@ -2,18 +2,22 @@
 @*@attribute [Authorize(Roles = "user")]*@
 @attribute [Authorize(Policy = "IsPoster")]
 @using Microsoft.Extensions.Configuration
+@using Forum.Model
+@using Microsoft.EntityFrameworkCore
 @* ReSharper disable once InconsistentNaming *@
 @inject NavigationManager NavMan
 @* ReSharper disable once InconsistentNaming *@
 @inject IConfiguration Config
 @* ReSharper disable once InconsistentNaming *@
 @inject Data.InfoMessage MessageService
+@* ReSharper disable once InconsistentNaming *@
+@inject IMailService MailService
 
 <div class="main text-center mt-5 ml-auto mr-auto form-bigger">
 	<form @onsubmit="StoreThread" class="form-bigger">
 		<div class="col">
 			<h3 class="mt-2">Create Thread</h3>
-			<select disabled class="form-control" @bind="_forumId">
+			<select class="form-control" @bind="_forumId">
 				@foreach (Entity.Forum forum in _forums)
 				{
 					<option value="@forum.Id">@forum.Name</option>
@@ -61,7 +65,9 @@
 			var authState = await AuthenticationStateTask;
 
 			var uploadPath = Config.GetValue<string>("UploadPath") + Guid.NewGuid();
-			var user = DbContext.Users.FirstOrDefault(u => u.AccountName == authState.User.Identity.Name);
+			var user = DbContext.Users
+				.Include(u => u.Followers)
+				.FirstOrDefault(u => u.AccountName == authState.User.Identity.Name);
 			var tags = Entity.Tag.ParseTags(DbContext, _tags);
 
 			var newThread = new Entity.Thread()
@@ -78,6 +84,24 @@
 			await DbContext.SaveChangesAsync();
 
 			MessageService.Message = "Thread uploaded.";
+
+			var forum = DbContext.Forums
+				.Include(f => f.Members)
+				.First(f => f.Id == _forumId);
+			
+			// TODO: Don't include users mulitple times.
+			var recipientsFollowForum = forum.Members.Select(member => member.Email).ToList();
+			var recipientsFollowUser = user.Followers.Select(follower => follower.Email).ToList();
+			recipientsFollowForum.AddRange(recipientsFollowUser);
+			var recipients = recipientsFollowForum.ToArray();
+			// TODO: Don't block user
+			MailService.Send(new Message
+			{
+				From = "user@domain.ch",
+				Subject = "New Post To " + forum.Name,
+				Body = forum.Name + ": " + newThread.Title + "<br>localhost:5000/thread/" + newThread.Id,
+				To = recipients
+			});
 			
 			NavMan.NavigateTo("/thread/" + newThread.Id);
 		}
@@ -93,6 +117,4 @@
 	{
 		NavMan.NavigateTo("/");
 	}
-
-	
 }
