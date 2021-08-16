@@ -123,7 +123,9 @@ else
 		}
 
 		pwReset.Used = true;
-		DbContext.SaveChanges(); // TODO: NOTE: awaiting will for some reason cause the DbContext-object to be disposed.
+		DbContext.SaveChanges(); // TODO: DbContext can't be used concurrently, see exception. Maybe it's a better idea
+		                         // to not pass down DbContext as a cascading parameter, instead create a new context
+		                         // and retrieve all needed elements from new.
 
 		// Send email confirmation
 		var mail = new Model.Message()

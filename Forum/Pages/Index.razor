@@ -161,8 +161,8 @@
 			SortBy = _sortBy
 		};
 
-		List<Entity.Thread> results;
-		
+		List<Entity.Thread> results = new ();
+
 		switch (query[0])
 		{
 			case '@':
@@ -173,7 +173,7 @@
 			case '#':
 				// else if '#' -> search for posts containing tags
                 var searchTags = Entity.Tag.ParseTags(DbContext, query[1..]);
-               	results = search.SearchThreadsByTag(searchTags);
+               	if (searchTags is not null) results = search.SearchThreadsByTag(searchTags);
 				break;
 			default:
 				// else -> search for posts with title
