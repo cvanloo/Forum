@@ -1,4 +1,6 @@
 ﻿@using Microsoft.EntityFrameworkCore
+@* ReSharper disable once InconsistentNaming *@
+@inject IDbContextFactory<Model.Database> DbContext
 
 <style>
 	#tag_container {
@@ -27,14 +29,13 @@
 }
 
 @code {
-	[CascadingParameter]
-	private Model.Database DbContext { get; set; }
-	
 	private List<Entity.Tag> _tags = new();
 
-	protected override void OnInitialized()
+	protected override async Task OnInitializedAsync()
 	{
-		var tags = DbContext.Tags.Include(t => t.Threads).ToList();
+		await using var dbContext = DbContext.CreateDbContext();
+
+		var tags = dbContext.Tags.Include(t => t.Threads).ToList();
 
 		if (tags.Count == 0) return;
 		

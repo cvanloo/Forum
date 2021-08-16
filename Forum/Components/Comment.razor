@@ -1,4 +1,6 @@
 ﻿@using Microsoft.EntityFrameworkCore
+@* ReSharper disable once InconsistentNaming *@
+@inject IDbContextFactory<Model.Database> DbContext
 
 <style>
 	.border-left {
@@ -15,20 +17,20 @@
 			display: none;
 		}
 
-	button {
+	.btn-w-auto {
 		width: auto !important;
 	}
 </style>
 
 <div class="second needs-padding border-left @_collapseClass">
 	<p class="p-annotation-sm">
-		@CommentModel.Creator.AccountName
+		<a href="/user/@CommentModel.Creator.AccountName">@CommentModel.Creator.AccountName</a>
 		@CommentModel.Created.ToString("t"), @CommentModel.Created.ToString("d")
-		<button class="btn-mini" @onclick="Collapse">[@_clpMsg]</button> @*▬*@
+		<button class="btn-mini btn-w-auto" @onclick="Collapse">[@_clpMsg]</button> @*▬*@
 	</p>
 	<span>
 		<pre class="txt-title">@CommentModel.Text</pre>
-		<button class="btn-mini" @onclick="ToggleCommentField">Answer</button>
+		<button class="btn-mini btn-w-auto" @onclick="ToggleCommentField">Answer</button>
 		<div class="@_cfClass">
 			<CommentField Thread="@CommentModel.Thread" Comment="@CommentModel" UpdateHandler="Update" />
 		</div>
@@ -44,9 +46,6 @@
 @code {
 	[Parameter]
 	public Entity.Comment CommentModel { get; set; }
-	
-	[CascadingParameter]
-	private Model.Database DbContext { get; set; }
 
 	private List<Entity.Comment> _children;
 	private string _cfClass = "hidden";
@@ -92,10 +91,13 @@
 
 	private void Update()
 	{
-		_children = DbContext.Comments
-    		.Include(c => c.Childs)
-    		.ThenInclude(c => c.Creator)
-    		.First(c => c.Id == CommentModel.Id).Childs.ToList();
+		using var dbContext = DbContext.CreateDbContext();
+
+		_children = dbContext.Comments
+			.Include(c => c.Childs)
+				.ThenInclude(c => c.Creator)
+			.First(c => c.Id == CommentModel.Id).Childs.ToList();
+		
 		CloseCommentField();
 		StateHasChanged();
 	}

@@ -12,6 +12,8 @@
 @inject Data.InfoMessage MessageService
 @* ReSharper disable once InconsistentNaming *@
 @inject IMailService MailService
+@* ReSharper disable once InconsistentNaming *@
+@inject IDbContextFactory<Model.Database> DbContext
 
 <div class="main text-center mt-5 ml-auto mr-auto form-bigger">
 	<form @onsubmit="StoreThread" class="form-bigger">
@@ -38,22 +40,23 @@
 	[CascadingParameter]
 	private Task<AuthenticationState> AuthenticationStateTask { get; set; }
 
-	[CascadingParameter]
-	private Model.Database DbContext { get; set; }
-
 	private Entity.Forum[] _forums;
 	private int _forumId = 1;
 	private string _title;
 	private string _content;
 	private string _tags;
 
-	protected override void OnInitialized()
+	protected override async Task OnInitializedAsync()
 	{
-		_forums = DbContext.Forums.ToArray();
+		await using var dbContext = DbContext.CreateDbContext();
+		
+		_forums = dbContext.Forums.ToArray();
 	}
 
 	private async void StoreThread()
 	{
+		await using var dbContext = DbContext.CreateDbContext();
+		
 		if (string.IsNullOrEmpty(_content))
 		{
 			MessageService.Message = "Content needs to be between 1 and 20798 characters long.";
@@ -65,10 +68,10 @@
 			var authState = await AuthenticationStateTask;
 
 			var uploadPath = Config.GetValue<string>("UploadPath") + Guid.NewGuid();
-			var user = DbContext.Users
+			var user = dbContext.Users
 				.Include(u => u.Followers)
 				.FirstOrDefault(u => u.AccountName == authState.User.Identity.Name);
-			var tags = Entity.Tag.ParseTags(DbContext, _tags);
+			var tags = Entity.Tag.ParseTags(dbContext, _tags);
 
 			var newThread = new Entity.Thread()
 			{
@@ -79,13 +82,13 @@
 				Tags = tags
 			};
 
-			DbContext.Threads.Add(newThread);
+			dbContext.Threads.Add(newThread);
 			System.IO.File.WriteAllText(uploadPath, _content);
-			await DbContext.SaveChangesAsync();
+			await dbContext.SaveChangesAsync();
 
 			MessageService.Message = "Thread uploaded.";
 
-			var forum = DbContext.Forums
+			var forum = dbContext.Forums
 				.Include(f => f.Members)
 				.First(f => f.Id == _forumId);
 			

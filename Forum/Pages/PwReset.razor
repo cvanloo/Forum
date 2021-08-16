@@ -9,6 +9,8 @@
 @inject IMailService MailService
 @* ReSharper disable once InconsistentNaming *@
 @inject Data.InfoMessage MessageService
+@* ReSharper disable once InconsistentNaming *@
+@inject IDbContextFactory<Model.Database> DbContext
 
 @if (string.IsNullOrEmpty(Token))
 {
@@ -53,16 +55,15 @@ else
 	[Parameter]
 	public string Token { get; set; }
 
-    [CascadingParameter]
-    private Model.Database DbContext { get; set; }
-
 	private string _email;
 	private string _newPassword;
 	private string _repNewPassword;
 
 	private async void ProcessRequest()
 	{
-		var user = DbContext.Users.FirstOrDefault(u => u.Email == _email);
+		await using var dbContext = DbContext.CreateDbContext();
+		
+		var user = dbContext.Users.FirstOrDefault(u => u.Email == _email);
 
 		if (user is null)
 		{
@@ -78,9 +79,9 @@ else
 			Token = rndToken
 		};
 
-		DbContext.PwResets.Add(pwReset);
+		dbContext.PwResets.Add(pwReset);
 
-		await DbContext.SaveChangesAsync();
+		await dbContext.SaveChangesAsync();
 
 		// Send reset link with token
 		var mail = new Model.Message()
@@ -97,7 +98,11 @@ else
 
 	private bool ValidateRequest()
 	{
-		var pwReset = DbContext.PwResets.Include(p => p.User).FirstOrDefault(p => p.Token == Token);
+		using var dbContext = DbContext.CreateDbContext();
+		
+		var pwReset = dbContext.PwResets
+			.Include(p => p.User)
+			.FirstOrDefault(p => p.Token == Token);
 
 		if (pwReset is null) return false;
 
@@ -111,7 +116,11 @@ else
 
 	private async void UpdatePassword()
 	{
-		var pwReset = DbContext.PwResets.Include(p => p.User).FirstOrDefault(p => p.Token == Token);
+		await using var dbContext = DbContext.CreateDbContext();
+		
+		var pwReset = dbContext.PwResets
+			.Include(p => p.User)
+			.FirstOrDefault(p => p.Token == Token);
 
 		if (pwReset is null) return;
 
@@ -123,9 +132,9 @@ else
 		}
 
 		pwReset.Used = true;
-		DbContext.SaveChanges(); // TODO: DbContext can't be used concurrently, see exception. Maybe it's a better idea
-		                         // to not pass down DbContext as a cascading parameter, instead create a new context
-		                         // and retrieve all needed elements from new.
+		await dbContext.SaveChangesAsync(); // TODO: DbContext can't be used concurrently, see exception. Maybe it's a better idea
+		                                    // to not pass down DbContext as a cascading parameter, instead create a new context
+		                                    // and retrieve all needed elements from new.
 
 		// Send email confirmation
 		var mail = new Model.Message()

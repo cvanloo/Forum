@@ -3,6 +3,8 @@
 @attribute [Authorize]
 @* ReSharper disable once InconsistentNaming *@
 @inject NavigationManager NavMan
+@* ReSharper disable once InconsistentNaming *@
+@inject IDbContextFactory<Model.Database> DbContext
 
 <div class="container-left fix-left">
 	<div class="main row">
@@ -24,42 +26,101 @@ else
 {
 	<div class="container-middle">
 		<div class="main needs-padding">
-			<h4>@_user.DisplayName</h4>
-			<p class="p-annotation-lg">@_user.AccountName</p>
+			<h4>@_user.DisplayName (@_user.AccountName)</h4>
 			<p>Account created on: @_user.Created.ToString("d")</p>
+			@{ var followText = _followsUser ? "Unfollow" : "Follow"; }
+			<button class="btn-norm" style="width: 100%" @onclick="FollowUser">@followText</button>
 			<div style="border-bottom: 0.1rem solid #9BAEC8; border-radius: 0;" class="needs-padding shiny" ></div>
-			@foreach (var thread in _user.Threads)
-			{
-				<ThreadPreview ThreadModel="thread" />
-			}
+			<h5>Chat</h5>
+			<input type="text" placeholder="Type your message..." class="form-control" @*@onclick="SendChatMessage"*@ />
 		</div> 
     </div>
 }
 
 
 @code {
-	private Entity.User _user;
-	
     [Parameter]
     public string AccountName { get; set; }
 
 	[CascadingParameter]
-	public Model.Database DbContext { get; set; }
+	private Task<AuthenticationState> AuthenticationStateTask { get; set; }
+
+	private Entity.User _user;
+	private bool _followsUser;
+	private AuthenticationState _authState; // TODO: No!
+	private Entity.Chat _chat;
 	
 	protected override async Task OnInitializedAsync()
 	{
-		_user = await DbContext.Users
+		await using var dbContext = DbContext.CreateDbContext();
+		
+		_user = await dbContext.Users
 			.Include(u => u.Threads)
 				.ThenInclude(t => t.Tags)
 			.Include(u => u.Threads)
 				.ThenInclude(t => t.Creator)
 			.Include(u => u.Threads)
 				.ThenInclude(t => t.Forum)
+			.Include(u => u.Followers)
 			.FirstOrDefaultAsync(u => u.AccountName == AccountName);
+
+		_authState = await AuthenticationStateTask;
+		var loggedUser = dbContext.Users.First(u => u.AccountName == _authState.User.Identity.Name);
+		_followsUser = _user.Followers.Contains(loggedUser);
+	}
+
+	private async void FollowUser()
+	{
+		await using var dbContext = DbContext.CreateDbContext();
+		
+		var loggedUser = dbContext.Users.First(u => u.AccountName == _authState.User.Identity.Name);
+		
+		// Get the user (from the page) form the same db context
+		var user = dbContext.Users
+			.Include(u => u.Followers)
+			.First(u => u.Id == _user.Id);
+		
+		if (_followsUser)
+		{
+			user.Followers.Remove(loggedUser);
+			_followsUser = false;
+		}
+		else
+		{
+			user.Followers.Add(loggedUser);
+			_followsUser = true;
+		}
+
+		await dbContext.SaveChangesAsync();
 	}
 
 	private void NavHome()
 	{
 		NavMan.NavigateTo("/");
 	}
+
+	/*private async void StartChat()
+	{
+		var loggedUser = DbContext.Users.First(u => u.AccountName == _authState.User.Identity.Name);
+		
+		Entity.Chat chat = new()
+		{
+			Participants = { _user, loggedUser },
+		};
+
+		DbContext.Chats.Add(chat);
+		await DbContext.SaveChangesAsync();
+	}
+
+	private async void SendChatMessage()
+	{
+		Entity.ChatMessage newMsg = new ()
+		{
+			Parent = null, // parse using @ ?
+			Sender = null, // user
+			Content = null // text
+		};
+
+		_chat.Messages.Add(newMsg);
+	}*/
 }

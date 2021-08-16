@@ -45,6 +45,7 @@ namespace Forum.Entity
 			return 0;
 		}
 		
+		// TODO: Don't take dbcontext, just parse and return without adding them to the db(context).
 		public static List<Tag> ParseTags(Model.Database dbContext, string strTags)
         {
         	if (string.IsNullOrEmpty(strTags)) return null;

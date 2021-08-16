@@ -8,6 +8,8 @@
 @inject IJSRuntime JSRuntime
 @* ReSharper disable once InconsistentNaming *@
 @inject Data.InfoMessage MessageService
+@* ReSharper disable once InconsistentNaming *@
+@inject IDbContextFactory<Model.Database> DbContext
 
 <div class="container-left fix-left">
 	<div class="main row">
@@ -27,7 +29,8 @@
 	<div class="container-middle">
 		<div class="main needs-padding">
 			<p class="p-annotation-sm">
-				@_thread.Creator.AccountName@@@_thread.Forum.Name
+				<a href="/user/@_thread.Creator.AccountName">@_thread.Creator.AccountName</a>
+				@@@_thread.Forum.Name
 				@_thread.Created.ToString("t"), @_thread.Created.ToString("d")
 			</p>
 			<h5 class="txt-title">@_thread?.Title</h5>
@@ -49,14 +52,16 @@
 			<p class="p-annotation-sm txt-dark needs-space-lr">@_thread.Comments.Count Comments (@((_thread.Comments.Count + 19) / 20) Pages)</p>
 			<p @onclick="CopyLink" class="p-annotation-sm txt-dark needs-space-lr clickable shiny">@_copyLabel</p>
 			<p @onclick="SaveThread" class="p-annotation-sm txt-dark needs-space-lr clickable shiny">@(_saved ? "Saved!" : "Save")</p>
+			@{ var dbContext = DbContext.CreateDbContext(); }
 			@if (!_thread.IsDeleted &&
-			     _thread.Creator == DbContext.Users.First(u => u.AccountName == _authState.User.Identity.Name))
+			     _thread.Creator == dbContext.Users.First(u => u.AccountName == _authState.User.Identity.Name))
 			{
 				<p @onclick="Delete" class="p-annotation-sm txt-dark needs-space-lr clickable shiny">Delete</p>
 			}
+			@{dbContext.Dispose();}
 		</div>
 		<div class="main">
-			<CommentField Thread="@_thread" UpdateHandler="StateHasChanged"/>
+			<CommentField Thread="@_thread" UpdateHandler="Update"/>
 		</div>
 		@foreach (var c in _thread.Comments)
 		{
@@ -92,8 +97,6 @@ else
 
 	[CascadingParameter]
 	private Task<AuthenticationState> AuthenticationStateTask { get; set; }
-	[CascadingParameter]
-	private Model.Database DbContext { get; set; }
 
 	private Entity.Thread _thread;
 	private AuthenticationState _authState;
@@ -105,19 +108,107 @@ else
 
 	protected override async Task OnInitializedAsync()
 	{
-		_authState = await AuthenticationStateTask; 
+		Update();
+	}
+
+	private void NavHome()
+	{
+		NavMan.NavigateTo("/"); // TODO: Use <a href/> instead
+	}
+
+	private async void CopyLink()
+	{
+		_copyLabel = "Copied!";
+		var link = NavMan.Uri;
+		await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", link);
+	}
+
+	private async void SaveThread()
+	{
+		await using var dbContext = DbContext.CreateDbContext();
 		
-		_thread = DbContext.Threads
+		var user = dbContext.Users
+			.Include(u => u.SavedThreads)
+			.Include(u => u.Forums)
+			.First(u => u.AccountName == _authState.User.Identity.Name);
+
+		// Get the thread from the same db context
+		var thread = dbContext.Threads.First(t => t.Id == _thread.Id);
+		
+		if (_saved)
+		{
+			user.SavedThreads.Remove(thread);
+			_saved = false;
+		}
+		else
+		{
+			user.SavedThreads.Add(thread);
+			_saved = true;
+		}
+
+		await dbContext.SaveChangesAsync();
+
+		StateHasChanged();
+	}
+
+	private async void FollowForum()
+	{
+		await using var dbContext = DbContext.CreateDbContext();
+		
+		var user = dbContext.Users
+			.Include(u => u.Forums)
+			.First(u => u.AccountName == _authState.User.Identity.Name);
+		
+		// Get the forum from the same db context
+		var forum = dbContext.Forums.First(f => f.Id == _thread.Forum.Id);
+
+		if (_followsForum)
+		{
+			user.Forums.Remove(forum);
+			_followsForum = false;
+		}
+		else
+		{
+			user.Forums.Add(forum);
+			_followsForum = true;
+		}
+
+		await dbContext.SaveChangesAsync();
+	}
+
+	private async void Delete()
+	{
+		await using var dbContext = DbContext.CreateDbContext();
+		
+		if (_thread.Creator != dbContext.Users.First(u => u.AccountName == _authState.User.Identity.Name)) return;
+		var confirm = await JSRuntime.InvokeAsync<bool>("confirm", "Delete this thread?");
+
+		// ReSharper disable once InvertIf
+		if (confirm) 
+		{ 
+			_thread.IsDeleted = true;
+			await dbContext.SaveChangesAsync();
+			MessageService.Message = "Thread deleted.";
+		}
+	}
+
+	private async void Update()
+	{
+		await using var dbContext = DbContext.CreateDbContext();
+
+		_authState = await AuthenticationStateTask;
+
+		_thread = dbContext.Threads
 			.Include(t => t.Creator)
 			.Include(t => t.Tags)
 			.Include(t => t.Forum)
-				.ThenInclude(f => f.Members)
+			.ThenInclude(f => f.Members)
 			.Include(t => t.Comments)
-				.ThenInclude(c => c.Creator)
+			.ThenInclude(c => c.Creator)
 			.FirstOrDefault(t => t.Id == Id);
 
 		if (_thread is null) return;
-		
+
 		if (_thread.IsDeleted)
 		{
 			_content = "[ Thread deleted. ]";
@@ -137,81 +228,14 @@ else
 			}
 		}
 
-		var user = DbContext.Users
+		var user = dbContext.Users
 			.Include(u => u.SavedThreads)
 			.Include(u => u.Forums)
 			.First(u => u.AccountName == _authState.User.Identity.Name);
 
 		_saved = user.SavedThreads.Contains(_thread);
 		_followsForum = user.Forums.Contains(_thread.Forum);
-	}
-
-	private void NavHome()
-	{
-		NavMan.NavigateTo("/"); // TODO: Use <a href/> instead
-	}
-
-	private async void CopyLink()
-	{
-		_copyLabel = "Copied!";
-		var link = NavMan.Uri;
-		await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", link);
-	}
-
-	private async void SaveThread()
-	{
-		var user = DbContext.Users
-			.Include(u => u.SavedThreads)
-			.Include(u => u.Forums)
-			.First(u => u.AccountName == _authState.User.Identity.Name);
-
-		if (_saved)
-		{
-			user.SavedThreads.Remove(_thread);
-			_saved = false;
-		}
-		else
-		{
-			user.SavedThreads.Add(_thread);
-			_saved = true;
-		}
-
-		await DbContext.SaveChangesAsync();
-
+		
 		StateHasChanged();
-	}
-
-	private void FollowForum()
-	{
-		var user = DbContext.Users
-			.Include(u => u.Forums)
-			.First(u => u.AccountName == _authState.User.Identity.Name);
-
-		if (_followsForum)
-		{
-			user.Forums.Remove(_thread.Forum);
-			_followsForum = false;
-		}
-		else
-		{
-			user.Forums.Add(_thread.Forum);
-			_followsForum = true;
-		}
-
-		DbContext.SaveChanges();
-	}
-
-	private async void Delete()
-	{
-		if (_thread.Creator != DbContext.Users.First(u => u.AccountName == _authState.User.Identity.Name)) return;
-		var confirm = await JSRuntime.InvokeAsync<bool>("confirm", "Delete this thread?");
-
-		// ReSharper disable once InvertIf
-		if (confirm) 
-		{ 
-			_thread.IsDeleted = true;
-			await DbContext.SaveChangesAsync();
-			MessageService.Message = "Thread deleted.";
-		}
 	}
 }

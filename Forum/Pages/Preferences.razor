@@ -1,5 +1,6 @@
 ﻿@page "/pref"
 @using Microsoft.Extensions.Configuration
+@using Microsoft.EntityFrameworkCore
 @attribute [Authorize]
 @* ReSharper disable once InconsistentNaming *@
 @inject NavigationManager NavMan
@@ -9,6 +10,8 @@
 @inject IMailService MailService
 @* ReSharper disable once InconsistentNaming *@
 @inject Data.InfoMessage MessageService
+@* ReSharper disable once InconsistentNaming *@
+@inject IDbContextFactory<Model.Database> DbContext
 
 <style>
 	p {
@@ -49,15 +52,13 @@
 
 	[CascadingParameter]
 	private Task<AuthenticationState> AuthenticationStateTask { get; set; }
-	
-	[CascadingParameter]
-	private Model.Database DbContext { get; set; }
 
 	protected override async Task OnInitializedAsync()
 	{
+		await using var dbContext = DbContext.CreateDbContext();
 		var authState = await AuthenticationStateTask;
 
-		Entity.User user = DbContext.Users.First(u => u.AccountName == authState.User.Identity.Name);
+		var user = dbContext.Users.First(u => u.AccountName == authState.User.Identity.Name);
 
 		_accountName = user.AccountName;
 		_displayName = user.DisplayName;
@@ -66,10 +67,12 @@
 
 	private async void UpdateAccount()
 	{
+		await using var dbContext = DbContext.CreateDbContext();
+		
 		var msg = "";
 		var authState = await AuthenticationStateTask;
 
-		var user = DbContext.Users.First(u => u.AccountName == authState.User.Identity.Name);
+		var user = dbContext.Users.First(u => u.AccountName == authState.User.Identity.Name);
 
 		if (!string.IsNullOrWhiteSpace(_displayName) &&
 			_displayName != user.DisplayName)
@@ -94,7 +97,7 @@
 			msg += "Password ";
 		}
 
-		await DbContext.SaveChangesAsync();
+		await dbContext.SaveChangesAsync();
 		msg += "changed.";
 
 		var mail = new Model.Message()

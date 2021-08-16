@@ -3,6 +3,8 @@
 @attribute [Authorize]
 @* ReSharper disable once InconsistentNaming *@
 @inject NavigationManager NavMan
+@* ReSharper disable once InconsistentNaming *@
+@inject IDbContextFactory<Model.Database> DbContext
 
 <div class="container-left fix-left">
 	<div class="main row">
@@ -47,15 +49,14 @@ else
 	
     [Parameter]
     public string ForumName { get; set; }
-
-	[CascadingParameter]
-	public Model.Database DbContext { get; set; }
 	
 	protected override async Task OnInitializedAsync()
 	{
+		await using var dbContext = DbContext.CreateDbContext();
+		
 		// Foreach `ThenInclude` the object needs to be `Include`d again.
 		// EF Core will still only retrieve the objects once.
-		_forum = await DbContext.Forums
+		_forum = await dbContext.Forums
 			.Include(f => f.Members)
 			.Include(f => f.Threads)
 				.ThenInclude(t => t.Tags)

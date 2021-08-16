@@ -12,6 +12,9 @@ namespace Forum.Entity
 		public User Sender { get; set; }
 
 		public ChatMessage Parent { get; set; }
+		
+		[Required]
+		public string Content { get; set; }
 
 		[Required]
 		public DateTime Sent { get; set; }

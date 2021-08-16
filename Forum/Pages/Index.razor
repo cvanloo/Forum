@@ -1,8 +1,11 @@
 @page "/"
 @attribute [Authorize(Roles = "user")]
 @using System.Web
+@using Microsoft.EntityFrameworkCore
 @* ReSharper disable once InconsistentNaming *@
 @inject NavigationManager NavigationManager
+@* ReSharper disable once InconsistentNaming *@
+@inject IDbContextFactory<Model.Database> DbContext
 @implements IDisposable
 
 <style>
@@ -70,9 +73,6 @@
 @code {
 	[CascadingParameter]
 	private Task<AuthenticationState> AuthenticationStateTask { get; set; }
-
-	[CascadingParameter]
-	private Model.Database DbContext { get; set; }
 	
 	private string _displayName;
 	private string _accountName;
@@ -97,9 +97,10 @@
 	
 	protected override async Task OnInitializedAsync()
 	{
+		await using var dbContext = DbContext.CreateDbContext();
 		var authState = await AuthenticationStateTask;
 
-		var user = DbContext.Users.First(u => u.AccountName == authState.User.Identity.Name);
+		var user = dbContext.Users.First(u => u.AccountName == authState.User.Identity.Name);
 		_displayName = user.DisplayName;
 		_accountName = user.AccountName;
 
@@ -132,9 +133,11 @@
 		else Search(query);
 	}
 
-	private void LoadThreads()
+	private async void LoadThreads()
 	{
-		var search = new Module.Search(DbContext)
+		await using var dbContext = DbContext.CreateDbContext();
+		
+		var search = new Module.Search(dbContext)
 		{
 			// Only retrieve threads that are older than our oldest (or newer than our newest, when sorting by oldest
 			// first) already retrieved thread.
@@ -147,11 +150,13 @@
 		_threads.AddRange(search.GetThreads());
 	}
 
-	private void Search(string query)
+	private async void Search(string query)
 	{
+		await using var dbContext = DbContext.CreateDbContext();
+		
 		if (query is null || query.Count() <= 0) return;
 
-		var search = new Module.Search(DbContext)
+		var search = new Module.Search(dbContext)
 		{
 			// Only retrieve threads that are older than our oldest (or newer than our newest, when sorting by oldest
             // first) already retrieved thread.
@@ -172,7 +177,7 @@
 				break;
 			case '#':
 				// else if '#' -> search for posts containing tags
-                var searchTags = Entity.Tag.ParseTags(DbContext, query[1..]);
+                var searchTags = Entity.Tag.ParseTags(dbContext, query[1..]);
                	if (searchTags is not null) results = search.SearchThreadsByTag(searchTags);
 				break;
 			default:

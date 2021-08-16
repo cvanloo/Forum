@@ -2,6 +2,7 @@
 @using BCrypt.Net;
 @using System.ComponentModel.DataAnnotations;
 @using Forum.Entity
+@using Microsoft.EntityFrameworkCore
 @using Microsoft.Extensions.Configuration 
 @* ReSharper disable once InconsistentNaming *@
 @inject NavigationManager NavigationManager 
@@ -11,6 +12,8 @@
 @inject IConfiguration Config
 @* ReSharper disable once InconsistentNaming *@
 @inject Data.InfoMessage MessageService
+@* ReSharper disable once InconsistentNaming *@
+@inject IDbContextFactory<Model.Database> DbContext
 
 <div class="main text-center mt-5 ml-auto mr-auto form-bigger">
 	<EditForm class="form-bigger" Model="@_registerModel" OnValidSubmit="HashPw">
@@ -46,9 +49,6 @@
 	[CascadingParameter]
 	private Task<AuthenticationState> AuthenticationStateTask { get; set; }
 
-	[CascadingParameter]
-	private Model.Database DbContext { get; set; }
-	
 	private readonly RegisterModel _registerModel = new();
 
 	protected override async Task OnInitializedAsync()
@@ -64,17 +64,19 @@
 
 	private async Task HashPw()
 	{
+		await using var dbContext = DbContext.CreateDbContext();
+		
 		var pwHash = BCrypt.EnhancedHashPassword(
 			_registerModel.Password,
 			Config.GetValue<int>("Workfactor"));
 
-		if (DbContext.Users.Where(u => u.AccountName == _registerModel.AccountName).Any())
+		if (dbContext.Users.Any(u => u.AccountName == _registerModel.AccountName))
 		{
 			MessageService.Message = "Username already exists.";
 			return;
 		}
 
-		if (DbContext.Users.Where(u => u.Email == _registerModel.Email).Any())
+		if (dbContext.Users.Any(u => u.Email == _registerModel.Email))
 		{
 			MessageService.Message = "There already is an account with this email address.";
 			return;
@@ -90,8 +92,8 @@
 
 		try
 		{
-			await DbContext.Users.AddAsync(user);
-			await DbContext.SaveChangesAsync();
+			await dbContext.Users.AddAsync(user);
+			await dbContext.SaveChangesAsync();
 
 			MessageService.Message = "Account created successfully.";
 			NavigationManager.NavigateTo("/login");

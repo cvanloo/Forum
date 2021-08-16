@@ -22,6 +22,10 @@ namespace Forum.Model
         public DbSet<PwReset> PwResets { get; set; }
         // ReSharper disable once UnusedAutoPropertyAccessor.Global
         public DbSet<Tag> Tags { get; set; }
+        // ReShaper disable once UnusedAutoPropertyAccessor.Global
+        public DbSet<Setting> Settings { get; set; }
+        // ReShaper disable once UnusedAutoPropertyAccessor.Global
+        public DbSet<Chat> Chats { get; set; }
 
         public Database(DbContextOptions<Database> options) : base(options) { } 
 
@@ -141,7 +145,7 @@ namespace Forum.Model
 
             // Setting
             modelBuilder.Entity<Setting>()
-				.HasIndex(s => new { s.Key, s.UserId })
+				.HasIndex(s => new { s.SettingKey, s.UserId })
 				.IsUnique();
 
             // Tag

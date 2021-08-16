@@ -3,6 +3,8 @@
 @attribute [Authorize(Policy = "IsAdmin")]
 @* ReSharper disable once InconsistentNaming *@
 @inject  Data.InfoMessage MessageService
+@* ReSharper disable once InconsistentNaming *@
+@inject IDbContextFactory<Model.Database> DbContext
 
 <style>
     textarea {
@@ -114,57 +116,64 @@
     [Parameter]
     public string Page { get; set; }
 
-    [CascadingParameter]
-    public Model.Database DbContext { get; set; }
-
     protected override async Task OnInitializedAsync()
     {
-        _fora = DbContext.Forums
+        await using var dbContext = DbContext.CreateDbContext();
+        
+        _fora = dbContext.Forums
             .Include(f => f.Members)
             .Include(f => f.Threads)
             .ToList();
 
-        _userCount = DbContext.Users.Count();
+        _userCount = dbContext.Users.Count();
     }
 
     private async void UpdateForum()
     {
-        var forum = _fora.First(f => f.Id == _selectedForumId); // _fora[1]
+        await using var dbContext = DbContext.CreateDbContext();
+
+        var forum = dbContext.Forums.First(f => f.Id == _selectedForumId);
         forum.Description = _updateForumDescription;
 
-        await DbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync();
         MessageService.Message = "Forum updated.";
     }
 
     private async void DeleteForum()
     {
-        var forum = _fora.First(f => f.Id == _selectedForumId);
-        DbContext.Forums.Remove(forum);
+        await using var dbContext = DbContext.CreateDbContext();
 
-        await DbContext.SaveChangesAsync();
+        var forum = dbContext.Forums.First(f => f.Id == _selectedForumId);
+        dbContext.Forums.Remove(forum);
+
+        await dbContext.SaveChangesAsync();
         MessageService.Message = "Forum deleted.";
     }
     
     private async void AddForum()
     {
+        await using var dbContext = DbContext.CreateDbContext();
+        
         var newForum = new Entity.Forum()
         {
             Name = _newForumName,
             Description = _newForumDescription
         };
 
-        DbContext.Forums.Add(newForum);
+        dbContext.Forums.Add(newForum);
 
-        await DbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync();
         MessageService.Message = "Forum created.";
     }
 
-    private void SearchUser()
+    private async void SearchUser()
     {
-        _selectedUser = DbContext.Users
+        await using var dbContext = DbContext.CreateDbContext();
+
+        _selectedUser = dbContext.Users
             .Include(u => u.Settings)
             .FirstOrDefault(u => u.AccountName == _searchUser);
-
+        
         if (_selectedUser is null) return;
         _updateSetPoster = _selectedUser.Settings.FirstOrDefault(s => s.SettingKey == "poster")?.Value == "True";
         _updateSetAdmin = _selectedUser.Settings.FirstOrDefault(s => s.SettingKey == "admin")?.Value == "True";
@@ -173,15 +182,18 @@
 
     private async void UpdateUser()
     {
-        var settingPoster = _selectedUser.Settings.First(s => s.SettingKey == "poster");
+        await using var dbContext = DbContext.CreateDbContext();
+
+        var settingPoster = dbContext.Settings.First(s => s.SettingKey == "poster" && s.UserId == _selectedUser.Id);
         settingPoster.Value = _updateSetPoster.ToString();
-        
-        var settingAdmin = _selectedUser.Settings.First(s => s.SettingKey == "admin");
+
+        var settingAdmin = dbContext.Settings.First(s => s.SettingKey == "admin" && s.UserId == _selectedUser.Id);
         settingAdmin.Value = _updateSetAdmin.ToString();
+
+        var userBlocked = dbContext.Users.First(u => u.Id == _selectedUser.Id);
+        userBlocked.IsBlocked = _updateSetBlocked;
         
-        _selectedUser.IsBlocked = _updateSetBlocked;
-        
-        await DbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync();
         MessageService.Message = "User settings update.";
     }
 }

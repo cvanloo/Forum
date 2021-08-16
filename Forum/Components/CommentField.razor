@@ -1,5 +1,7 @@
 ﻿@using Microsoft.EntityFrameworkCore
 @using System.ComponentModel.DataAnnotations
+@* ReSharper disable once InconsistentNaming *@
+@inject IDbContextFactory<Model.Database> DbContext
 
 <style>
 	.form-control {
@@ -32,9 +34,6 @@
 	[CascadingParameter]
 	private Task<AuthenticationState> AuthenticationStateTask { get; set; }
 
-	[CascadingParameter]
-	private Model.Database DbContext { get; set; }
-
 	private string _comment;
 	private string _btnStyle = "display: none;";
 
@@ -55,19 +54,30 @@
 		if (string.IsNullOrEmpty(_comment)) return;
 
 		var authState = await AuthenticationStateTask;
-		var user = DbContext.Users.First(u => u.AccountName == authState.User.Identity.Name);
+		await using var dbContext = DbContext.CreateDbContext();
+		
+		var user = dbContext.Users.First(u => u.AccountName == authState.User.Identity.Name);
+		
+		// Get the parent comment from the same db context
+		Entity.Comment parentComment;
+		if (Comment is null)
+			parentComment = null;
+		else
+			parentComment = dbContext.Comments.First(c => c.Id == Comment.Id);
+		
+		// Get the thread from the same db context
+		var thread = dbContext.Threads.First(t => t.Id == Thread.Id);
 
 		var comment = new Entity.Comment
 		{
 			Creator = user,
 			Text = _comment,
-			Parent = Comment
+			Parent = parentComment,
+			Thread = thread
 		};
 
-		await DbContext.Comments.AddAsync(comment);
-		Thread.Comments.Add(comment);
-
-		await DbContext.SaveChangesAsync();
+		await dbContext.Comments.AddAsync(comment);
+		await dbContext.SaveChangesAsync();
 
 		_comment = null;
 		
