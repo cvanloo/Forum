@@ -1,0 +1,187 @@
+﻿@page "/admin/{Page?}"
+@using Microsoft.EntityFrameworkCore
+@attribute [Authorize(Policy = "IsAdmin")]
+@* ReSharper disable once InconsistentNaming *@
+@inject  Data.InfoMessage MessageService
+
+<style>
+    textarea {
+        margin-bottom: 2rem !important;
+    }
+</style>
+
+<div class="container-left fix-left">
+    <div class="main needs-padding">
+        <ul>
+            <li>
+                <a href="/">&lt; Home</a>
+            </li>
+            <li>
+                <a href="/admin/forum">Forum</a>
+                <ul>
+                    <li>
+                        <p>Update Forum</p></li>
+                    <li>
+                        <p>Create Forum</p></li>
+                </ul>
+            </li>
+            <li>
+                <a href="/admin/users">Users</a>
+            </li>
+        </ul>
+    </div>
+</div>
+<div class="container-middle">
+    <div class="needs-padding">
+        @switch (Page)
+        {
+            case "forum":
+                <div class="main col form-sim ml-auto mr-auto text-center form-bigger">
+                    <h4>Update Forum</h4>
+                    <select class="form-control" @bind="_selectedForumId">
+                        @foreach (var forum in _fora)
+                        {
+                            <option value="@forum.Id">@forum.Name</option>
+                        }
+                    </select>
+                    @{ var selectedForum = _fora.First(f => f.Id == _selectedForumId);}
+                    <p>Created: @selectedForum.Created</p>
+                    <p>Membercount: @selectedForum.Members.Count</p>
+                    <p>Threadcount: @selectedForum.Threads.Count</p>
+                    <textarea class="form-control" @bind="_updateForumDescription" >@selectedForum.Description</textarea>
+                    <div class="row">
+                        <button class="accent-red btn-bottom-left" @onclick="DeleteForum">Delete Forum</button>
+                        <button class="accent-blue btn-bottom-right" @onclick="UpdateForum">Update Forum</button>
+                    </div>
+                </div>
+
+                <div class="main col form-sim ml-auto mr-auto text-center form-bigger mt-5">
+                    <h4>Create Forum</h4>
+                    <input type="text" placeholder="Name" @bind="_newForumName" class="form-control"/>
+                    <textarea placeholder="Description" class="form-control" @bind="_newForumDescription"></textarea>
+                    <div class="row">
+                        <button class="accent-blue btn-bottom-left btn-bottom-right" @onclick="AddForum">Add Forum</button>
+                    </div>
+                </div>
+                break;
+            case "users":
+                <div class="main col form-sim ml-auto mr-auto text-center form-bigger">
+                    <h4>Users: @_userCount</h4>
+                    <input class="form-control" type="text" placeholder="Accountname" @bind="_searchUser" />
+                    <button class="accent-blue form-control" @onclick="SearchUser" >Search user</button>
+                    @if (_selectedUser is not null)
+                    {
+                        <p>Accountname: @_selectedUser.AccountName</p>
+                        <p>Displayname: @_selectedUser.DisplayName</p>
+                        <p>Created: @_selectedUser.Created</p>
+                        <div class="row">
+                            <p style="display: inline-block; width: 0; flex-grow: 1; margin-bottom: 2rem; margin-top: 2rem;">Can Post</p>
+                            <input style="display: inline-block; width: 0; flex-grow: 3; margin-right: 1rem; padding: 5px;" type="checkbox" @bind="@_updateSetPoster" class="form-control"/>
+                        </div>
+                        <div class="row">
+                            <p style="display: inline-block; width: 0; flex-grow: 1; margin-bottom: 2rem; margin-top: 2rem;">Is Admin</p>
+                            <input style="display: inline-block; width: 0; flex-grow: 3; margin-right: 1rem; padding: 5px;" type="checkbox" @bind="@_updateSetAdmin" class="form-control"/>
+                        </div>
+                        <div class="row">
+                            <p style="display: inline-block; width: 0; flex-grow: 1; margin-bottom: 2rem; margin-top: 2rem;">Blocked</p>
+                            <input style="display: inline-block; width: 0; flex-grow: 3; margin-right: 1rem; padding: 5px;" type="checkbox" @bind="@_updateSetBlocked" class="form-control"/>
+                        </div>
+                        <div class="row">
+                            <button class="accent-blue btn-bottom-left btn-bottom-right" @onclick="UpdateUser">Update User</button>
+                        </div>
+                    }
+                </div>
+                break;
+        }
+    </div>
+</div>
+
+@code {
+    private List<Entity.Forum> _fora;
+    private int _selectedForumId = 1;
+    private string _newForumName;
+    private string _newForumDescription;
+    
+    private string _updateForumDescription;
+
+    private int _userCount;
+    private string _searchUser;
+    private Entity.User _selectedUser;
+    private bool _updateSetPoster;
+    private bool _updateSetAdmin;
+    private bool _updateSetBlocked;
+    
+    [Parameter]
+    public string Page { get; set; }
+
+    [CascadingParameter]
+    public Model.Database DbContext { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _fora = DbContext.Forums
+            .Include(f => f.Members)
+            .Include(f => f.Threads)
+            .ToList();
+
+        _userCount = DbContext.Users.Count();
+    }
+
+    private async void UpdateForum()
+    {
+        var forum = _fora.First(f => f.Id == _selectedForumId); // _fora[1]
+        forum.Description = _updateForumDescription;
+
+        await DbContext.SaveChangesAsync();
+        MessageService.Message = "Forum updated.";
+    }
+
+    private async void DeleteForum()
+    {
+        var forum = _fora.First(f => f.Id == _selectedForumId);
+        DbContext.Forums.Remove(forum);
+
+        await DbContext.SaveChangesAsync();
+        MessageService.Message = "Forum deleted.";
+    }
+    
+    private async void AddForum()
+    {
+        var newForum = new Entity.Forum()
+        {
+            Name = _newForumName,
+            Description = _newForumDescription
+        };
+
+        DbContext.Forums.Add(newForum);
+
+        await DbContext.SaveChangesAsync();
+        MessageService.Message = "Forum created.";
+    }
+
+    private void SearchUser()
+    {
+        _selectedUser = DbContext.Users
+            .Include(u => u.Settings)
+            .FirstOrDefault(u => u.AccountName == _searchUser);
+
+        if (_selectedUser is null) return;
+        _updateSetPoster = _selectedUser.Settings.FirstOrDefault(s => s.SettingKey == "poster")?.Value == "True";
+        _updateSetAdmin = _selectedUser.Settings.FirstOrDefault(s => s.SettingKey == "admin")?.Value == "True";
+        _updateSetBlocked = _selectedUser.IsBlocked;
+    }
+
+    private async void UpdateUser()
+    {
+        var settingPoster = _selectedUser.Settings.First(s => s.SettingKey == "poster");
+        settingPoster.Value = _updateSetPoster.ToString();
+        
+        var settingAdmin = _selectedUser.Settings.First(s => s.SettingKey == "admin");
+        settingAdmin.Value = _updateSetAdmin.ToString();
+        
+        _selectedUser.IsBlocked = _updateSetBlocked;
+        
+        await DbContext.SaveChangesAsync();
+        MessageService.Message = "User settings update.";
+    }
+}

@@ -36,23 +36,24 @@ namespace Forum.Data
 
 			if (identifier.Contains('@'))
 			{
-				user = db.Users.Where(u => u.Email == identifier).FirstOrDefault();
+				user = db.Users
+					.Include(u => u.Settings)
+					.FirstOrDefault(u => u.Email == identifier);
 			}
 			else
 			{
-				user = db.Users.Where(u => u.AccountName == identifier).FirstOrDefault();
+				user = db.Users
+					.Include(u => u.Settings)
+					.FirstOrDefault(u => u.AccountName == identifier);
 			}
 
-			if (user is null)
-			{
-				throw new Exception("User not found.");
-			}
+			if (user is null) throw new Exception("User not found.");
 			
 			if (!BCrypt.Net.BCrypt.EnhancedVerify(password, user.PwHash))
-			{
 				throw new Exception("Wrong password.");
-			}
 
+			if (user.IsBlocked) throw new Exception("User is blocked.");
+			
 			if (BCrypt.Net.BCrypt.PasswordNeedsRehash(user.PwHash, _workfactor))
 			{
 				user.PwHash = BCrypt.Net.BCrypt.EnhancedHashPassword(password, _workfactor);
@@ -74,9 +75,9 @@ namespace Forum.Data
 
 			using var db = _dbContext.CreateDbContext();
 
-			string rndToken = Guid.NewGuid().ToString();
+			var rndToken = Guid.NewGuid().ToString();
 
-			Session session = new Session()
+			var session = new Session()
 			{
 				UserId = user.Id,
 				Identifier = "SESSION_ID",
@@ -98,7 +99,10 @@ namespace Forum.Data
 		{
 			using var db = _dbContext.CreateDbContext();
 
-			Session session = db.Sessions.Include(s => s.User).Where(s => s.Identifier == "SESSION_ID" && s.Value == token).FirstOrDefault();
+			var session = db.Sessions
+				.Include(s => s.User)
+					.ThenInclude(u => u.Settings)
+				.FirstOrDefault(s => s.Identifier == "SESSION_ID" && s.Value == token);
 
 			return session?.User;
 		}
@@ -111,7 +115,7 @@ namespace Forum.Data
 		{
 			using var db = _dbContext.CreateDbContext();
 
-			Session[] sessions = db.Sessions.Where(s => s.User == user).ToArray();
+			var sessions = db.Sessions.Where(s => s.User == user).ToArray();
 
 			db.Sessions.RemoveRange(sessions);
 			

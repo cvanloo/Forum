@@ -26,9 +26,10 @@ namespace Forum.Controller
 
 		public override async Task<AuthenticationState> GetAuthenticationStateAsync()
 		{
+			// Automatically log the user in when in development environment
 			if (_hostEnvironment.IsDevelopment())
 			{
-				await ValidateLogin("Testikus", "t");
+				//await ValidateLogin("Testikus", "t");
 			}
 			
 			if (_cachedUser is null)
@@ -40,6 +41,7 @@ namespace Forum.Controller
 
 				if (_cachedUser is null)
 				{
+					// Empty authentication-state equals "not logged in".
 					return await Task.FromResult(new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity())));
 				}
 			}
@@ -70,19 +72,23 @@ namespace Forum.Controller
 			_userService.RemoveSession(_cachedUser);
 			_cachedUser = null;
 			await _jsRuntime.InvokeVoidAsync("sessionStorage.setItem", "SESSION_ID", "");
+			// Empty authentication-state equals "not logged in".
 			var user = new ClaimsPrincipal(new ClaimsIdentity());
 			NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(user)));
 		}
 
-		private ClaimsIdentity SetupClaims(User user)
+		private static ClaimsIdentity SetupClaims(User user)
 		{
 			var claims = new List<Claim>()
 			{
-				new Claim(ClaimTypes.Name, user.AccountName),
-				new Claim(ClaimTypes.Role, "user"),
-				new Claim("admin", "true"),
-				new Claim("poster", "true")
+				new (ClaimTypes.Role, "user"),
+				new (ClaimTypes.Name, user.AccountName),
 			};
+			
+			foreach (var setting in user.Settings)
+			{
+				claims.Add(new Claim(setting.SettingKey, setting.Value));
+			}
 
 			// "Authentication Type": If you don't pass a string here, authentication using the 
 			// <AuthorizeView>-tags won't work.

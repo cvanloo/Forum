@@ -1,6 +1,7 @@
 ﻿@page "/register"
 @using BCrypt.Net;
 @using System.ComponentModel.DataAnnotations;
+@using Forum.Entity
 @using Microsoft.Extensions.Configuration 
 @* ReSharper disable once InconsistentNaming *@
 @inject NavigationManager NavigationManager 
@@ -83,7 +84,8 @@
 		{
 			AccountName = _registerModel.AccountName,
 			Email = _registerModel.Email,
-			PwHash = pwHash
+			PwHash = pwHash,
+			Settings = SetupSettings()
 		};
 
 		try
@@ -103,6 +105,18 @@
 	private void NavLogin()
 	{
 		NavMan.NavigateTo("/login");
+	}
+
+	private static List<Setting> SetupSettings()
+	{
+		// Default account settings
+		var settings = new List<Setting>()
+		{
+			new () { SettingKey = "poster", Value = "True" },
+			new () { SettingKey = "admin", Value = "False" }
+		};
+
+		return settings;
 	}
 
 	public class RegisterModel
