@@ -109,25 +109,26 @@
 
 		_locationChangedHandler = (_, _) =>
 		{
-			LocationChanged();
+			UpdatePage();
 			StateHasChanged();
 		};
 
+		// When the navigation changes from one page to the exact same page (only parameters may be different)
+		// `OnInitialized` is not called again. Instead we need to listen for the `LocationChanged`-event.
 		NavMan.LocationChanged += _locationChangedHandler; 
 		
-		LocationChanged();
+		UpdatePage();
 	}
 
 	/// <summary>
 	/// Update the page.
 	/// </summary>
-	private void LocationChanged()
+	private void UpdatePage()
 	{
 		var query = SearchQuery;
 		_threads.Clear(); // New search query, delete old results first
 
-		if (query is null) LoadThreads();
-		else Search(query);
+		Search(query);
 	}
 
 	/// <summary>
@@ -138,28 +139,7 @@
 		var query = SearchQuery;
 		// Load more of the same search query, don't delete old results
 
-		if (query is null) LoadThreads();
-		else Search(query);
-	}
-
-	/// <summary>
-	/// Load threads. Start loading at last loaded thread.
-	/// </summary>
-	private async void LoadThreads()
-	{
-		await using var dbContext = DbContext.CreateDbContext();
-		
-		using var search = new Module.Search(dbContext)
-		{
-			// Only retrieve threads that are older than our oldest (or newer than our newest, when sorting by oldest
-			// first) already retrieved thread.
-			LastTimeStamp = _threads.LastOrDefault()?.Created ??
-				// just make sure it's enough far in the past
-				(Module.Search.SortOrder.NewestFirst == _sortBy ? DateTime.Now : new DateTime(1997, 1, 1)),
-			SortBy = _sortBy
-		};
-
-		_threads.AddRange(search.GetThreads());
+		Search(query);
 	}
 
 	/// <summary>
@@ -169,8 +149,6 @@
 	private async void Search(string query)
 	{
 		await using var dbContext = DbContext.CreateDbContext();
-		
-		if (query is null || query.Count() <= 0) return;
 
 		using var search = new Module.Search(dbContext)
 		{
@@ -183,25 +161,32 @@
 		};
 
 		List<Entity.Thread> results = new();
-
-		switch (query[0])
-		{
-			case '@':
-				// if '@' -> search for posts by user
-				var searchUser = query[1..];
-            	results = search.SearchThreadsByUser(searchUser);
-				break;
-			case '#':
-				// else if '#' -> search for posts containing tags
-                var searchTags = Entity.Tag.ParseTags(dbContext, query[1..]);
-               	if (searchTags is not null) results = search.SearchThreadsByTag(searchTags);
-				break;
-			default:
-				// else -> search for posts with title
-				results = search.SearchThreadsByTitle(query);
-				break;
-		}
 		
+		if (query is null || !query.Any())
+		{
+			results.AddRange(search.GetThreads());
+		}
+		else
+		{
+			switch (query[0])
+			{
+				case '@':
+					// if '@' -> search for posts by user
+					var searchUser = query[1..];
+					results = search.SearchThreadsByUser(searchUser);
+					break;
+				case '#':
+					// else if '#' -> search for posts containing tags
+					var searchTags = Entity.Tag.ParseTags(dbContext, query[1..]);
+					if (searchTags is not null) results = search.SearchThreadsByTag(searchTags);
+					break;
+				default:
+					// else -> search for posts with title
+					results = search.SearchThreadsByTitle(query);
+					break;
+			}
+		}
+
 		_threads.AddRange(results);
 	}
 	
@@ -222,7 +207,7 @@
 	private void SortByNew()
 	{
 		_sortBy = Module.Search.SortOrder.NewestFirst;
-		LocationChanged();
+		UpdatePage();
 	}
 
 	/// <summary>
@@ -231,7 +216,7 @@
 	private void SortByOld()
 	{
 		_sortBy = Module.Search.SortOrder.OldestFirst;
-		LocationChanged();
+		UpdatePage();
 	}
 
 	/// <summary>

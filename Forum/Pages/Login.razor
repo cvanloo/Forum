@@ -26,6 +26,7 @@
 						<InputText class="form-control" type="password" placeholder="Password" @bind-Value="_loginModel.Password" />
 						<ValidationMessage For="() => _loginModel.Password" />
 					</div>
+					<label>Remember Me<InputCheckbox style="margin: 1em;" type="checkbox" @bind-Value="_loginModel.RememberMe"/></label>
 					<div class="row">
 						<button type="button" class="accent-red btn-bottom-left" @onclick='() => NavMan.NavigateTo("/pwreset")'>Forgot Password</button>
 						<button type="button" class="accent-blue" @onclick='() => NavMan.NavigateTo("/register")'>Create Account</button>
@@ -97,7 +98,12 @@
 	{
 		[Required(ErrorMessage = "Enter an Email address or Accountname.")]
 		public string Identifier { get; set; }
+		
 		[Required]
 		public string Password { get; set; }
+
+		// TODO: Store cookies ٩◔̯◔۶ ?
+		[Required]
+		public bool RememberMe { get; set; } = false;
 	}
 }

@@ -32,6 +32,13 @@ else
 			<div style="border-bottom: 0.1rem solid #9BAEC8; border-radius: 0;" class="needs-padding shiny" ></div>
 			<h5>Chat</h5>
 			<input type="text" placeholder="Type your message..." class="form-control" @*@onclick="SendChatMessage"*@ />
+			@if (_chat?.Messages is not null)
+			{
+				foreach (var message in _chat.Messages)
+				{
+					<p>@message.Sender: @message.Content</p>
+				}
+			}
 		</div> 
     </div>
 }
@@ -107,28 +114,68 @@ else
 		}
 	}
 
-	/*private async void StartChat()
+	private async Task StartChatAsync()
 	{
-		var loggedUser = DbContext.Users.First(u => u.AccountName == _authState.User.Identity.Name);
+		await using var dbContext = DbContext.CreateDbContext();
+		var authState = await AuthenticationStateTask;
 		
-		Entity.Chat chat = new()
+		var loggedUser = dbContext.Users.First(u => u.AccountName == authState.User.Identity.Name);
+		
+		var chat = new Entity.Chat
 		{
-			Participants = { _user, loggedUser },
+			Participants = { _user, loggedUser }
 		};
 
-		DbContext.Chats.Add(chat);
-		await DbContext.SaveChangesAsync();
+		dbContext.Chats.Add(chat);
+
+		try
+		{
+			await dbContext.SaveChangesAsync();
+		}
+		catch (DbUpdateException dbuEx)
+		{
+			await Console.Error.WriteLineAsync(dbuEx.ToString());
+		}
 	}
 
-	private async void SendChatMessage()
+	/// <summary>
+	/// Send a message into the chat.
+	/// </summary>
+	private async Task SendChatMessageAsync()
 	{
-		Entity.ChatMessage newMsg = new ()
+		await using var dbContext = DbContext.CreateDbContext();
+		var authState = await AuthenticationStateTask;
+		
+		// Get chat out of the same db context
+		var loggedUser = dbContext.Users.First(u => u.AccountName == authState.User.Identity.Name);
+		var visitedUser = dbContext.Users.First(u => u.AccountName == _user.AccountName);
+		var chat = dbContext.Chats.First(c => c.Participants.Contains(loggedUser) && c.Participants.Contains(visitedUser)); // TODO: No!
+		
+		var newMsg = new Entity.ChatMessage
 		{
 			Parent = null, // parse using @ ?
 			Sender = null, // user
 			Content = null // text
 		};
 
-		_chat.Messages.Add(newMsg);
-	}*/
+		chat.Messages.Add(newMsg);
+
+		try
+		{
+			await dbContext.SaveChangesAsync();
+		}
+		catch (DbUpdateException dbuEx)
+		{
+			await Console.Error.WriteLineAsync(dbuEx.ToString());
+		}
+		
+		// TODO: Update chat
+	}
+
+	private async Task UpdateChat()
+	{
+		await using var dbContext = DbContext.CreateDbContext();
+		
+		//_chat = 
+	}
 }
