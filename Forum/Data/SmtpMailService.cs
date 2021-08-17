@@ -5,38 +5,40 @@ namespace Forum.Data
 {
 	public class SmtpMailService : IMailService
 	{
-		public async Task Send(Model.Message message)
+		/// <summary>
+		/// Send an email.
+		/// </summary>
+		/// <param name="message">Email to send</param>
+		public async Task SendAsync(Model.Message message)
 		{
-			using (var smtp = new SmtpClient())
+			using var smtp = new SmtpClient();
+			/* Delivery via SMTP */
+			//smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
+			//
+			//var credentials = new NetworkCredential()
+			//{
+			//	UserName = "name@email.ch",
+			//	Password = "password"
+			//};
+			//
+			//smtp.Credentials = credentials;
+			//smtp.Host = "host";
+			//smtp.Port = 587;
+			//smtp.EnableSsl = true;
+
+			/* Dump mail to a local directory */
+			smtp.DeliveryMethod = SmtpDeliveryMethod.SpecifiedPickupDirectory;
+			smtp.PickupDirectoryLocation = @"C:\tmp\mail";
+
+			var mail = new MailMessage()
 			{
-				/* Delivery via SMTP */
-				//smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
-				//
-				//var credentials = new NetworkCredential()
-				//{
-				//	UserName = "name@email.ch",
-				//	Password = "password"
-				//};
-				//
-				//smtp.Credentials = credentials;
-				//smtp.Host = "host";
-				//smtp.Port = 587;
-				//smtp.EnableSsl = true;
+				Body = message.Body,
+				Subject = message.Subject,
+				From = new MailAddress(message.From)
+			};
+			mail.To.Add(string.Join(',', message.To));
 
-				/* Dump mail to a local directory */
-				smtp.DeliveryMethod = SmtpDeliveryMethod.SpecifiedPickupDirectory;
-				smtp.PickupDirectoryLocation = @"C:\tmp\mail";
-
-				MailMessage mail = new MailMessage()
-				{
-					Body = message.Body,
-					Subject = message.Subject,
-					From = new MailAddress(message.From)
-				};
-				mail.To.Add(string.Join(',', message.To));
-
-				await smtp.SendMailAsync(mail);
-			}
+			await smtp.SendMailAsync(mail);
 		}
 	}
 }

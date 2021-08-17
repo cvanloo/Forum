@@ -1,5 +1,4 @@
 ﻿@page "/user/{AccountName}"
-@using Microsoft.EntityFrameworkCore
 @attribute [Authorize]
 @* ReSharper disable once InconsistentNaming *@
 @inject NavigationManager NavMan
@@ -8,7 +7,7 @@
 
 <div class="container-left fix-left">
 	<div class="main row">
-		<button class="btn-norm-sec" @onclick="NavHome">
+		<button class="btn-norm-sec" @onclick='() => NavMan.NavigateTo("/")'>
 			<img width="50" height="50" src="/css/icons/Arrow_Back.png" alt="Back Arrow" />
 			Go Back
 		</button>
@@ -29,7 +28,7 @@ else
 			<h4>@_user.DisplayName (@_user.AccountName)</h4>
 			<p>Account created on: @_user.Created.ToString("d")</p>
 			@{ var followText = _followsUser ? "Unfollow" : "Follow"; }
-			<button class="btn-norm" style="width: 100%" @onclick="FollowUser">@followText</button>
+			<button class="btn-norm" style="width: 100%" @onclick="FollowUserAsync">@followText</button>
 			<div style="border-bottom: 0.1rem solid #9BAEC8; border-radius: 0;" class="needs-padding shiny" ></div>
 			<h5>Chat</h5>
 			<input type="text" placeholder="Type your message..." class="form-control" @*@onclick="SendChatMessage"*@ />
@@ -39,20 +38,23 @@ else
 
 
 @code {
+	private Entity.User _user;
+	private bool _followsUser;
+	private Entity.Chat _chat;
+	
     [Parameter]
     public string AccountName { get; set; }
 
 	[CascadingParameter]
 	private Task<AuthenticationState> AuthenticationStateTask { get; set; }
 
-	private Entity.User _user;
-	private bool _followsUser;
-	private AuthenticationState _authState; // TODO: No!
-	private Entity.Chat _chat;
-	
+	/// <summary>
+	/// Initializes the page.
+	/// </summary>
 	protected override async Task OnInitializedAsync()
 	{
 		await using var dbContext = DbContext.CreateDbContext();
+		var authState = await AuthenticationStateTask;
 		
 		_user = await dbContext.Users
 			.Include(u => u.Threads)
@@ -63,17 +65,21 @@ else
 				.ThenInclude(t => t.Forum)
 			.Include(u => u.Followers)
 			.FirstOrDefaultAsync(u => u.AccountName == AccountName);
-
-		_authState = await AuthenticationStateTask;
-		var loggedUser = dbContext.Users.First(u => u.AccountName == _authState.User.Identity.Name);
+		
+		var loggedUser = dbContext.Users.First(u => u.AccountName == authState.User.Identity.Name);
+		
 		_followsUser = _user.Followers.Contains(loggedUser);
 	}
 
-	private async void FollowUser()
+	/// <summary>
+	/// Subscribes visiting user to user from user-page.
+	/// </summary>
+	private async Task FollowUserAsync()
 	{
 		await using var dbContext = DbContext.CreateDbContext();
+		var authState = await AuthenticationStateTask;
 		
-		var loggedUser = dbContext.Users.First(u => u.AccountName == _authState.User.Identity.Name);
+		var loggedUser = dbContext.Users.First(u => u.AccountName == authState.User.Identity.Name);
 		
 		// Get the user (from the page) form the same db context
 		var user = dbContext.Users
@@ -91,12 +97,14 @@ else
 			_followsUser = true;
 		}
 
-		await dbContext.SaveChangesAsync();
-	}
-
-	private void NavHome()
-	{
-		NavMan.NavigateTo("/");
+		try
+		{
+			await dbContext.SaveChangesAsync();
+		}
+		catch (DbUpdateException dbuEx)
+		{
+			await Console.Error.WriteLineAsync(dbuEx.ToString());
+		}
 	}
 
 	/*private async void StartChat()

@@ -5,6 +5,11 @@
 	[CascadingParameter]
 	private Task<AuthenticationState> AuthenticationStateTask { get; set; }
 
+	/// <summary>
+	/// Initializes the component.
+	/// When the user is not authenticated, it will redirect to the login page, with
+	/// the return url-parameter set.
+	/// </summary>
 	protected override async Task OnInitializedAsync()
 	{
 		var authState = await AuthenticationStateTask;

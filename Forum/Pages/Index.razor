@@ -1,18 +1,17 @@
 @page "/"
 @attribute [Authorize(Roles = "user")]
 @using System.Web
-@using Microsoft.EntityFrameworkCore
 @* ReSharper disable once InconsistentNaming *@
-@inject NavigationManager NavigationManager
+@inject NavigationManager NavMan
 @* ReSharper disable once InconsistentNaming *@
 @inject IDbContextFactory<Model.Database> DbContext
 @implements IDisposable
 
 <style>
-	#search_bar {
+	/*#search_bar {
 		background: #333844 url(/css/icons/Search.png) right no-repeat;
 		padding-right: 17px;
-	}
+	}*/
 </style>
 
 <AuthorizeView>
@@ -23,12 +22,12 @@
 				<h4>Hello, @_displayName</h4>
 				<p class="p-annotation-lg">Logged in as: @_accountName</p>
 				<div class="row btn-select">
-					<button @onclick="NavHome" class="btn-primary btn-left">Home</button>
-					<button @onclick="NavLogout" class="btn-danger btn-right">Logout</button>
+					<button @onclick='() => NavMan.NavigateTo("/")' class="btn-primary btn-left">Home</button>
+					<button @onclick='() => NavMan.NavigateTo("/login")' class="btn-danger btn-right">Logout</button>
 				</div>
                 </div>
 			<div class="main row">
-				<button @onclick="NavCreatePost" class="btn-norm">Start a Thread</button>
+				<button @onclick='() => NavMan.NavigateTo("/post")' class="btn-norm">Start a Thread</button>
 			</div>
 			<div>
 				<a href="/pref">
@@ -36,9 +35,9 @@
 					Preferences
 				</a>
 			</div>
-			<div class="">
-				<p class="p-annotation-sm">@*Bottom*@</p>
-			</div>
+			@*<div class="">
+				<p class="p-annotation-sm">Bottom</p>
+			</div>*@
 		</div>
 		<div class="container-middle">
 			<div class="main">
@@ -51,7 +50,6 @@
 		</div>
 		<div class="container-right fix-right">
 			<div class="main needs-padding">
-				@* <h1>HOME <img src="/css/icons/Quick_Settings.png" width="40" height="40" alt="Settings"/></h1> *@
 				<p>Sort by:</p>
                 <div class="row btn-select">
                 	<button @onclick="SortByNew" class="btn-left @(_sortBy == Module.Search.SortOrder.NewestFirst ? "btn-active" : "")">New</button>
@@ -71,36 +69,41 @@
 </AuthorizeView>
 
 @code {
-	[CascadingParameter]
-	private Task<AuthenticationState> AuthenticationStateTask { get; set; }
-	
 	private string _displayName;
 	private string _accountName;
-	private readonly List<Entity.Thread> _threads = new();
 	private string _searchQuery;
 	private Module.Search.SortOrder _sortBy = Module.Search.SortOrder.NewestFirst;
+	private readonly List<Entity.Thread> _threads = new();
 	
 	// Stores our anonymous event handler to give us the possibility to unsubscribe it on dispose.
 	private EventHandler<LocationChangedEventArgs> _locationChangedHandler;
+	
+	[CascadingParameter]
+	private Task<AuthenticationState> AuthenticationStateTask { get; set; }
 
+	/// Get the search query.
 	private string SearchQuery
 	{
 		get
 		{
 			// Everything inside an URI after an '#' counts as a "fragment" and will be ignored by
 			// the parser. Escaping '#' with '%23' solves this problem.
-			var uriBuilder = new UriBuilder(NavigationManager.Uri.Replace("#", "%23"));
+			var uriBuilder = new UriBuilder(NavMan.Uri.Replace("#", "%23"));
 			var q = HttpUtility.ParseQueryString(uriBuilder.Query);
 			return q["q"];
 		}
 	}
 	
+	/// <summary>
+	/// Initializes the page.
+	/// </summary>
 	protected override async Task OnInitializedAsync()
 	{
 		await using var dbContext = DbContext.CreateDbContext();
 		var authState = await AuthenticationStateTask;
 
 		var user = dbContext.Users.First(u => u.AccountName == authState.User.Identity.Name);
+		
 		_displayName = user.DisplayName;
 		_accountName = user.AccountName;
 
@@ -110,11 +113,14 @@
 			StateHasChanged();
 		};
 
-		NavigationManager.LocationChanged += _locationChangedHandler; 
+		NavMan.LocationChanged += _locationChangedHandler; 
 		
 		LocationChanged();
 	}
 
+	/// <summary>
+	/// Update the page.
+	/// </summary>
 	private void LocationChanged()
 	{
 		var query = SearchQuery;
@@ -124,6 +130,9 @@
 		else Search(query);
 	}
 
+	/// <summary>
+	/// Loads more threads.
+	/// </summary>
 	private void LoadMore()
 	{
 		var query = SearchQuery;
@@ -133,11 +142,14 @@
 		else Search(query);
 	}
 
+	/// <summary>
+	/// Load threads. Start loading at last loaded thread.
+	/// </summary>
 	private async void LoadThreads()
 	{
 		await using var dbContext = DbContext.CreateDbContext();
 		
-		var search = new Module.Search(dbContext)
+		using var search = new Module.Search(dbContext)
 		{
 			// Only retrieve threads that are older than our oldest (or newer than our newest, when sorting by oldest
 			// first) already retrieved thread.
@@ -150,13 +162,17 @@
 		_threads.AddRange(search.GetThreads());
 	}
 
+	/// <summary>
+	/// Load threads that match search query.
+	/// </summary>
+	/// <param name="query">Search query</param>
 	private async void Search(string query)
 	{
 		await using var dbContext = DbContext.CreateDbContext();
 		
 		if (query is null || query.Count() <= 0) return;
 
-		var search = new Module.Search(dbContext)
+		using var search = new Module.Search(dbContext)
 		{
 			// Only retrieve threads that are older than our oldest (or newer than our newest, when sorting by oldest
             // first) already retrieved thread.
@@ -166,7 +182,7 @@
 			SortBy = _sortBy
 		};
 
-		List<Entity.Thread> results = new ();
+		List<Entity.Thread> results = new();
 
 		switch (query[0])
 		{
@@ -189,43 +205,40 @@
 		_threads.AddRange(results);
 	}
 	
-	private void NavCreatePost()
-	{
-		NavigationManager.NavigateTo("/post");
-	}
-
-	private void NavLogout()
-	{
-		NavigationManager.NavigateTo("/login");
-	}
-
+	/// <summary>
+	/// Update url with searh query.
+	/// </summary>
 	private void NavSearch()
 	{
 		//var encoded = HttpUtility.UrlEncode(_searchQuery);
 		// ReSharper disable once InconsistentNaming
 		var targetURI = string.IsNullOrEmpty(_searchQuery) ? "/" : "/?q=" + _searchQuery;
-		NavigationManager.NavigateTo(targetURI);
+		NavMan.NavigateTo(targetURI);
 	}
 
-	private void NavHome()
-	{
-		NavigationManager.NavigateTo("/");
-	}
-
+	/// <summary>
+	/// Change sort order to "newest first".
+	/// </summary>
 	private void SortByNew()
 	{
 		_sortBy = Module.Search.SortOrder.NewestFirst;
 		LocationChanged();
 	}
 
+	/// <summary>
+	/// Change sort order to "oldest first".
+	/// </summary>
 	private void SortByOld()
 	{
 		_sortBy = Module.Search.SortOrder.OldestFirst;
 		LocationChanged();
 	}
 
+	/// <summary>
+	/// Dispose: Clean up, deregister eventhandlers.
+	/// </summary>
 	public void Dispose()
 	{
-		NavigationManager.LocationChanged -= _locationChangedHandler;
+		NavMan.LocationChanged -= _locationChangedHandler;
 	}
 }

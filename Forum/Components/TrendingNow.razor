@@ -31,6 +31,10 @@
 @code {
 	private List<Entity.Tag> _tags = new();
 
+	/// <summary>
+	/// Initializes the component.
+	/// Searches for the 3 most used tags over the last 24 hours.
+	/// </summary>
 	protected override async Task OnInitializedAsync()
 	{
 		await using var dbContext = DbContext.CreateDbContext();

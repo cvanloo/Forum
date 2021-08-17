@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Forum.Module
 {
-	public class Search
+	public class Search : IDisposable
 	{
 		private readonly Model.Database _dbContext;
 
@@ -19,11 +19,19 @@ namespace Forum.Module
 		public DateTime LastTimeStamp { get; set; } = DateTime.Now;
 		public SortOrder SortBy { get; set; }
 
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="dbContext">Database context</param>
 		public Search(Model.Database dbContext)
 		{
 			_dbContext = dbContext;
 		}
 
+		/// <summary>
+		/// Retrieve next 50 threads.
+		/// </summary>
+		/// <returns>Found threads</returns>
 		public List<Thread> GetThreads()
 		{
 			if (SortOrder.NewestFirst == SortBy)
@@ -46,6 +54,11 @@ namespace Forum.Module
 				.Take(50).ToList();
 		}
 
+		/// <summary>
+		/// Retrieve next 50 threads that match title.
+		/// </summary>
+		/// <param name="title">Thread title</param>
+		/// <returns>Found threads</returns>
 		public List<Thread> SearchThreadsByTitle(string title)
 		{
 			if (SortOrder.NewestFirst == SortBy)
@@ -68,6 +81,11 @@ namespace Forum.Module
 				.Take(50).ToList();
 		}
 
+		/// <summary>
+		/// Retrieve next 50 threads that contain (one of) the tags.
+		/// </summary>
+		/// <param name="tags">Tags to search for</param>
+		/// <returns>Found threads</returns>
 		public List<Thread> SearchThreadsByTag(IEnumerable<Tag> tags)
 		{
 			if (SortOrder.NewestFirst == SortBy)
@@ -101,6 +119,11 @@ namespace Forum.Module
 				.Take(50).ToList();
 		}
 
+		/// <summary>
+		/// Retrieve next 50 threads from user.
+		/// </summary>
+		/// <param name="name">Accountname of user</param>
+		/// <returns>Found threads</returns>
 		public List<Thread> SearchThreadsByUser(string name)
 		{
 			if (SortOrder.NewestFirst == SortBy)
@@ -121,6 +144,14 @@ namespace Forum.Module
 				.OrderBy(t => t.Created)
 				.Where(t => t.Creator.AccountName.Contains(name) && t.Created.CompareTo(LastTimeStamp) > 0)
 				.Take(50).ToList();
+		}
+
+		/// <summary>
+		/// Dispose: Clean up resources.
+		/// </summary>
+		public void Dispose()
+		{
+			_dbContext?.Dispose();
 		}
 	}
 }

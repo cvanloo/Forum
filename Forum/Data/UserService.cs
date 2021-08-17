@@ -12,6 +12,11 @@ namespace Forum.Data
 		private readonly IDbContextFactory<Database> _dbContext;
 		private readonly int _workfactor;
 
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="dbContext">Database context.</param>
+		/// <param name="config">Configuration manager</param>
 		public UserService(IDbContextFactory<Database> dbContext, IConfiguration config)
 		{
 			_dbContext = dbContext;

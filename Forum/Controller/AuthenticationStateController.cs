@@ -17,6 +17,12 @@ namespace Forum.Controller
 
 		private User _cachedUser;
 
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="jsRuntime">The javascript runtime</param>
+		/// <param name="userService">The user service</param>
+		/// <param name="hostEnvironment">The host environment</param>
 		public AuthenticationStateController(IJSRuntime jsRuntime, IUserService userService, IHostEnvironment hostEnvironment)
 		{
 			_jsRuntime = jsRuntime;
@@ -24,6 +30,10 @@ namespace Forum.Controller
 			_hostEnvironment = hostEnvironment;
 		}
 
+		/// <summary>
+		/// Get the current authentication state.
+		/// </summary>
+		/// <returns>The authentication state.</returns>
 		public override async Task<AuthenticationState> GetAuthenticationStateAsync()
 		{
 			// Automatically log the user in when in development environment
@@ -52,6 +62,12 @@ namespace Forum.Controller
 			return await Task.FromResult(new AuthenticationState(claimsPrincipal));
 		}
 
+		/// <summary>
+		/// Check login credentials. If successful, the user will be logged in
+		/// and a session cookie is stored, to keep the user logged in.
+		/// </summary>
+		/// <param name="identifier">Accountname or Email address</param>
+		/// <param name="password">The users password</param>
 		public async Task ValidateLogin(string identifier, string password)
 		{
 			var user = _userService.ValidateUser(identifier, password);
@@ -67,6 +83,9 @@ namespace Forum.Controller
 				Task.FromResult(new AuthenticationState(new ClaimsPrincipal(identity))));
 		}
 
+		/// <summary>
+		/// Log out. Destroys the session cookie.
+		/// </summary>
 		public async Task Logout()
 		{
 			_userService.RemoveSession(_cachedUser);
@@ -77,6 +96,11 @@ namespace Forum.Controller
 			NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(user)));
 		}
 
+		/// <summary>
+		/// Set up user settings.
+		/// </summary>
+		/// <param name="user">User to set up</param>
+		/// <returns>Users claims-identity</returns>
 		private static ClaimsIdentity SetupClaims(User user)
 		{
 			var claims = new List<Claim>()

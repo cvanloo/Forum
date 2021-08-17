@@ -24,17 +24,16 @@
 	[Parameter]
 	public Thread ThreadModel { get; set; }
 
+	/// <summary>
+	/// Reads and returns the first 1000 characters from the threads content-file. 
+	/// </summary>
 	private string Content
 	{
 		get
 		{
 			if (ThreadModel.IsDeleted)
-			{
 				return "[ Thread deleted. ]";
-			}
 
-			if (string.IsNullOrEmpty(ThreadModel.ContentPath)) return "";
-			
 			try
 			{
 				var path = ThreadModel.ContentPath;
@@ -54,6 +53,9 @@
 		}
 	}
 
+	/// <summary>
+	/// Redirects to the thread page.
+	/// </summary>
 	private void OpenThread()
 	{
 		NavMan.NavigateTo("/thread/" + ThreadModel.Id);

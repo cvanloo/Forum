@@ -2,7 +2,6 @@
 @using BCrypt.Net;
 @using System.ComponentModel.DataAnnotations;
 @using Forum.Entity
-@using Microsoft.EntityFrameworkCore
 @using Microsoft.Extensions.Configuration 
 @* ReSharper disable once InconsistentNaming *@
 @inject NavigationManager NavigationManager 
@@ -16,53 +15,51 @@
 @inject IDbContextFactory<Model.Database> DbContext
 
 <div class="main text-center mt-5 ml-auto mr-auto form-bigger">
-	<EditForm class="form-bigger" Model="@_registerModel" OnValidSubmit="HashPw">
-		<DataAnnotationsValidator />
+	<EditForm class="form-bigger" Model="@_registerModel" OnValidSubmit="CreateAccount">
+		<DataAnnotationsValidator/>
 		@*<ValidationSummary />*@
-	<div class="col">
-		<h3 class="mt-2">Create Account</h3>
-		<div class="relative-span">
-			<InputText class="form-control" type="text" @bind-Value="_registerModel.AccountName" placeholder="Account Name" />
-			<ValidationMessage For="() => _registerModel.AccountName" />
+		<div class="col">
+			<h3 class="mt-2">Create Account</h3>
+			<div class="relative-span">
+				<InputText class="form-control" type="text" @bind-Value="_registerModel.AccountName" placeholder="Account Name"/>
+				<ValidationMessage For="() => _registerModel.AccountName"/>
+			</div>
+			<div class="relative-span">
+				<InputText class="form-control" type="email" @bind-Value="_registerModel.Email" placeholder="Email Address"/>
+				<ValidationMessage For="() => _registerModel.Email"/>
+			</div>
+			<div class="relative-span">
+				<InputText class="form-control" type="password" @bind-Value="_registerModel.Password" placeholder="Password"/>
+				<ValidationMessage For="() => _registerModel.Password"/>
+			</div>
+			<div class="relative-span">
+				<InputText class="form-control" type="password" @bind-Value="_registerModel.RepeatPassword" placeholder="Repeat Password"/>
+				<ValidationMessage For="() => _registerModel.RepeatPassword"/>
+			</div>
+			<div class="row">
+				<button type="button" class="accent-blue btn-bottom-left btn-grow-large" @onclick='() => NavMan.NavigateTo("/login")'>Already have an account?</button>
+				<button type="submit" class="accent-green btn-bottom-right">Register</button>
+			</div>
 		</div>
-		<div class="relative-span">
-			<InputText class="form-control" type="email" @bind-Value="_registerModel.Email" placeholder="Email Address" />
-			<ValidationMessage For="() => _registerModel.Email" />
-		</div>
-		<div class="relative-span">
-			<InputText class="form-control" type="password" @bind-Value="_registerModel.Password" placeholder="Password" />
-			<ValidationMessage For="() => _registerModel.Password" />
-		</div>
-		<div class="relative-span">
-			<InputText class="form-control" type="password" @bind-Value="_registerModel.RepeatPassword" placeholder="Repeat Password" />
-			<ValidationMessage For="() => _registerModel.RepeatPassword" />
-		</div>
-		<div class="row">
-			<button type="button" class="accent-blue btn-bottom-left btn-grow-large" @onclick="NavLogin">Already have an account?</button>
-			<button type="submit" class="accent-green btn-bottom-right">Register</button>
-		</div>
-	</div>
 	</EditForm>
 </div>
 
 @code {
+	private readonly RegisterModel _registerModel = new();
+
 	[CascadingParameter]
 	private Task<AuthenticationState> AuthenticationStateTask { get; set; }
 
-	private readonly RegisterModel _registerModel = new();
+	///// <summary>
+	///// Initializes the page.
+	///// </summary>
+	//protected override async Task OnInitializedAsync()
+	//{ }
 
-	protected override async Task OnInitializedAsync()
-	{
-		var authState = await AuthenticationStateTask;
-
-		// ReSharper disable once PossibleNullReferenceException
-		if (authState.User.Identity.IsAuthenticated)
-		{
-			NavigationManager.NavigateTo("/");
-		}
-	}
-
-	private async Task HashPw()
+	/// <summary>
+	/// Crates a new account.
+	/// </summary>
+	private async Task CreateAccount()
 	{
 		await using var dbContext = DbContext.CreateDbContext();
 		
@@ -82,7 +79,7 @@
 			return;
 		}
 
-		var user = new Entity.User()
+		var user = new Entity.User
 		{
 			AccountName = _registerModel.AccountName,
 			Email = _registerModel.Email,
@@ -90,25 +87,24 @@
 			Settings = SetupSettings()
 		};
 
+		await dbContext.Users.AddAsync(user);
+		
 		try
 		{
-			await dbContext.Users.AddAsync(user);
 			await dbContext.SaveChangesAsync();
-
-			MessageService.Message = "Account created successfully.";
-			NavigationManager.NavigateTo("/login");
 		}
-		catch (Exception ex)
+		catch (DbUpdateException dbuEx)
 		{
-			Console.WriteLine(ex.Message);
+			await Console.Error.WriteLineAsync(dbuEx.ToString());
 		}
+		
+		MessageService.Message = "Account created successfully.";
+        NavigationManager.NavigateTo("/login");
 	}
 
-	private void NavLogin()
-	{
-		NavMan.NavigateTo("/login");
-	}
-
+	/// <summary>
+	/// Sets up the default account settings.
+	/// </summary>
 	private static List<Setting> SetupSettings()
 	{
 		// Default account settings

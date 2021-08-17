@@ -4,6 +4,11 @@ namespace Forum.Data
 {
 	public interface IMailService
 	{
-		Task Send(Model.Message message);
+		/// <summary>
+		/// Send an email.
+		/// </summary>
+		/// <param name="message">Email to send.</param>
+		/// <returns></returns>
+		Task SendAsync(Model.Message message);
 	}
 }

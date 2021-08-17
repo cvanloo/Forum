@@ -37,6 +37,9 @@
 	private string _style = CSS;
 	private Timer _timer;
 
+	/// <summary>
+	/// Initializes the component.
+	/// </summary>
 	protected override void OnInitialized()
 	{
 		MessageService.MessageEvent += () =>
@@ -57,6 +60,9 @@
 		};
 	}
 
+	/// <summary>
+	/// Displays the component.
+	/// </summary>
 	private void Show()
 	{
 		_style = "";
@@ -64,18 +70,27 @@
 		try { _timer?.Start(); } catch (ObjectDisposedException) { }
 	}
 
+	/// <summary>
+	/// Hides the component.
+	/// </summary>
 	private void Hide()
 	{
 		_style = CSS;
 		StateHasChanged();
 	}
 
+	/// <summary>
+	/// Hides the component and stops the timer.
+	/// </summary>
 	private void Close()
 	{
 		_style = CSS;
 		_timer?.Stop(); // This probably happens before elapsed is called, so we need to stop the timer.
 	}
 
+	/// <summary>
+	/// Dispose: Clean up.
+	/// </summary>
 	public void Dispose()
 	{
 		_timer?.Dispose();

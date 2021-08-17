@@ -1,6 +1,6 @@
 ﻿@page "/pref"
 @using Microsoft.Extensions.Configuration
-@using Microsoft.EntityFrameworkCore
+@using System.ComponentModel.DataAnnotations
 @attribute [Authorize]
 @* ReSharper disable once InconsistentNaming *@
 @inject NavigationManager NavMan
@@ -20,20 +20,39 @@
 </style>
 
 <div class="main text-center mt-5 ml-auto mr-auto form-bigger">
-	<EditForm OnValidSubmit="UpdateAccount" Model="_testModel" class="form-bigger">
+	<EditForm OnValidSubmit="UpdateAccount" Model="_preferencesModel" class="form-bigger">
+		<DataAnnotationsValidator />
 		<div class="col">
 			<h3 class="mt-2">User Preferences</h3>
 			<p>Username</p>
-			<input type="text" disabled class="form-control" placeholder="@_accountName (Cannot be changed)" />
-			<input type="text" class="form-control" placeholder="Displayname" @bind-value="@_displayName" />
+			<div class="relative-span">
+				<InputText type="text" disabled class="form-control" @bind-Value="_preferencesModel.AccountName" />
+				<ValidationMessage For="() => _preferencesModel.AccountName" />
+			</div>
+			<div class="relative-span">
+				<InputText type="text" class="form-control" placeholder="Displayname" @bind-Value="_preferencesModel.DisplayName" />
+				<ValidationMessage For="() => _preferencesModel.DisplayName" />
+			</div>
 			<p>Email</p>
-			<input type="email" class="form-control" placeholder="Email Address" @bind-value="@_email" />
+			<div class="relative-span">
+				<InputText type="email" class="form-control" placeholder="Email Address" @bind-Value="_preferencesModel.Email" />
+				<ValidationMessage For="() => _preferencesModel.Email" />
+			</div>
 			<p>Password</p>
-			<input type="password" class="form-control" placeholder="Current Password" @bind-value="@_currentPasswd" />
-			<input type="password" class="form-control" placeholder="New Password" @bind-value="@_newPasswd" />
-			<input type="password" class="form-control" placeholder="Repeat New Password" @bind-value="@_repNewPasswd" />
+			<div class="relative-span">
+				<InputText type="password" class="form-control" placeholder="Current Password" @bind-Value="_preferencesModel.CurrentPassword" />
+				<ValidationMessage For="() => _preferencesModel.CurrentPassword" />
+			</div>
+			<div class="relative-span">
+				<InputText type="password" class="form-control" placeholder="New Password" @bind-Value="_preferencesModel.NewPassword" />
+				<ValidationMessage For="() => _preferencesModel.NewPassword" />
+			</div>
+			<div class="relative-span">
+				<InputText type="password" class="form-control" placeholder="Repeat New Password" @bind-Value="_preferencesModel.RepNewPassword" />
+				<ValidationMessage For="() => _preferencesModel.RepNewPassword" />
+			</div>
 			<div class="row">
-				<button type="button" @onclick="NavHome" class="accent-blue btn-bottom-left">Go Back</button>
+				<button type="button" @onclick='() => NavMan.NavigateTo("/")' class="accent-blue btn-bottom-left">Go Back</button>
 				<button type="submit" class="accent-green btn-bottom-right">Update Account</button>
 			</div>
 		</div>
@@ -41,18 +60,14 @@
 </div>
 
 @code {
-	private string _accountName;
-	private string _displayName;
-	private string _email;
-	private string _currentPasswd;
-	private string _newPasswd;
-	private string _repNewPasswd;
-
-	private readonly TestModel _testModel = new();
+	private readonly PreferencesModel _preferencesModel = new();
 
 	[CascadingParameter]
 	private Task<AuthenticationState> AuthenticationStateTask { get; set; }
 
+	/// <summary>
+	/// Initializes the page.
+	/// </summary>
 	protected override async Task OnInitializedAsync()
 	{
 		await using var dbContext = DbContext.CreateDbContext();
@@ -60,65 +75,80 @@
 
 		var user = dbContext.Users.First(u => u.AccountName == authState.User.Identity.Name);
 
-		_accountName = user.AccountName;
-		_displayName = user.DisplayName;
-		_email = user.Email;
+		_preferencesModel.AccountName = user.AccountName;
+		_preferencesModel.DisplayName = user.DisplayName;
+		_preferencesModel.Email = user.Email;
 	}
 
-	private async void UpdateAccount()
+	/// <summary>
+	/// Update user preferences.
+	/// </summary>
+	private async Task UpdateAccount()
 	{
 		await using var dbContext = DbContext.CreateDbContext();
-		
-		var msg = "";
 		var authState = await AuthenticationStateTask;
-
+		
 		var user = dbContext.Users.First(u => u.AccountName == authState.User.Identity.Name);
 
-		if (!string.IsNullOrWhiteSpace(_displayName) &&
-			_displayName != user.DisplayName)
+		user.DisplayName = _preferencesModel.DisplayName;
+		user.Email = _preferencesModel.Email;
+
+		// TODO: Better validation using the Model
+		if (!string.IsNullOrEmpty(_preferencesModel.CurrentPassword) && !string.IsNullOrEmpty(_preferencesModel.NewPassword))
 		{
-			user.DisplayName = _displayName;
-			msg += "Displayname, ";
+			if (BCrypt.Net.BCrypt.EnhancedVerify(_preferencesModel.CurrentPassword, user.PwHash))
+			{
+				user.PwHash = BCrypt.Net.BCrypt.EnhancedHashPassword(_preferencesModel.NewPassword, Config.GetValue<int>("Workfactor"));
+			}
+			else
+			{
+				MessageService.Message = "Wrong Password.";
+				return;
+			}
 		}
 
-		if (!string.IsNullOrWhiteSpace(_email) &&
-			_email != user.Email)
+		try
 		{
-			user.Email = _email;
-			msg += "Email, ";
+			await dbContext.SaveChangesAsync();
+		}
+		catch (DbUpdateException dueEx)
+		{
+			await Console.Error.WriteLineAsync(dueEx.ToString());
+
+			MessageService.Message = "Could not update preferences. Please reload the page and try again.";
+			return;
 		}
 
-		if (!string.IsNullOrEmpty(_newPasswd) &&
-			!string.IsNullOrEmpty(_repNewPasswd) &&
-			_repNewPasswd == _newPasswd &&
-			BCrypt.Net.BCrypt.EnhancedVerify(_currentPasswd, user.PwHash))
-		{
-			user.PwHash = BCrypt.Net.BCrypt.EnhancedHashPassword(_newPasswd, Config.GetValue<int>("Workfactor"));
-			msg += "Password ";
-		}
-
-		await dbContext.SaveChangesAsync();
-		msg += "changed.";
-
-		var mail = new Model.Message()
+		var mail = new Model.Message
 		{
 			Body = "Your account information has been updated.",
 			Subject = "ACCOUNT INFORMATION CHANGED",
 			From = "user@domaine.ch",
 			To = new[] { user.Email }
 		};
-		await MailService.Send(mail);
+		await MailService.SendAsync(mail);
 		
-		MessageService.Message = msg;
+		MessageService.Message = "Account preferences updated.";
 	}
 
-	private void NavHome()
+	public class PreferencesModel
 	{
-		NavMan.NavigateTo("/"); // TODO: Use <a href />
-	}
-
-	public class TestModel
-	{
-		// TODO: Use model for input validation
+		[Editable(false)]
+		[RegularExpression(@"^(?!.*@).*$", ErrorMessage = "Accountname can't contain '@'.")]
+		public string AccountName { get; set; }
+		
+		[Required]
+		public string DisplayName { get; set; }	
+		
+		[Required]
+		[RegularExpression(@"^.+@.+$", ErrorMessage = "Not a valid Email address.")]
+    	public string Email { get; set; }
+		
+		public string CurrentPassword { get; set; }
+		
+		public string NewPassword { get; set; }
+		
+		[Compare(nameof(NewPassword), ErrorMessage = "Passwords don't match.")]
+		public string RepNewPassword { get; set; }
 	}
 }

@@ -11,9 +11,18 @@
 </style>
 
 <input @onfocusin="Activate" @onfocusout="Deactivate" type="text" class="form-control" placeholder="Write a comment" @bind-value="@_comment" />
-<button @onclick="CreateComment" type="submit" class="form-control" style="@_btnStyle">Comment</button>
+<button @onclick="CreateCommentAsync" type="submit" class="form-control" style="@_btnStyle">Comment</button>
 
 @code {
+	/* Delegate: A type that represents references to methods with particular parameters and return type. Any method
+	 * that matches the parameters and return type can be assigned to it. The assigned method can then be invoked/called
+	 * through the delegate instance.
+	 */
+	public delegate Task Update();
+	
+	private string _comment;
+	private string _btnStyle = "display: none;";
+	
 	[Parameter]
 	public Entity.Thread Thread { get; set; }
 	
@@ -24,24 +33,21 @@
 	// parent element.
 	[Parameter]
 	public Update UpdateHandler { get; set; }
-	
-	/* Delegate: A type that represents references to methods with particular parameters and return type. Any method
-	 * that matches the parameters and return type can be assigned to it. The assigned method can then be invoked/called
-	 * through the delegate instance.
-	 */
-	public delegate void Update();
 
 	[CascadingParameter]
 	private Task<AuthenticationState> AuthenticationStateTask { get; set; }
 
-	private string _comment;
-	private string _btnStyle = "display: none;";
-
+	/// <summary>
+	/// Unhides the submit-button.
+	/// </summary>
 	private void Activate()
 	{
 		_btnStyle = "";
 	}
 
+	/// <summary>
+	/// Hides the submit-button.
+	/// </summary>
 	private void Deactivate()
 	{
 		// TODO: Use css animation instead of sleep?
@@ -49,7 +55,11 @@
 		_btnStyle = "display: none;";
 	}
 
-	private async void CreateComment()
+	
+	/// <summary>
+	/// Creates and stores a comment in the database.
+	/// </summary>
+	private async Task CreateCommentAsync()
 	{
 		if (string.IsNullOrEmpty(_comment)) return;
 
@@ -77,11 +87,21 @@
 		};
 
 		await dbContext.Comments.AddAsync(comment);
-		await dbContext.SaveChangesAsync();
+
+		try
+		{
+			await dbContext.SaveChangesAsync();
+		}
+		catch (DbUpdateException dbuEx)
+		{
+			await Console.Error.WriteLineAsync(dbuEx.ToString());
+
+			return;
+		}
 
 		_comment = null;
 		
 		// Update page; We need to update our parent, not our child elements
-		UpdateHandler();
+		await UpdateHandler();
 	}
 }

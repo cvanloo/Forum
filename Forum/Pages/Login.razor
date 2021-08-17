@@ -4,7 +4,7 @@
 @* ReSharper disable once InconsistentNaming *@
 @inject AuthenticationStateProvider AuthProvider
 @* ReSharper disable once InconsistentNaming *@
-@inject NavigationManager NavigationManager
+@inject NavigationManager NavMan
 @* ReSharper disable once InconsistentNaming *@
 @inject IMailService MailService
 @* ReSharper disable once InconsistentNaming *@
@@ -27,8 +27,8 @@
 						<ValidationMessage For="() => _loginModel.Password" />
 					</div>
 					<div class="row">
-						<button type="button" class="accent-red btn-bottom-left" @onclick="NavPwReset">Forgot Password</button>
-						<button type="button" class="accent-blue" @onclick="NavRegister">Create Account</button>
+						<button type="button" class="accent-red btn-bottom-left" @onclick='() => NavMan.NavigateTo("/pwreset")'>Forgot Password</button>
+						<button type="button" class="accent-blue" @onclick='() => NavMan.NavigateTo("/register")'>Create Account</button>
 						<button type="submit" class="accent-green btn-bottom-right">Log In</button>
 					</div>
 				</div>
@@ -40,7 +40,7 @@
 					<h3 class="mt-2">Logout</h3>
 					<p>Confirm logout.</p>
 					<div class="row">
-						<button @onclick="NavHome" class="accent-blue btn-bottom-left">Home</button>
+						<button @onclick='() => NavMan.NavigateTo("/")' class="accent-blue btn-bottom-left">Home</button>
 						<button class="accent-green btn-bottom-right" @onclick="LogOut">Log Out</button>
 					</div>
 				</div>
@@ -55,6 +55,9 @@
 	[CascadingParameter]
 	private Task<AuthenticationState> AuthenticationStateTask { get; set; }
 
+	/// <summary>
+	/// Log user in.
+	/// </summary>
 	private async Task SignIn()
 	{
 		if (!string.IsNullOrEmpty(_loginModel.Identifier) &&
@@ -67,12 +70,13 @@
 
 				MessageService.Message = "You are now logged in.";
 
-				var uriBuilder = new UriBuilder(NavigationManager.Uri);
+				var uriBuilder = new UriBuilder(NavMan.Uri);
 				var url = System.Web.HttpUtility.ParseQueryString(uriBuilder.Query);
 				var returnUrl = url["returnUrl"] ?? "/";
+				// Validate url, NOTE: Good enough ¯\_(ツ)_/¯
 				var regex = new Regex(".*:?//");
 				if (!regex.IsMatch(returnUrl))
-					NavigationManager.NavigateTo(returnUrl);
+					NavMan.NavigateTo(returnUrl);
 			}
 			catch (Exception)
 			{
@@ -81,24 +85,12 @@
 		}
 	}
 
+	/// <summary>
+	/// Log user out.
+	/// </summary>
 	private async Task LogOut()
 	{
 		await ((Forum.Controller.AuthenticationStateController)AuthProvider).Logout();
-	}
-
-	private void NavPwReset()
-	{
-		NavigationManager.NavigateTo("/pwreset"); // TODO: use <a href />
-	}
-
-	private void NavRegister()
-	{
-		NavigationManager.NavigateTo("/register"); // TODO: use <a href />
-	}
-
-	private void NavHome()
-	{
-		NavigationManager.NavigateTo("/"); // TODO: use <a href />
 	}
 
 	public class LoginModel

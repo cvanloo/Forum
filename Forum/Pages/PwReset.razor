@@ -1,6 +1,6 @@
 ﻿@page "/pwreset/{Token?}"
-@using Microsoft.EntityFrameworkCore
 @using Microsoft.Extensions.Configuration
+@using System.ComponentModel.DataAnnotations
 @* ReSharper disable once InconsistentNaming *@
 @inject NavigationManager NavMan
 @* ReSharper disable once InconsistentNaming *@
@@ -15,14 +15,20 @@
 @if (string.IsNullOrEmpty(Token))
 {
 	<div class="main text-center mt-5 ml-auto mr-auto form-sim">
-		<div class="col">
-			<h3 class="mt-2">Request Password Reset</h3>
-			<input class="form-control" @bind-value="_email" type="text" placeholder="Email" />
-			<div class="row">
-				<button type="button" class="accent-blue btn-bottom-left btn-grow-medium" @onclick="NavLogin">Go to Login</button>
-				<button type="submit" class="accent-green btn-bottom-right" @onclick="ProcessRequest">Request Reset Link</button>
+		<EditForm Model="_pwResetModel" OnValidSubmit="ProcessRequestAsync">
+			<DataAnnotationsValidator />
+			<div class="col">
+				<h3 class="mt-2">Request Password Reset</h3>
+				<div class="relative-span">
+					<InputText class="form-control" @bind-Value="_pwResetModel.Email" type="text" placeholder="Email" />
+					<ValidationMessage For="() => _pwResetModel.Email"/>
+				</div>
+				<div class="row">
+					<button type="button" class="accent-blue btn-bottom-left btn-grow-medium" @onclick='() => NavMan.NavigateTo("/login")'>Go to Login</button>
+					<button type="submit" class="accent-green btn-bottom-right">Request Reset Link</button>
+				</div>
 			</div>
-		</div>
+		</EditForm>
 	</div>
 }
 else if (!ValidateRequest())
@@ -32,7 +38,7 @@ else if (!ValidateRequest())
 			<h3 class="mt-2 pt-5 pl-5 pr-5">Reset Request Invalid</h3>
 			<p class="pb-5">The reset request was already used or timed out.</p>
 			<div class="row">
-				<button type="button" class="accent-green btn-bottom-left btn-bottom-right" @onclick="NavLogin">Go to Login</button>
+				<button type="button" class="accent-green btn-bottom-left btn-bottom-right" @onclick='() => NavMan.NavigateTo("/login")'>Go to Login</button>
 			</div>
 		</div>
 	</div>
@@ -40,40 +46,51 @@ else if (!ValidateRequest())
 else
 {
 	<div class="main text-center mt-5 ml-auto mr-auto form-sim">
-		<div class="col">
-			<h3 class="mt-2">Update Password</h3>
-			<input class="form-control" @bind-value="_newPassword" type="password" placeholder="New Password" />
-			<input class="form-control" @bind-value="_repNewPassword" type="password" placeholder="Repeat New Password" />
-			<div class="row">
-				<button type="submit" class="accent-green btn-bottom-left btn-bottom-right" @onclick="UpdatePassword">Save Password</button>
+		<EditForm Model="_newPasswordModel" OnValidSubmit="UpdatePasswordAsync">
+			<DataAnnotationsValidator/>
+			<div class="col">
+				<h3 class="mt-2">Update Password</h3>
+				<div class="relative-span">
+					<InputText class="form-control" @bind-Value="_newPasswordModel.NewPassword" type="password" placeholder="New Password"/>
+					<ValidationMessage For="() => _newPasswordModel.NewPassword"/>
+				</div>
+				<div class="relative-span">
+					<InputText class="form-control" @bind-Value="_newPasswordModel.RepNewPassword" type="password" placeholder="Repeat New Password"/>
+					<ValidationMessage For="() => _newPasswordModel.RepNewPassword"/>
+				</div>
+				<div class="row">
+					<button type="submit" class="accent-green btn-bottom-left btn-bottom-right">Save Password</button>
+				</div>
 			</div>
-		</div>
+		</EditForm>
 	</div>
 }
 
 @code {
+	private readonly PwResetModel _pwResetModel = new();
+	private readonly NewPasswordModel _newPasswordModel = new();
+	
 	[Parameter]
 	public string Token { get; set; }
 
-	private string _email;
-	private string _newPassword;
-	private string _repNewPassword;
-
-	private async void ProcessRequest()
+	/// <summary>
+	/// Sends the user a reset link per email.
+	/// </summary>
+	private async Task ProcessRequestAsync()
 	{
 		await using var dbContext = DbContext.CreateDbContext();
 		
-		var user = dbContext.Users.FirstOrDefault(u => u.Email == _email);
+		var user = dbContext.Users.FirstOrDefault(u => u.Email == _pwResetModel.Email);
 
 		if (user is null)
 		{
-			MessageService.Message = "Email not found.";
+			MessageService.Message = "Account does not exist.";
 			return;
 		}
 
 		var rndToken = Guid.NewGuid().ToString();
 
-		var pwReset = new Entity.PwReset()
+		var pwReset = new Entity.PwReset
 		{
 			UserId = user.Id,
 			Token = rndToken
@@ -81,21 +98,33 @@ else
 
 		dbContext.PwResets.Add(pwReset);
 
-		await dbContext.SaveChangesAsync();
+		try
+		{
+			await dbContext.SaveChangesAsync();
+		}
+		catch (DbUpdateException dbuEx)
+		{
+			await Console.Error.WriteLineAsync(dbuEx.ToString());
+
+			MessageService.Message = "Could not process request. Please reload the page and try again.";
+			return;
+		}
 
 		// Send reset link with token
-		var mail = new Model.Message()
+		await MailService.SendAsync(new Model.Message
 		{
 			Body = "localhost:5000/pwreset/" + pwReset.Token,
-			Subject = "PASSWORD RESET REQUEST",
-			From = "sender@domaine.ch",
-			To = new[] { pwReset.User.Email }
-		};
-
-		await MailService.Send(mail);
+           	Subject = "PASSWORD RESET REQUEST",
+           	From = "sender@domaine.ch",
+           	To = new[] { pwReset.User.Email }
+		});
+		
 		MessageService.Message = "Reset link sent.";
 	}
 
+	/// <summary>
+	/// Checks if the in the url provided token is valid.
+	/// </summary>
 	private bool ValidateRequest()
 	{
 		using var dbContext = DbContext.CreateDbContext();
@@ -106,6 +135,7 @@ else
 
 		if (pwReset is null) return false;
 
+		// Let a request expire after 15 minutes.
 		var expiring = pwReset.Timestamp;
 		expiring = expiring.AddMinutes(15);
 
@@ -114,7 +144,10 @@ else
 		return true;
 	}
 
-	private async void UpdatePassword()
+	/// <summary>
+	/// Updates the password.
+	/// </summary>
+	private async Task UpdatePasswordAsync()
 	{
 		await using var dbContext = DbContext.CreateDbContext();
 		
@@ -124,44 +157,49 @@ else
 
 		if (pwReset is null) return;
 
-		if (!string.IsNullOrEmpty(_newPassword) && _repNewPassword == _newPassword)
-		{
-			var pwHash = BCrypt.Net.BCrypt.EnhancedHashPassword(_newPassword, Config.GetValue<int>("Workfactor"));
+		var pwHash = BCrypt.Net.BCrypt.EnhancedHashPassword(_newPasswordModel.NewPassword, Config.GetValue<int>("Workfactor"));
 
-			pwReset.User.PwHash = pwHash;
+		pwReset.User.PwHash = pwHash;
+		pwReset.Used = true;
+
+		try
+		{
+			await dbContext.SaveChangesAsync();
+		}
+		catch (DbUpdateException dbuEx)
+		{
+			await Console.Error.WriteLineAsync(dbuEx.ToString());
+
+			MessageService.Message = "Could not process request. Please reload the page and try again.";
+			return;
 		}
 
-		pwReset.Used = true;
-		await dbContext.SaveChangesAsync(); // TODO: DbContext can't be used concurrently, see exception. Maybe it's a better idea
-		                                    // to not pass down DbContext as a cascading parameter, instead create a new context
-		                                    // and retrieve all needed elements from new.
-
 		// Send email confirmation
-		var mail = new Model.Message()
+		await MailService.SendAsync(new Model.Message
 		{
 			Body = "Your password was successfully updated.",
-			Subject = "PASSWORD CHANGED",
-			From = "user@domaine.ch",
-			To = new[] { pwReset.User.Email }
-		};
-
-		await MailService.Send(mail);
+        	Subject = "PASSWORD CHANGED",
+        	From = "user@domaine.ch",
+            To = new[] { pwReset.User.Email }
+		});
 
 		MessageService.Message = "Password updated.";
-		NavLogin();
+		NavMan.NavigateTo("/login");
 	}
 
-	private void NavLogin()
+	public class PwResetModel
 	{
-		NavMan.NavigateTo("/login"); // TODO: Use <a href />
+		[Required]
+		public string Email { get; set; }
+	}
+
+	public class NewPasswordModel
+	{
+		[Required(ErrorMessage = "The 'New Password' field is required.")]
+		public string NewPassword { get; set; }
+		
+		[Required]
+		[Compare(nameof(NewPassword), ErrorMessage = "Passwords don't match.")]
+		public string RepNewPassword { get; set; }
 	}
 }
-
-@*
-	{Id:int?}
-	{*CatchAll}
-
-	var uriBuilder = new UriBuilder(NavMan.Uri);
-	var q = System.Web.HttpUtility.ParseQueryString(uriBuilder.Query);
-	Test = q["Test"] ?? "";
-*@

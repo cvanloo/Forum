@@ -7,9 +7,13 @@
 		public event MessageEventHandler MessageEvent;
 		private string _message;
 
+		/// <summary>
+		/// Set the message to display.
+		/// All subscribers will be notified of the change.
+		/// </summary>
 		public string Message
 		{
-			get { return _message; }
+			get => _message;
 			set
 			{
 				_message = value;

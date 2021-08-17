@@ -32,7 +32,7 @@
 		<pre class="txt-title">@CommentModel.Text</pre>
 		<button class="btn-mini btn-w-auto" @onclick="ToggleCommentField">Answer</button>
 		<div class="@_cfClass">
-			<CommentField Thread="@CommentModel.Thread" Comment="@CommentModel" UpdateHandler="Update" />
+			<CommentField Thread="@CommentModel.Thread" Comment="@CommentModel" UpdateHandler="UpdateAsync" />
 		</div>
 
 		@* ReSharper disable once UnusedVariable *@
@@ -44,19 +44,25 @@
 </div>
 
 @code {
-	[Parameter]
-	public Entity.Comment CommentModel { get; set; }
-
 	private List<Entity.Comment> _children;
 	private string _cfClass = "hidden";
 	private string _collapseClass = "";
 	private string _clpMsg = "-";
 
-	protected override void OnInitialized()
+	[Parameter]
+	public Entity.Comment CommentModel { get; set; }
+
+	/// <summary>
+	/// Initializes the component.
+	/// </summary>
+	protected override async Task OnInitializedAsync()
 	{
-		Update();
+		await UpdateAsync();
 	}
 
+	/// <summary>
+	/// Toggles visibility of the comment field.
+	/// </summary>
 	private void ToggleCommentField()
 	{
 		if ("" == _cfClass)
@@ -65,16 +71,25 @@
 			OpenCommentField();
 	}
 
+	/// <summary>
+	/// Hides the comment field.
+	/// </summary>
 	private void CloseCommentField()
 	{
 		_cfClass = "hidden";
 	}
 
+	/// <summary>
+	/// Unhides the comment field.
+	/// </summary>
 	private void OpenCommentField()
 	{
 		_cfClass = "";
 	}
 
+	/// <summary>
+	/// Collapses the comment.
+	/// </summary>
 	private void Collapse()
 	{
 		if ("collapsed" == _collapseClass)
@@ -89,13 +104,18 @@
 		}
 	}
 
-	private void Update()
+	/// <summary>
+	/// Updates the comment and child comments.
+	/// </summary>
+	private async Task UpdateAsync()
 	{
-		using var dbContext = DbContext.CreateDbContext();
+		await using var dbContext = DbContext.CreateDbContext();
 
 		_children = dbContext.Comments
 			.Include(c => c.Childs)
 				.ThenInclude(c => c.Creator)
+			.Include(c => c.Childs)
+				.ThenInclude(c => c.Thread)
 			.First(c => c.Id == CommentModel.Id).Childs.ToList();
 		
 		CloseCommentField();

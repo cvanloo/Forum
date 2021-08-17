@@ -1,6 +1,5 @@
 ﻿@page "/thread/{Id:int}"
 @attribute [Authorize]
-@using Microsoft.EntityFrameworkCore
 @using System.IO
 @* ReSharper disable once InconsistentNaming *@
 @inject NavigationManager NavMan
@@ -13,7 +12,7 @@
 
 <div class="container-left fix-left">
 	<div class="main row">
-		<button class="btn-norm-sec" @onclick="NavHome">
+		<button class="btn-norm-sec" @onclick='() => NavMan.NavigateTo("/")'>
 			<img width="50" height="50" src="/css/icons/Arrow_Back.png" alt="Back Arrow" />
 			Go Back
 		</button>
@@ -50,18 +49,18 @@
 		 * ( number_of_comments + comments_per_page - 1 ) / comments_per_page
 		 *@
 			<p class="p-annotation-sm txt-dark needs-space-lr">@_thread.Comments.Count Comments (@((_thread.Comments.Count + 19) / 20) Pages)</p>
-			<p @onclick="CopyLink" class="p-annotation-sm txt-dark needs-space-lr clickable shiny">@_copyLabel</p>
-			<p @onclick="SaveThread" class="p-annotation-sm txt-dark needs-space-lr clickable shiny">@(_saved ? "Saved!" : "Save")</p>
+			<p @onclick="CopyLinkAsync" class="p-annotation-sm txt-dark needs-space-lr clickable shiny">@_copyLabel</p>
+			<p @onclick="SaveThreadAsync" class="p-annotation-sm txt-dark needs-space-lr clickable shiny">@(_saved ? "Saved!" : "Save")</p>
 			@{ var dbContext = DbContext.CreateDbContext(); }
 			@if (!_thread.IsDeleted &&
 			     _thread.Creator == dbContext.Users.First(u => u.AccountName == _authState.User.Identity.Name))
 			{
-				<p @onclick="Delete" class="p-annotation-sm txt-dark needs-space-lr clickable shiny">Delete</p>
+				<p @onclick="DeleteAsync" class="p-annotation-sm txt-dark needs-space-lr clickable shiny">Delete</p>
 			}
 			@{dbContext.Dispose();}
 		</div>
 		<div class="main">
-			<CommentField Thread="@_thread" UpdateHandler="Update"/>
+			<CommentField Thread="@_thread" UpdateHandler="UpdateAsync"/>
 		</div>
 		@foreach (var c in _thread.Comments)
 		{
@@ -77,7 +76,7 @@
 			<p class="p-annotation-sm">@_thread.Forum.Members.Count Mem. / Created @_thread.Forum.Created.ToString("d")</p>
 			<pre class="txt-title">@_thread.Forum.Description</pre>
 			@{ var followText = _followsForum ? "Unfollow" : "Follow"; }
-			<button class="btn-norm" style="width: 100%" @onclick="FollowForum">@followText</button>
+			<button class="btn-norm" style="width: 100%" @onclick="FollowForumAsync">@followText</button>
 		</div>
 	</div>
 }
@@ -92,38 +91,39 @@ else
 }
 
 @code {
+	private string _copyLabel = "Copy Link";
+	private string _content;
+	private bool _saved;
+	private bool _followsForum;
+	
+	private Entity.Thread _thread;
+	private AuthenticationState _authState;
+
 	[Parameter]
 	public int Id { get; set; }
 
 	[CascadingParameter]
 	private Task<AuthenticationState> AuthenticationStateTask { get; set; }
 
-	private Entity.Thread _thread;
-	private AuthenticationState _authState;
-	
-	private string _copyLabel = "Copy Link";
-	private string _content;
-	private bool _saved;
-	private bool _followsForum;
-
 	protected override async Task OnInitializedAsync()
 	{
-		Update();
+		await UpdateAsync();
 	}
 
-	private void NavHome()
-	{
-		NavMan.NavigateTo("/"); // TODO: Use <a href/> instead
-	}
-
-	private async void CopyLink()
+	/// <summary>
+	/// Copies the path to the thread into the users clipboard.
+	/// </summary>
+	private async Task CopyLinkAsync()
 	{
 		_copyLabel = "Copied!";
 		var link = NavMan.Uri;
 		await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", link);
 	}
 
-	private async void SaveThread()
+	/// <summary>
+	/// Adds the thread to the users saved threads.
+	/// </summary>
+	private async Task SaveThreadAsync()
 	{
 		await using var dbContext = DbContext.CreateDbContext();
 		
@@ -145,13 +145,23 @@ else
 			user.SavedThreads.Add(thread);
 			_saved = true;
 		}
-
-		await dbContext.SaveChangesAsync();
+		
+		try
+		{
+			await dbContext.SaveChangesAsync();
+		}
+		catch (DbUpdateException dbuEx)
+		{
+			await Console.Error.WriteLineAsync(dbuEx.ToString());
+		}
 
 		StateHasChanged();
 	}
 
-	private async void FollowForum()
+	/// <summary>
+	/// Subscribes the user to the forum.
+	/// </summary>
+	private async Task FollowForumAsync()
 	{
 		await using var dbContext = DbContext.CreateDbContext();
 		
@@ -173,10 +183,20 @@ else
 			_followsForum = true;
 		}
 
-		await dbContext.SaveChangesAsync();
+		try
+		{
+			await dbContext.SaveChangesAsync();
+		}
+		catch (DbUpdateException dbuEx)
+		{
+			await Console.Error.WriteLineAsync(dbuEx.ToString());
+		}
 	}
 
-	private async void Delete()
+	/// <summary>
+	/// Deletes the post.
+	/// </summary>
+	private async Task DeleteAsync()
 	{
 		await using var dbContext = DbContext.CreateDbContext();
 		
@@ -187,12 +207,27 @@ else
 		if (confirm) 
 		{ 
 			_thread.IsDeleted = true;
-			await dbContext.SaveChangesAsync();
+			
+			try
+			{
+				await dbContext.SaveChangesAsync();
+			}
+			catch (DbUpdateException dbuEx)
+			{
+				await Console.Error.WriteLineAsync(dbuEx.ToString());
+			
+				MessageService.Message = "Could not delete thread. Please reload the page and try again.";
+				return;
+			}
+			
 			MessageService.Message = "Thread deleted.";
 		}
 	}
 
-	private async void Update()
+	/// <summary>
+	/// Updates the page.
+	/// </summary>
+	private async Task UpdateAsync()
 	{
 		await using var dbContext = DbContext.CreateDbContext();
 

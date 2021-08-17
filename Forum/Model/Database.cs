@@ -27,8 +27,16 @@ namespace Forum.Model
         // ReShaper disable once UnusedAutoPropertyAccessor.Global
         public DbSet<Chat> Chats { get; set; }
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="options">Configuration options</param>
         public Database(DbContextOptions<Database> options) : base(options) { } 
 
+        /// <summary>
+        /// Configures the database tables.
+        /// </summary>
+        /// <param name="modelBuilder">Model builder</param>
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             /* Set default values */

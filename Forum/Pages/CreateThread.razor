@@ -2,8 +2,7 @@
 @*@attribute [Authorize(Roles = "user")]*@
 @attribute [Authorize(Policy = "IsPoster")]
 @using Microsoft.Extensions.Configuration
-@using Forum.Model
-@using Microsoft.EntityFrameworkCore
+@using System.ComponentModel.DataAnnotations
 @* ReSharper disable once InconsistentNaming *@
 @inject NavigationManager NavMan
 @* ReSharper disable once InconsistentNaming *@
@@ -16,36 +15,46 @@
 @inject IDbContextFactory<Model.Database> DbContext
 
 <div class="main text-center mt-5 ml-auto mr-auto form-bigger">
-	<form @onsubmit="StoreThread" class="form-bigger">
+	<EditForm OnValidSubmit="StoreThreadAsync" Model="_createThreadModel" class="form-bigger">
+		<DataAnnotationsValidator />
 		<div class="col">
 			<h3 class="mt-2">Create Thread</h3>
-			<select class="form-control" @bind="_forumId">
-				@foreach (Entity.Forum forum in _forums)
-				{
-					<option value="@forum.Id">@forum.Name</option>
-				}
-			</select>
-			<input class="form-control" type="text" placeholder="Title" @bind-value="_title" />
-			<textarea class="form-control" placeholder="Content" @bind="_content" maxlength="20798"></textarea>
-			<input class="form-control" type="text" placeholder="Add Tags" @bind-value="_tags" />
+			<div class="relative-span">
+				<InputSelect class="form-control" @bind-Value="_createThreadModel.ForumId">
+					@foreach (var forum in _forums)
+					{
+						<option value="@forum.Id">@forum.Name</option>
+					}
+				</InputSelect>
+			</div>
+			<ValidationMessage For="() => _createThreadModel.ForumId" />
+			<div class="relative-span">
+				<InputText class="form-control" type="text" placeholder="Title" @bind-Value="_createThreadModel.Title"/>
+				<ValidationMessage For="() => _createThreadModel.Title"/>
+			</div>
+			<div class="relative-span">
+				<InputTextArea class="form-control" placeholder="Content" @bind-Value="_createThreadModel.Content" maxlength="20798"></InputTextArea>
+				<ValidationMessage For="() => _createThreadModel.Content" />
+			</div>
+			<InputText class="form-control" type="text" placeholder="Add Tags" @bind-Value="_createThreadModel.Tags"/>
 			<div class="row">
-				<button type="button" @onclick="NavHome" class="accent-blue btn-bottom-left">Go Back</button>
+				<button type="button"  @onclick='() => NavMan.NavigateTo("/")' class="accent-blue btn-bottom-left">Go Back</button>
 				<button type="submit" class="accent-green btn-bottom-right">Create Thread</button>
 			</div>
 		</div>
-	</form>
+	</EditForm>
 </div>
 
 @code {
+	private readonly CreateThreadModel _createThreadModel = new();
+	private Entity.Forum[] _forums;
+
 	[CascadingParameter]
 	private Task<AuthenticationState> AuthenticationStateTask { get; set; }
 
-	private Entity.Forum[] _forums;
-	private int _forumId = 1;
-	private string _title;
-	private string _content;
-	private string _tags;
-
+	/// <summary>
+	///	Initializes the page.
+	/// </summary>
 	protected override async Task OnInitializedAsync()
 	{
 		await using var dbContext = DbContext.CreateDbContext();
@@ -53,71 +62,91 @@
 		_forums = dbContext.Forums.ToArray();
 	}
 
-	private async void StoreThread()
+	/// <summary>
+	/// Create a thread and save it to the database
+	/// </summary>
+	private async Task StoreThreadAsync()
 	{
 		await using var dbContext = DbContext.CreateDbContext();
-		
-		if (string.IsNullOrEmpty(_content))
+		var authState = await AuthenticationStateTask;
+
+		var uploadPath = Config.GetValue<string>("UploadPath") + Guid.NewGuid();
+		var user = dbContext.Users
+			.Include(u => u.Followers)
+			.First(u => u.AccountName == authState.User.Identity.Name);
+		var tags = Entity.Tag.ParseTags(dbContext, _createThreadModel.Tags);
+		var forum = dbContext.Forums
+			.Include(f => f.Members)
+			.First(f => f.Id == _createThreadModel.ForumId);
+
+		var newThread = new Entity.Thread()
 		{
-			MessageService.Message = "Content needs to be between 1 and 20798 characters long.";
-			return;
-		}
+			ContentPath = uploadPath,
+			Creator = user,
+			Forum = forum,
+			Title = _createThreadModel.Title,
+			Tags = tags
+		};
 
 		try
 		{
-			var authState = await AuthenticationStateTask;
-
-			var uploadPath = Config.GetValue<string>("UploadPath") + Guid.NewGuid();
-			var user = dbContext.Users
-				.Include(u => u.Followers)
-				.FirstOrDefault(u => u.AccountName == authState.User.Identity.Name);
-			var tags = Entity.Tag.ParseTags(dbContext, _tags);
-
-			var newThread = new Entity.Thread()
-			{
-				ContentPath = uploadPath,
-				Creator = user,
-				ForumId = _forumId,
-				Title = _title,
-				Tags = tags
-			};
-
 			dbContext.Threads.Add(newThread);
-			System.IO.File.WriteAllText(uploadPath, _content);
+			await System.IO.File.WriteAllTextAsync(uploadPath, _createThreadModel.Content);
 			await dbContext.SaveChangesAsync();
-
-			MessageService.Message = "Thread uploaded.";
-
-			var forum = dbContext.Forums
-				.Include(f => f.Members)
-				.First(f => f.Id == _forumId);
-			
-			// TODO: Don't include users mulitple times.
-			var recipientsFollowForum = forum.Members.Select(member => member.Email).ToList();
-			var recipientsFollowUser = user.Followers.Select(follower => follower.Email).ToList();
-			recipientsFollowForum.AddRange(recipientsFollowUser);
-			var recipients = recipientsFollowForum.ToArray();
-			// TODO: Don't block user
-			MailService.Send(new Message
-			{
-				From = "user@domain.ch",
-				Subject = "New Post To " + forum.Name,
-				Body = forum.Name + ": " + newThread.Title + "<br>localhost:5000/thread/" + newThread.Id,
-				To = recipients
-			});
-			
-			NavMan.NavigateTo("/thread/" + newThread.Id);
 		}
-		catch (Exception ex)
+		catch (DbUpdateException dueEx)
 		{
-			await Console.Error.WriteLineAsync(ex.ToString());
+			await Console.Error.WriteLineAsync(dueEx.ToString());
 
 			MessageService.Message = "Failed to upload post.";
+			return;
 		}
+
+		MessageService.Message = "Thread uploaded.";
+
+		// Notify followers of forum as well as followers of poster per email about the new post.
+		var recipientsFollowForum = forum.Members.Select(member => member.Email).ToArray();
+		var recipientsFollowUser = user.Followers.Select(follower => follower.Email).ToArray();
+		
+		// Don't await async method, the user shouldn't be blocked.
+		// The execution of this method will continue while the mails are send.
+#pragma warning disable 4014
+		NotifyFollowersAsync(recipientsFollowForum, recipientsFollowUser, newThread);
+#pragma warning restore 4014
+
+		NavMan.NavigateTo("/thread/" + newThread.Id);
 	}
 
-	private void NavHome()
+	/// <summary>
+	///	Notify subscribed users per email about the thread.
+	/// </summary>
+	private async Task NotifyFollowersAsync(string[] followerForum, string[] followerUser, Entity.Thread thread)
 	{
-		NavMan.NavigateTo("/");
+		await MailService.SendAsync(new Model.Message
+		{
+			From = "user@domain.ch",
+			Subject = "New Post To " + thread.Forum.Name,
+			Body = thread.Forum.Name + ": " + thread.Title + "<br>localhost:5000/thread/" + thread.Id,
+			To = followerForum
+		});
+
+		await MailService.SendAsync(new Model.Message
+		{
+			From = "user@domain.ch",
+			Subject = "New Post From " + thread.Creator.DisplayName,
+			Body = thread.Creator.DisplayName + ": " + thread.Title + "<br>localhost:5000/thread/" + thread.Id,
+			To = followerUser
+		});
+	}
+
+	public class CreateThreadModel
+	{
+		[Required(ErrorMessage = "You need to select a forum.")]
+		public int ForumId { get; set; } = 1; // Setting it to 1 should make it impossible to _not_ have a element selected.
+		[Required]
+		public string Title { get; set; }
+		[Required]
+		public string Content { get; set; }
+		public string Tags { get; set; }
 	}
 }

@@ -6,6 +6,10 @@ namespace Forum.Data
     {
         public IHostEnvironment HostEnvironment { get; set; }
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="hostEnvironment">The host environment</param>
         public HostEnvironmentService(IHostEnvironment hostEnvironment)
         {
             HostEnvironment = hostEnvironment;
