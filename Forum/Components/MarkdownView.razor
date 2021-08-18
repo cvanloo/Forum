@@ -2,7 +2,14 @@
 @* ReSharper disable once InconsistentNaming *@
 @inject Ganss.XSS.IHtmlSanitizer HtmlSanitizer
 
-<div style='font-family: "JetBrains Mono", monospace'>
+<style>
+	.md-view {
+		font-family: "JetBrains Mono", monospace;
+		color: #FFFFFF;
+	}
+</style>
+
+<div class="md-view">
 	@HtmlContent
 </div>
 

@@ -65,6 +65,7 @@ namespace Forum
             {
                 var sanitizer = new HtmlSanitizer();
                 sanitizer.AllowedAttributes.Add("class");
+                sanitizer.AllowedTags.Remove("a");
                 return sanitizer;
             });
         }

@@ -8,10 +8,14 @@
 		background: #333844 !important;
 		margin: 0;
 	}
+	textarea {
+		height: 7em !important;
+	}
 </style>
 
-<input @onfocusin="Activate" @onfocusout="Deactivate" type="text" class="form-control" placeholder="Write a comment" @bind-value="@_comment" />
-<button @onclick="CreateCommentAsync" type="submit" class="form-control" style="@_btnStyle">Comment</button>
+@* <input @onfocusin="Activate" @onfocusout="Deactivate" type="text" class="form-control" placeholder="Write a comment" @bind-value="@_comment" /> *@
+<textarea class="form-control" placeholder="Write a comment..." @bind="@_comment"></textarea>
+<button @onclick="CreateCommentAsync" type="submit" class="form-control">Comment</button>
 
 @code {
 	/* Delegate: A type that represents references to methods with particular parameters and return type. Any method
@@ -21,7 +25,6 @@
 	public delegate Task Update();
 	
 	private string _comment;
-	private string _btnStyle = "display: none;";
 	
 	[Parameter]
 	public Entity.Thread Thread { get; set; }
@@ -36,25 +39,6 @@
 
 	[CascadingParameter]
 	private Task<AuthenticationState> AuthenticationStateTask { get; set; }
-
-	/// <summary>
-	/// Unhides the submit-button.
-	/// </summary>
-	private void Activate()
-	{
-		_btnStyle = "";
-	}
-
-	/// <summary>
-	/// Hides the submit-button.
-	/// </summary>
-	private void Deactivate()
-	{
-		// TODO: Use css animation instead of sleep?
-		System.Threading.Thread.Sleep(100);
-		_btnStyle = "display: none;";
-	}
-
 	
 	/// <summary>
 	/// Creates and stores a comment in the database.

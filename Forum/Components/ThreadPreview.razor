@@ -1,5 +1,4 @@
-﻿@using Forum.Entity
-@using System.IO 
+﻿@using System.IO 
 @* ReSharper disable once InconsistentNaming *@
 @inject NavigationManager NavMan 
 
@@ -9,7 +8,8 @@
 		@ThreadModel.Created.ToString("t"), @ThreadModel.Created.ToString("d")
 	</p>
 	<h5 class="txt-title">@ThreadModel.Title</h5>
-	<pre class="main">@Content</pre>
+	<MarkdownView Content="@Content" />
+	@* <pre class="main">@Content</pre> *@
 	@{
 		var tagText = "";
 		@foreach (var t in ThreadModel.Tags)
@@ -22,7 +22,7 @@
 
 @code {
 	[Parameter]
-	public Thread ThreadModel { get; set; }
+	public Entity.Thread ThreadModel { get; set; }
 
 	/// <summary>
 	/// Reads and returns the first 1000 characters from the threads content-file. 
@@ -38,13 +38,14 @@
 			{
 				var path = ThreadModel.ContentPath;
 				var streamReader = new StreamReader(path);
-				var buffer = new char[1000];
+				var buffer = new char[500];
 				streamReader.Read(buffer);
 				streamReader.Close();
 				
 				// Strings in C# are _not_ null-terminated.
 				var trimmed = new string(buffer).Trim('\0');
-				return trimmed.Replace('\n', ' ');
+				// return trimmed.Replace('\n', ' ');
+				return trimmed;
 			}
 			catch (Exception)
 			{

@@ -328,6 +328,11 @@ hr {
 	background: #9BAEC8;
 }
 
+code {
+	font-family: "JetBrains Mono", monospace;
+	color: #e83e8c !important;
+}
+
 
 
 
