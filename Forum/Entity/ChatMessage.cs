@@ -21,5 +21,8 @@ namespace Forum.Entity
 
 		[Required]
 		public bool IsDeleted { get; set; }
+		
+		[Required]
+		public Chat Chat { get; set; }
 	}
 }

@@ -4,6 +4,9 @@
 @inject NavigationManager NavMan
 @* ReSharper disable once InconsistentNaming *@
 @inject IDbContextFactory<Model.Database> DbContext
+@* ReSharper disable once InconsistentNaming *@
+@inject IChatService ChatService
+@implements IDisposable
 
 <div class="container-left fix-left">
 	<div class="main row">
@@ -31,13 +34,22 @@ else
 			<button class="btn-norm" style="width: 100%" @onclick="FollowUserAsync">@followText</button>
 			<div style="border-bottom: 0.1rem solid #9BAEC8; border-radius: 0;" class="needs-padding shiny" ></div>
 			<h5>Chat</h5>
-			<input type="text" placeholder="Type your message..." class="form-control" @*@onclick="SendChatMessage"*@ />
-			@if (_chat?.Messages is not null)
+			@if (_chat is not null)
 			{
-				foreach (var message in _chat.Messages)
+				<input type="text" placeholder="Type your message..." class="form-control" @bind="_sendMsg"/>
+				<button class="btn-norm" style="width: 100%" @onclick="SendChatMessageAsync">Send message</button>
+
+				if (_chat.Messages is not null)
 				{
-					<p>@message.Sender: @message.Content</p>
+					foreach (var message in _chat.Messages)
+					{
+						<p>@message.Sender.DisplayName: @message.Content</p>
+					}
 				}
+			}
+			else
+			{
+				<button class="btn-norm" style="width: 100%" @onclick="StartChatAsync">Start chat</button>
 			}
 		</div> 
     </div>
@@ -48,6 +60,8 @@ else
 	private Entity.User _user;
 	private bool _followsUser;
 	private Entity.Chat _chat;
+	private string _sendMsg;
+	IChatService.MsgHandler _msgHandler;
 	
     [Parameter]
     public string AccountName { get; set; }
@@ -72,10 +86,21 @@ else
 				.ThenInclude(t => t.Forum)
 			.Include(u => u.Followers)
 			.FirstOrDefaultAsync(u => u.AccountName == AccountName);
+
+		if (_user is null) return;
 		
 		var loggedUser = dbContext.Users.First(u => u.AccountName == authState.User.Identity.Name);
 		
 		_followsUser = _user.Followers.Contains(loggedUser);
+
+		_chat = ChatService.FindChat(_user, loggedUser);
+		if (_chat is not null)
+		{
+			_msgHandler.Handler = UpdateChat;
+			_msgHandler.Chat = _chat;
+			ChatService.Subscribe(_msgHandler);
+			_chat.Messages = ChatService.GetMessages(_chat);
+		}
 	}
 
 	/// <summary>
@@ -119,14 +144,20 @@ else
 		await using var dbContext = DbContext.CreateDbContext();
 		var authState = await AuthenticationStateTask;
 		
+		var visitedUser = dbContext.Users.First(u => u.AccountName == _user.AccountName);
 		var loggedUser = dbContext.Users.First(u => u.AccountName == authState.User.Identity.Name);
 		
 		var chat = new Entity.Chat
 		{
-			Participants = { _user, loggedUser }
+			Participants = new List<Entity.User> { visitedUser, loggedUser },
+			Messages = new List<Entity.ChatMessage>()
 		};
 
 		dbContext.Chats.Add(chat);
+
+		_msgHandler.Handler = UpdateChat;
+		_msgHandler.Chat = chat;
+		ChatService.Subscribe(_msgHandler);
 
 		try
 		{
@@ -135,7 +166,10 @@ else
 		catch (DbUpdateException dbuEx)
 		{
 			await Console.Error.WriteLineAsync(dbuEx.ToString());
+			return;
 		}
+
+		_chat = chat;
 	}
 
 	/// <summary>
@@ -148,34 +182,25 @@ else
 		
 		// Get chat out of the same db context
 		var loggedUser = dbContext.Users.First(u => u.AccountName == authState.User.Identity.Name);
-		var visitedUser = dbContext.Users.First(u => u.AccountName == _user.AccountName);
-		var chat = dbContext.Chats.First(c => c.Participants.Contains(loggedUser) && c.Participants.Contains(visitedUser)); // TODO: No!
 		
 		var newMsg = new Entity.ChatMessage
 		{
 			Parent = null, // parse using @ ?
-			Sender = null, // user
-			Content = null // text
+			Sender = loggedUser,
+			Content = _sendMsg
 		};
 
-		chat.Messages.Add(newMsg);
-
-		try
-		{
-			await dbContext.SaveChangesAsync();
-		}
-		catch (DbUpdateException dbuEx)
-		{
-			await Console.Error.WriteLineAsync(dbuEx.ToString());
-		}
-		
-		// TODO: Update chat
+		ChatService.SendMessage(_chat, newMsg);
 	}
 
-	private async Task UpdateChat()
+	private void UpdateChat(Entity.ChatMessage message)
 	{
-		await using var dbContext = DbContext.CreateDbContext();
-		
-		//_chat = 
+		_chat.Messages.Add(message);
+		InvokeAsync(StateHasChanged);
+	}
+
+	public void Dispose()
+	{
+		ChatService.Unsubscribe(_msgHandler);
 	}
 }

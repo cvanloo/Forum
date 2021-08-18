@@ -55,6 +55,9 @@ namespace Forum
 
             // Info Message service
             services.AddSingleton<InfoMessage>();
+            
+            // Chat service
+            services.AddSingleton<IChatService, ChatService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
