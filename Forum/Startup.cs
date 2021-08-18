@@ -9,6 +9,7 @@ using Forum.Model;
 using Forum.Data;
 using Microsoft.AspNetCore.Components.Authorization;
 using Forum.Controller;
+using Ganss.XSS;
 
 namespace Forum
 {
@@ -58,6 +59,14 @@ namespace Forum
             
             // Chat service
             services.AddSingleton<IChatService, ChatService>();
+            
+            // Html sanitizer service
+            services.AddScoped<IHtmlSanitizer, HtmlSanitizer>(options =>
+            {
+                var sanitizer = new HtmlSanitizer();
+                sanitizer.AllowedAttributes.Add("class");
+                return sanitizer;
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

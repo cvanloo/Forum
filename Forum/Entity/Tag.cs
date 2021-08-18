@@ -44,8 +44,36 @@ namespace Forum.Entity
 
 			return 0;
 		}
+
+		/// <summary>
+		/// Create Tags from string.
+		/// </summary>
+		/// <param name="strTags">String containing tags, delimited by spaces ' ' and '#'.</param>
+		/// <returns>A list containing the tags.</returns>
+		public static List<Tag> ParseTags(string strTags)
+		{
+			if (string.IsNullOrEmpty(strTags)) return null;
+			
+			var tags = new List<Tag>();
+			var splitTags = strTags.Split(' ', '#');
+
+			foreach (var strTag in splitTags)
+			{
+				tags.Add(new Tag
+				{
+					Name = strTag
+				});
+			}
+
+			return tags;
+		}
 		
-		// TODO: Don't take dbcontext, just parse and return without adding them to the db(context).
+		/// <summary>
+		/// Create tags from string and save to database using context.
+		/// </summary>
+		/// <param name="dbContext">The context to use.</param>
+		/// <param name="strTags">String containing tags, delimited by spaces ' ' and '#'.</param>
+		/// <returns>A list containing the tags.</returns>
 		public static List<Tag> ParseTags(Model.Database dbContext, string strTags)
         {
         	if (string.IsNullOrEmpty(strTags)) return null;

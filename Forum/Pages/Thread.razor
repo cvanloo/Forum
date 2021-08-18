@@ -33,7 +33,9 @@
 				@_thread.Created.ToString("t"), @_thread.Created.ToString("d")
 			</p>
 			<h5 class="txt-title">@_thread?.Title</h5>
-			<pre class="txt-title">@_content</pre>
+			<hr />
+			<MarkdownView Content="@_content" />
+			@*<pre class="txt-title">@renderedContent</pre>*@
 			@{
 				var tagText = "";
 				// ReSharper disable once LoopCanBeConvertedToQuery

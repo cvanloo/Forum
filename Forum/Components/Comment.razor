@@ -29,16 +29,17 @@
 		<button class="btn-mini btn-w-auto" @onclick="Collapse">[@_clpMsg]</button> @*▬*@
 	</p>
 	<span>
-		<pre class="txt-title">@CommentModel.Text</pre>
+		<MarkdownView Content="@CommentModel.Text" />
+		@* <pre class="txt-title">@CommentModel.Text</pre> *@
 		<button class="btn-mini btn-w-auto" @onclick="ToggleCommentField">Answer</button>
 		<div class="@_cfClass">
-			<CommentField Thread="@CommentModel.Thread" Comment="@CommentModel" UpdateHandler="UpdateAsync" />
+			<CommentField Thread="@CommentModel.Thread" Comment="@CommentModel" UpdateHandler="UpdateAsync"/>
 		</div>
 
 		@* ReSharper disable once UnusedVariable *@
 		@foreach (var c in _children)
 		{
-			<Comment CommentModel="c" />
+			<Comment CommentModel="c"/>
 		}
 	</span>
 </div>

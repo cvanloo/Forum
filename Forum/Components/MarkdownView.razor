@@ -1,0 +1,36 @@
+﻿@using Markdig
+@* ReSharper disable once InconsistentNaming *@
+@inject Ganss.XSS.IHtmlSanitizer HtmlSanitizer
+
+<div style='font-family: "JetBrains Mono", monospace'>
+	@HtmlContent
+</div>
+
+@code {
+	private string _content;
+
+	[Parameter]
+	public string Content
+	{
+		get => _content;
+		set
+		{
+			_content = value;
+			HtmlContent = ConvertToMarkup(_content);
+		}
+	}
+
+	private MarkupString HtmlContent { get; set; }
+
+	private MarkupString ConvertToMarkup(string value)
+	{
+		if (string.IsNullOrWhiteSpace(value))
+			return new MarkupString();
+
+		var html = Markdig.Markdown.ToHtml(value, new MarkdownPipelineBuilder().UseAdvancedExtensions().Build());
+		var sanitizedHtml = HtmlSanitizer.Sanitize(html);
+
+		return new MarkupString(sanitizedHtml);
+	}
+
+}
