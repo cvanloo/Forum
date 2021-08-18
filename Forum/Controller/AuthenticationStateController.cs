@@ -37,10 +37,10 @@ namespace Forum.Controller
 		public override async Task<AuthenticationState> GetAuthenticationStateAsync()
 		{
 			// Automatically log the user in when in development environment
-			if (_hostEnvironment.IsDevelopment())
-			{
-				//await ValidateLogin("Testikus", "t");
-			}
+			//if (_hostEnvironment.IsDevelopment())
+			//{
+			//	await ValidateLogin("Testikus", "t");
+			//}
 			
 			if (_cachedUser is null)
 			{

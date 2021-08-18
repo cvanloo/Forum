@@ -51,9 +51,14 @@
 			<p class="p-annotation-sm txt-dark needs-space-lr">@_thread.Comments.Count Comments (@((_thread.Comments.Count + 19) / 20) Pages)</p>
 			<p @onclick="CopyLinkAsync" class="p-annotation-sm txt-dark needs-space-lr clickable shiny">@_copyLabel</p>
 			<p @onclick="SaveThreadAsync" class="p-annotation-sm txt-dark needs-space-lr clickable shiny">@(_saved ? "Saved!" : "Save")</p>
-			@{ var dbContext = DbContext.CreateDbContext(); }
-			@if (!_thread.IsDeleted &&
-			     _thread.Creator == dbContext.Users.First(u => u.AccountName == _authState.User.Identity.Name))
+			@{
+				var dbContext = DbContext.CreateDbContext();
+				var thread = dbContext.Threads
+					.Include(t => t.Creator)
+					.First(t => t.Id == _thread.Id);
+			}
+			@if (!thread.IsDeleted &&
+			     thread.Creator == dbContext.Users.First(u => u.AccountName == _authState.User.Identity.Name))
 			{
 				<p @onclick="DeleteAsync" class="p-annotation-sm txt-dark needs-space-lr clickable shiny">Delete</p>
 			}
@@ -199,27 +204,37 @@ else
 	private async Task DeleteAsync()
 	{
 		await using var dbContext = DbContext.CreateDbContext();
+
+		var thread = dbContext.Threads
+			.Include(t => t.Creator)
+			.First(t => t.Id == _thread.Id);
+		if (thread.Creator != dbContext.Users.First(u => u.AccountName == _authState.User.Identity.Name)) return;
 		
-		if (_thread.Creator != dbContext.Users.First(u => u.AccountName == _authState.User.Identity.Name)) return;
 		var confirm = await JSRuntime.InvokeAsync<bool>("confirm", "Delete this thread?");
 
 		// ReSharper disable once InvertIf
 		if (confirm) 
 		{ 
-			_thread.IsDeleted = true;
-			
+			thread.IsDeleted = true;
+
 			try
 			{
 				await dbContext.SaveChangesAsync();
+
+				File.Delete(thread.ContentPath);
 			}
 			catch (DbUpdateException dbuEx)
 			{
 				await Console.Error.WriteLineAsync(dbuEx.ToString());
-			
+
 				MessageService.Message = "Could not delete thread. Please reload the page and try again.";
 				return;
 			}
-			
+			catch (Exception ex)
+			{
+				await Console.Error.WriteLineAsync(ex.ToString());
+			}
+
 			MessageService.Message = "Thread deleted.";
 		}
 	}
