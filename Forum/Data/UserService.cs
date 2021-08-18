@@ -12,6 +12,16 @@ namespace Forum.Data
 		private readonly IDbContextFactory<Database> _dbContext;
 		private readonly int _workfactor;
 
+		public class LoginException : Exception
+		{
+			public new string Message { get; }
+			
+			public LoginException(string message)
+			{
+				Message = message;
+			}
+		}
+		
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -52,12 +62,12 @@ namespace Forum.Data
 					.FirstOrDefault(u => u.AccountName == identifier);
 			}
 
-			if (user is null) throw new Exception("User not found.");
+			if (user is null) throw new LoginException("User not found.");
 			
 			if (!BCrypt.Net.BCrypt.EnhancedVerify(password, user.PwHash))
-				throw new Exception("Wrong password.");
+				throw new LoginException("Wrong password.");
 
-			if (user.IsBlocked) throw new Exception("User is blocked.");
+			if (user.IsBlocked) throw new LoginException("User is blocked.");
 			
 			if (BCrypt.Net.BCrypt.PasswordNeedsRehash(user.PwHash, _workfactor))
 			{
@@ -82,7 +92,7 @@ namespace Forum.Data
 
 			var rndToken = Guid.NewGuid().ToString();
 
-			var session = new Session()
+			var session = new Session
 			{
 				UserId = user.Id,
 				Identifier = "SESSION_ID",

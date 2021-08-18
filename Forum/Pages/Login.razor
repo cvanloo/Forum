@@ -26,7 +26,7 @@
 						<InputText class="form-control" type="password" placeholder="Password" @bind-Value="_loginModel.Password" />
 						<ValidationMessage For="() => _loginModel.Password" />
 					</div>
-					<label>Remember Me<InputCheckbox style="margin: 1em;" type="checkbox" @bind-Value="_loginModel.RememberMe"/></label>
+					@*<label>Remember Me<InputCheckbox style="margin: 1em;" type="checkbox" @bind-Value="_loginModel.RememberMe"/></label>*@
 					<div class="row">
 						<button type="button" class="accent-red btn-bottom-left" @onclick='() => NavMan.NavigateTo("/pwreset")'>Forgot Password</button>
 						<button type="button" class="accent-blue" @onclick='() => NavMan.NavigateTo("/register")'>Create Account</button>
@@ -61,28 +61,27 @@
 	/// </summary>
 	private async Task SignIn()
 	{
-		if (!string.IsNullOrEmpty(_loginModel.Identifier) &&
-			!string.IsNullOrEmpty(_loginModel.Password))
+		try
 		{
-			try
-			{
-				await ((Forum.Controller.AuthenticationStateController)AuthProvider)
-					.ValidateLogin(_loginModel.Identifier, _loginModel.Password);
+			await ((Forum.Controller.AuthenticationStateController) AuthProvider)
+				.ValidateLogin(_loginModel.Identifier, _loginModel.Password);
 
-				MessageService.Message = "You are now logged in.";
+			MessageService.Message = "You are now logged in.";
 
-				var uriBuilder = new UriBuilder(NavMan.Uri);
-				var url = System.Web.HttpUtility.ParseQueryString(uriBuilder.Query);
-				var returnUrl = url["returnUrl"] ?? "/";
-				// Validate url, NOTE: Good enough ¯\_(ツ)_/¯
-				var regex = new Regex(".*:?//");
-				if (!regex.IsMatch(returnUrl))
-					NavMan.NavigateTo(returnUrl);
-			}
-			catch (Exception)
-			{
-				MessageService.Message = "Login failed.";
-			}
+			var uriBuilder = new UriBuilder(NavMan.Uri);
+			var url = System.Web.HttpUtility.ParseQueryString(uriBuilder.Query);
+			var returnUrl = url["returnUrl"] ?? "/";
+			// Validate url, NOTE: Good enough ¯\_(ツ)_/¯
+			var regex = new Regex(".*:?//");
+			if (!regex.IsMatch(returnUrl))
+				NavMan.NavigateTo(returnUrl);
+		}
+		catch (UserService.LoginException lEx)
+		{
+			await Console.Error.WriteLineAsync(lEx.ToString());
+			await Console.Error.WriteLineAsync(lEx.Message);
+			
+			MessageService.Message = "Login failed.";
 		}
 	}
 
