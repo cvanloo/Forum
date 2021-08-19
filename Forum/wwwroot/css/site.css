@@ -3,8 +3,8 @@
 html, body {
 	/*font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;*/
 	font-family: Roboto, monospace;
-	background: #191B22;
-	color: #FFF;
+	background: #282828;
+	color: #ebdbb2;
 
 	/* Makes sure the page is always centered,
 	 * also on an ultra-wide screen.
@@ -18,9 +18,18 @@ html, body {
 	filter: brightness(80%);
 }
 
-h1 {
-	color: #FFF;
+::placeholder {
+	color: #ebdbb2 !important;
+	opacity: 0.4 !important;
 }
+
+/* Header colors */
+h1, h2, h3 {
+	color: #ebdbb2;
+}
+
+
+
 
 .center-whole {
 	width: 90%;
@@ -33,10 +42,15 @@ h1 {
 	margin-right: auto;
 }
 
+/* TODO: Use class instead of style */
 .hidden {
 	display: none;
 }
 
+
+
+
+/* Form styling */
 form {
 	width: 30em;
 }
@@ -52,8 +66,9 @@ form {
 /* Overwrites bootstraps form-control class */
 .form-control {
 	border: none;
-	background: #131419;
-	color: white;
+	/*background: #49423A;*/
+	background: #42373C;
+	color: #ebdbb2;
 
 	margin: 2rem 0;
 	width: 100%;
@@ -61,26 +76,33 @@ form {
 }
 
 	.form-control:focus {
-		background: #131419;
-		color: white;
+		background: #42373C;
+		color: #ebdbb2;
+	}
+	
+	.form-control:disabled {
+		background: inherit;
 	}
 
 input[type=text], textarea {
 	font-family: "JetBrains Mono", monospace;
-}	
-	
+}
+
+
+
+
 div {
 	border-radius: 0.5rem;
 }
 
 a {
 	text-decoration: none;
-	color: #9BAEC8;
+	color: #98971A;
 }
 
 	a:hover {
 		text-decoration: underline;
-		color: #9BAEC8;
+		color: #98971A;
 	}
 
 pre {
@@ -91,18 +113,18 @@ pre {
 }
 
 .main {
-	background: #333844;
-	color: #9BAEC8;
+	background: #282828;
+	/*color: #98971A;*/
 	margin: 0.25rem;
 }
 
 	.main h3 {
-		color: #FFF;
+		color: #ebdbb2;
 	}
 
 .second {
-	background: #191B22;
-	color: #9BAEC8;
+	background: #282828;
+	/*color: #98971A;*/
 	margin: 0.25rem;
 }
 
@@ -149,7 +171,7 @@ pre {
 
 .element {
 	background: #282C37;
-	color: #9BAEC8;
+	color: #98971A;
 }
 
 button {
@@ -157,6 +179,7 @@ button {
 	border: none;
 	display: inline-block;
 	padding: 0.5rem;
+	background: #42373C;
 	
 	/* Divides the whole available width between
 	 * all buttons equally.
@@ -167,8 +190,16 @@ button {
 
 	button:hover {
 		filter: brightness(120%);
-		letter-spacing: 1px;
+		/*letter-spacing: 1px;*/
 	}
+	
+.btn-col-light {
+	color: #ebdbb2;
+}	
+
+.btn-col-dark {
+	color: black;
+}
 
 .btn-grow-medium {
 	flex-grow: 1.5 !important;
@@ -178,17 +209,19 @@ button {
 	flex-grow: 2 !important;
 }
 
+.btn-hover-accent:hover {
+	background: #98971A !important;
+}
+
 .btn-norm {
 	border-radius: 0.5rem;
-	background: #333844;
-	color: #9BAEC8;
 	font-size: larger;
 }
 
 .btn-norm-sec {
 	border: none;
-	background: #191B22;
-	color: #9BAEC8;
+	background: #282828;
+	color: #ebdbb2;
 	font-size: larger;
 }
 
@@ -204,8 +237,8 @@ button {
 	margin: 0;
 	padding: 0;
 	height: 0.25rem;
-	background: #191B22;
-	color: #9BAEC8;
+	background: #282828;
+	color: #98971A;
 	font-size: 80%;
 }
 
@@ -216,8 +249,6 @@ button {
 }
 
 	.btn-select button {
-		background: #444954;
-		color: #FFF;
 		width: 0;
 		flex-grow: 1;
 		height: inherit;
@@ -225,7 +256,7 @@ button {
 	}
 
 	.btn-select .btn-active {
-		background: #778393;
+		background: #98971A;
 	}
 
 .btn-left {
@@ -238,24 +269,19 @@ button {
 	border-top-right-radius: 0.25rem;
 }
 
-.accent-red {
+.accent-light {
 	/* red: background: #D03F3F;*/
-	background: #7c7c7c;
+	background: #ebdbb2;
 }
 
-.accent-green {
+.accent-dark {
 	/* green: background: #2E8427;*/
-	background: #2fcad8;
+	background: #98971A;
 	/*background: #2f76d8;*/
 }
 
-.accent-blue {
-	/* blue: background: #512DFC;*/
-	background: #7c7c7c;
-}
-
 .col-dark {
-	background: #191B22;
+	background: #282828;
 }
 
 .col-light {
@@ -263,7 +289,7 @@ button {
 }
 
 .col-lighter {
-	background: #9BAEC8;
+	background: #98971A;
 }
 
 .txt-title {
@@ -271,30 +297,32 @@ button {
 }
 
 .txt-dark {
-	color: #9BAEC8;
+	color: #98971A;
 }
 
 .p-annotation-lg {
+	color: #ebdbb2;
 	margin: 0;
 }
 
 .p-annotation-sm {
+	color: #ebdbb2;
 	margin: 0;
 	font-size: smaller;
 }
 
 .input-fg {
 	border: none;
-	background: #333844;
-	color: #9BAEC8;
+	background: #42373C;
+	color: #ebdbb2;
 	margin: 0.25rem;
 	width: 100%;
 	border-radius: 0.5rem;
 }
 
 	.input-fg:focus {
-		background: #333844;
-		color: #9BAEC8;
+		background: #42373C;
+		color: #ebdbb2;
 		outline: none;
 	}
 
@@ -305,12 +333,6 @@ button {
 textarea {
 	margin-bottom: 0 !important;
 	height: 15rem !important;
-}
-
-.form-control:disabled {
-	background: #333844;
-	color: #FFF;
-	filter: brightness(80%);
 }
 
 .relative-span {
@@ -324,14 +346,18 @@ textarea {
 	font-size: 0.75em;
 }
 
+
+
+
 hr {
-	background: #9BAEC8;
+	background: #98971A;
 }
 
 code {
 	font-family: "JetBrains Mono", monospace;
 	color: #e83e8c !important;
 }
+
 
 
 

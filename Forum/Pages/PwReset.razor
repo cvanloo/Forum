@@ -24,8 +24,8 @@
 					<ValidationMessage For="() => _pwResetModel.Email"/>
 				</div>
 				<div class="row">
-					<button type="button" class="accent-blue btn-bottom-left btn-grow-medium" @onclick='() => NavMan.NavigateTo("/login")'>Go to Login</button>
-					<button type="submit" class="accent-green btn-bottom-right">Request Reset Link</button>
+					<button type="button" class="btn-col-dark accent-light btn-left btn-grow-medium" @onclick='() => NavMan.NavigateTo("/login")'>Go to Login</button>
+					<button type="submit" class="btn-col-dark accent-dark btn-right">Request Reset Link</button>
 				</div>
 			</div>
 		</EditForm>
@@ -38,7 +38,7 @@ else if (!ValidateRequest())
 			<h3 class="mt-2 pt-5 pl-5 pr-5">Reset Request Invalid</h3>
 			<p class="pb-5">The reset request was already used or timed out.</p>
 			<div class="row">
-				<button type="button" class="accent-green btn-bottom-left btn-bottom-right" @onclick='() => NavMan.NavigateTo("/login")'>Go to Login</button>
+				<button type="button" class="btn-col-dark accent-dark btn-left btn-right" @onclick='() => NavMan.NavigateTo("/login")'>Go to Login</button>
 			</div>
 		</div>
 	</div>
@@ -59,7 +59,7 @@ else
 					<ValidationMessage For="() => _newPasswordModel.RepNewPassword"/>
 				</div>
 				<div class="row">
-					<button type="submit" class="accent-green btn-bottom-left btn-bottom-right">Save Password</button>
+					<button type="submit" class="btn-col-dark accent-dark btn-left btn-right">Save Password</button>
 				</div>
 			</div>
 		</EditForm>

@@ -4,18 +4,19 @@
 @inject IDbContextFactory<Model.Database> DbContext
 
 <style>
-	.form-control {
-		background: #333844 !important;
+	#comment-textarea {
 		margin: 0;
-	}
-	textarea {
 		height: 7em !important;
+	}
+	
+	#comment-button {
+		margin-top: 0.5em;
 	}
 </style>
 
 @* <input @onfocusin="Activate" @onfocusout="Deactivate" type="text" class="form-control" placeholder="Write a comment" @bind-value="@_comment" /> *@
-<textarea class="form-control" placeholder="Write a comment..." @bind="@_comment"></textarea>
-<button @onclick="CreateCommentAsync" type="submit" class="form-control">Comment</button>
+<textarea id="comment-textarea" class="form-control" placeholder="Write a comment..." @bind="@_comment"></textarea>
+<button id="comment-button" @onclick="CreateCommentAsync" type="submit" class="form-control" style="margin: 0.5rem 0;">Comment</button>
 
 @code {
 	/* Delegate: A type that represents references to methods with particular parameters and return type. Any method

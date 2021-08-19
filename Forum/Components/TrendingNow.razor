@@ -12,13 +12,10 @@
 			position: absolute;
 			margin-left: 50%;
 		}
-
-	#underline {
-		border-bottom: 0.1em solid #9BAEC8;
-	}
 </style>
 
-<p id="underline">Trending Now</p>
+<p>Trending Now</p>
+<hr>
 @foreach (var t in _tags)
 {
 	@if (0 == t.Popularity) continue;

@@ -15,7 +15,7 @@
 
 <style>
 	p {
-		border-bottom: 1px solid #9BAEC8;
+		border-bottom: 1px solid #ebdbb2;
 	}
 </style>
 
@@ -52,8 +52,8 @@
 				<ValidationMessage For="() => _preferencesModel.RepNewPassword" />
 			</div>
 			<div class="row">
-				<button type="button" @onclick='() => NavMan.NavigateTo("/")' class="accent-blue btn-bottom-left">Go Back</button>
-				<button type="submit" class="accent-green btn-bottom-right">Update Account</button>
+				<button type="button" @onclick='() => NavMan.NavigateTo("/")' class="btn-col-dark accent-light btn-left">Go Back</button>
+				<button type="submit" class="btn-col-dark accent-dark btn-right">Update Account</button>
 			</div>
 		</div>
 	</EditForm>

@@ -5,7 +5,22 @@
 <style>
 	.md-view {
 		font-family: "JetBrains Mono", monospace;
-		color: #FFFFFF;
+		color: #ebdbb2;
+	}
+	.md-view h1 {
+		color: #98971A;
+	}
+	
+	.md-view h2 {
+		color: #99591A;
+	}
+	
+	.md-view h3 {
+		color: #e83e8c;
+	}
+	
+	.md-view h4, .md-view h5, .md-view h6 {
+		color: #FFF;
 	}
 </style>
 
@@ -34,7 +49,7 @@
 		if (string.IsNullOrWhiteSpace(value))
 			return new MarkupString();
 
-		var html = Markdig.Markdown.ToHtml(value, new MarkdownPipelineBuilder().UseAdvancedExtensions().Build());
+		var html = Markdown.ToHtml(value, new MarkdownPipelineBuilder().UseAdvancedExtensions().Build());
 		var sanitizedHtml = HtmlSanitizer.Sanitize(html);
 
 		return new MarkupString(sanitizedHtml);

@@ -7,13 +7,6 @@
 @inject IDbContextFactory<Model.Database> DbContext
 @implements IDisposable
 
-<style>
-	/*#search_bar {
-		background: #333844 url(/css/icons/Search.png) right no-repeat;
-		padding-right: 17px;
-	}*/
-</style>
-
 <AuthorizeView>
 	<Authorized>
 		<div class="container-left fix-left">
@@ -22,12 +15,12 @@
 				<h4>Hello, @_displayName</h4>
 				<p class="p-annotation-lg">Logged in as: @_accountName</p>
 				<div class="row btn-select">
-					<button @onclick='() => NavMan.NavigateTo("/")' class="btn-primary btn-left">Home</button>
-					<button @onclick='() => NavMan.NavigateTo("/login")' class="btn-danger btn-right">Logout</button>
+					<button @onclick='() => NavMan.NavigateTo("/")' class="btn-col-light btn-hover-accent btn-left">Home</button>
+					<button @onclick='() => NavMan.NavigateTo("/login")' class="btn-col-light btn-hover-accent btn-right">Logout</button>
 				</div>
                 </div>
 			<div class="main row">
-				<button @onclick='() => NavMan.NavigateTo("/post")' class="btn-norm">Start a Thread</button>
+				<button @onclick='() => NavMan.NavigateTo("/post")' class="btn-col-light btn-norm" style="margin: auto 0.5rem;">Start a Thread</button>
 			</div>
 			<div>
 				<a href="/pref">
@@ -45,15 +38,15 @@
 				{
 					<ThreadPreview ThreadModel="thread" />
 				}
-				<button @onclick="LoadMore" style="width: 100%;" class="btn-norm">Load more</button>
+				<button @onclick="LoadMore" style="width: 100%;" class="btn-col-light btn-norm">Load more</button>
 			</div>
 		</div>
 		<div class="container-right fix-right">
 			<div class="main needs-padding">
 				<p>Sort by:</p>
                 <div class="row btn-select">
-                	<button @onclick="SortByNew" class="btn-left @(_sortBy == Module.Search.SortOrder.NewestFirst ? "btn-active" : "")">New</button>
-                	<button @onclick="SortByOld" class="btn-right @(_sortBy == Module.Search.SortOrder.OldestFirst? "btn-active" : "")">Old</button>
+                	<button @onclick="SortByNew" class="btn-col-light btn-hover-accent btn-left @(_sortBy == Module.Search.SortOrder.NewestFirst ? "btn-active" : "")">New</button>
+                	<button @onclick="SortByOld" class="btn-col-light btn-hover-accent btn-right @(_sortBy == Module.Search.SortOrder.OldestFirst? "btn-active" : "")">Old</button>
                 </div>
 			</div>
 			<div class="main row">

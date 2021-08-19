@@ -32,7 +32,7 @@ else
 			<p>Account created on: @_user.Created.ToString("d")</p>
 			@{ var followText = _followsUser ? "Unfollow" : "Follow"; }
 			<button class="btn-norm" style="width: 100%" @onclick="FollowUserAsync">@followText</button>
-			<div style="border-bottom: 0.1rem solid #9BAEC8; border-radius: 0;" class="needs-padding shiny" ></div>
+			<hr>
 			<h5>Chat</h5>
 			@if (_chat is not null)
 			{

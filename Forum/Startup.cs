@@ -61,7 +61,7 @@ namespace Forum
             services.AddSingleton<IChatService, ChatService>();
             
             // Html sanitizer service
-            services.AddScoped<IHtmlSanitizer, HtmlSanitizer>(options =>
+            services.AddScoped<IHtmlSanitizer, HtmlSanitizer>(_ =>
             {
                 var sanitizer = new HtmlSanitizer();
                 sanitizer.AllowedAttributes.Add("class");

@@ -2,7 +2,7 @@
 @* ReSharper disable once InconsistentNaming *@
 @inject NavigationManager NavMan 
 
-<div @onclick="OpenThread" style="border-bottom: 0.1rem solid #9BAEC8; border-radius: 0; cursor: pointer" class="needs-padding shiny">
+<div @onclick="OpenThread" style="cursor: pointer" class="needs-padding shiny">
 	<p class="p-annotation-sm">
 		@ThreadModel.Creator.AccountName@@@ThreadModel.Forum.Name
 		@ThreadModel.Created.ToString("t"), @ThreadModel.Created.ToString("d")
@@ -19,6 +19,7 @@
 	}
 	<small>Tags: @tagText</small>
 </div>
+<hr>
 
 @code {
 	[Parameter]

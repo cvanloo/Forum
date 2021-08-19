@@ -28,9 +28,9 @@
 					</div>
 					@*<label>Remember Me<InputCheckbox style="margin: 1em;" type="checkbox" @bind-Value="_loginModel.RememberMe"/></label>*@
 					<div class="row">
-						<button type="button" class="accent-red btn-bottom-left" @onclick='() => NavMan.NavigateTo("/pwreset")'>Forgot Password</button>
-						<button type="button" class="accent-blue" @onclick='() => NavMan.NavigateTo("/register")'>Create Account</button>
-						<button type="submit" class="accent-green btn-bottom-right">Log In</button>
+						<button type="button" class="btn-col-dark accent-light btn-left" @onclick='() => NavMan.NavigateTo("/pwreset")'>Forgot Password</button>
+						<button type="button" class="btn-col-dark accent-light" @onclick='() => NavMan.NavigateTo("/register")'>Create Account</button>
+						<button type="submit" class="btn-col-dark accent-dark btn-right">Log In</button>
 					</div>
 				</div>
 			</EditForm>
@@ -41,8 +41,8 @@
 					<h3 class="mt-2">Logout</h3>
 					<p>Confirm logout.</p>
 					<div class="row">
-						<button @onclick='() => NavMan.NavigateTo("/")' class="accent-blue btn-bottom-left">Home</button>
-						<button class="accent-green btn-bottom-right" @onclick="LogOut">Log Out</button>
+						<button @onclick='() => NavMan.NavigateTo("/")' class="btn-col-dark accent-light btn-left">Home</button>
+						<button class="btn-col-dark accent-dark btn-right" @onclick="LogOut">Log Out</button>
 					</div>
 				</div>
 			</div>

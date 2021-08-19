@@ -83,7 +83,7 @@
 			<p class="p-annotation-sm">@_thread.Forum.Members.Count Mem. / Created @_thread.Forum.Created.ToString("d")</p>
 			<pre class="txt-title">@_thread.Forum.Description</pre>
 			@{ var followText = _followsForum ? "Unfollow" : "Follow"; }
-			<button class="btn-norm" style="width: 100%" @onclick="FollowForumAsync">@followText</button>
+			<button class="btn-col-light btn-norm" style="width: 100%" @onclick="FollowForumAsync">@followText</button>
 		</div>
 	</div>
 }
