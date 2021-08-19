@@ -32,7 +32,7 @@
 				@@@_thread.Forum.Name
 				@_thread.Created.ToString("t"), @_thread.Created.ToString("d")
 			</p>
-			<h5 class="txt-title">@_thread?.Title</h5>
+			<h5>@_thread?.Title</h5>
 			<hr />
 			<MarkdownView Content="@_content" />
 			@*<pre class="txt-title">@renderedContent</pre>*@
@@ -46,13 +46,13 @@
 			}
 			<small>Tags: @tagText</small>
 		</div>
-		<div class="second row">
+		<div class="main row">
 			@* Number of Pages, 20 Comments per Page
 		 * ( number_of_comments + comments_per_page - 1 ) / comments_per_page
 		 *@
-			<p class="p-annotation-sm txt-dark needs-space-lr">@_thread.Comments.Count Comments (@((_thread.Comments.Count + 19) / 20) Pages)</p>
-			<p @onclick="CopyLinkAsync" class="p-annotation-sm txt-dark needs-space-lr clickable shiny">@_copyLabel</p>
-			<p @onclick="SaveThreadAsync" class="p-annotation-sm txt-dark needs-space-lr clickable shiny">@(_saved ? "Saved!" : "Save")</p>
+			<p class="p-annotation-sm needs-space-lr">@_thread.Comments.Count Comments (@((_thread.Comments.Count + 19) / 20) Pages)</p>
+			<p @onclick="CopyLinkAsync" class="p-annotation-sm needs-space-lr clickable shiny">@_copyLabel</p>
+			<p @onclick="SaveThreadAsync" class="p-annotation-sm needs-space-lr clickable shiny">@(_saved ? "Saved!" : "Save")</p>
 			@{
 				var dbContext = DbContext.CreateDbContext();
 				var thread = dbContext.Threads
@@ -62,7 +62,7 @@
 			@if (!thread.IsDeleted &&
 			     thread.Creator == dbContext.Users.First(u => u.AccountName == _authState.User.Identity.Name))
 			{
-				<p @onclick="DeleteAsync" class="p-annotation-sm txt-dark needs-space-lr clickable shiny">Delete</p>
+				<p @onclick="DeleteAsync" class="p-annotation-sm needs-space-lr clickable shiny">Delete</p>
 			}
 			@{dbContext.Dispose();}
 		</div>
@@ -77,11 +77,11 @@
 		}
 	</div>
 	<div class="container-right fix-right">
-		<div class="second needs-padding">
+		<div class="main needs-padding">
 			<img width="100" height="100" src="/css/icons/Default.jpg" alt="Forum Image" />
 			<h5>@_thread.Forum.Name</h5>
 			<p class="p-annotation-sm">@_thread.Forum.Members.Count Mem. / Created @_thread.Forum.Created.ToString("d")</p>
-			<pre class="txt-title">@_thread.Forum.Description</pre>
+			<pre style="color: #ebdbb2;">@_thread.Forum.Description</pre>
 			@{ var followText = _followsForum ? "Unfollow" : "Follow"; }
 			<button class="btn-col-light btn-norm" style="width: 100%" @onclick="FollowForumAsync">@followText</button>
 		</div>
@@ -91,8 +91,8 @@ else
 {
 	<div class="container-middle">
 		<div class="main needs-padding">
-			<h5 class="txt-title">Thread not found.</h5>
-            <pre class="txt-title">Thread @Id doesn't seem to exist.</pre>
+			<h5>Thread not found.</h5>
+            <pre>Thread @Id doesn't seem to exist.</pre>
 		</div>
 	</div>
 }

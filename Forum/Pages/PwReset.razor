@@ -14,7 +14,7 @@
 
 @if (string.IsNullOrEmpty(Token))
 {
-	<div class="main text-center mt-5 ml-auto mr-auto form-sim">
+	<div class="main text-center mt-5 ml-auto mr-auto">
 		<EditForm Model="_pwResetModel" OnValidSubmit="ProcessRequestAsync">
 			<DataAnnotationsValidator />
 			<div class="col">
@@ -45,7 +45,7 @@ else if (!ValidateRequest())
 }
 else
 {
-	<div class="main text-center mt-5 ml-auto mr-auto form-sim">
+	<div class="main text-center mt-5 ml-auto mr-auto">
 		<EditForm Model="_newPasswordModel" OnValidSubmit="UpdatePasswordAsync">
 			<DataAnnotationsValidator/>
 			<div class="col">
