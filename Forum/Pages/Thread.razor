@@ -223,6 +223,7 @@ else
 			{
 				await dbContext.SaveChangesAsync();
 
+				// Delete the text file too
 				File.Delete(thread.ContentPath);
 			}
 			catch (DbUpdateException dbuEx)
@@ -250,13 +251,14 @@ else
 
 		_authState = await AuthenticationStateTask;
 
+		// TODO: Expensive query!
 		_thread = dbContext.Threads
 			.Include(t => t.Creator)
 			.Include(t => t.Tags)
 			.Include(t => t.Forum)
-			.ThenInclude(f => f.Members)
+				.ThenInclude(f => f.Members)
 			.Include(t => t.Comments)
-			.ThenInclude(c => c.Creator)
+				.ThenInclude(c => c.Creator)
 			.FirstOrDefault(t => t.Id == Id);
 
 		if (_thread is null) return;
@@ -280,6 +282,7 @@ else
 			}
 		}
 
+		// TODO: Expensive query!
 		var user = dbContext.Users
 			.Include(u => u.SavedThreads)
 			.Include(u => u.Forums)

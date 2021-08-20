@@ -7,8 +7,8 @@ namespace Forum.Data
 {
 	public class ChatService : IChatService
 	{
-		private IDbContextFactory<Model.Database> _dbContextFactory;
-		private List<IChatService.MsgHandler> _msgHandlers = new();
+		private readonly IDbContextFactory<Model.Database> _dbContextFactory;
+		private readonly List<IChatService.MsgHandler> _msgHandlers = new();
 
 		/// <summary>
 		/// Constructor
@@ -67,10 +67,9 @@ namespace Forum.Data
 		/// <param name="message">New Message</param>
 		private void Notify(ChatMessage message)
 		{
-			foreach (var sub in _msgHandlers)
+			foreach (var sub in _msgHandlers.Where(sub => sub.Chat.Id == message.Chat.Id))
 			{
-				if (sub.Chat.Id == message.Chat.Id)
-					sub.Handler(message);
+				sub.Handler(message);
 			}
 		}
 	}

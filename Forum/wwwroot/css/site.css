@@ -314,6 +314,20 @@ code {
 	color: #e83e8c !important;
 }
 
+kbd {
+	border: 0.1rem solid #FFF;
+}
+
+blockquote {
+	border-left: 0.25rem solid #5a6268;
+	padding-left: 0.5rem;
+	opacity: 0.8;
+}
+
+mark {
+	background-color: rgba(119, 115, 39, 0.5);
+}
+
 
 
 

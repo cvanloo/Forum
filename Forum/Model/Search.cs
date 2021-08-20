@@ -4,11 +4,11 @@ using System.Linq;
 using Forum.Entity;
 using Microsoft.EntityFrameworkCore;
 
-namespace Forum.Module
+namespace Forum.Model
 {
 	public class Search : IDisposable
 	{
-		private readonly Model.Database _dbContext;
+		private readonly Database _dbContext;
 
 		public enum SortOrder
 		{
@@ -16,14 +16,14 @@ namespace Forum.Module
 			OldestFirst
 		}
 
-		public DateTime LastTimeStamp { get; set; } = DateTime.Now;
-		public SortOrder SortBy { get; set; }
+		public DateTime LastTimeStamp { get; init; } = DateTime.Now;
+		public SortOrder SortBy { get; init; } // Setter initialization only "... new Module.Search() { SortBy = ... };"
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="dbContext">Database context</param>
-		public Search(Model.Database dbContext)
+		public Search(Database dbContext)
 		{
 			_dbContext = dbContext;
 		}
@@ -34,6 +34,8 @@ namespace Forum.Module
 		/// <returns>Found threads</returns>
 		public List<Thread> GetThreads()
 		{
+			// TODO: OrderBy and OrderByDescending -> Just one sort?
+			// TODO: Compare to -> Just one comparison, maybe in sort?
 			if (SortOrder.NewestFirst == SortBy)
 			{
 				return _dbContext.Threads
@@ -42,6 +44,7 @@ namespace Forum.Module
 					.Include(t => t.Tags)
 					.OrderByDescending(t => t.Created)
 					.Where(t => t.Created.CompareTo(LastTimeStamp) < 0)
+					.AsNoTracking()
 					.Take(50).ToList();
 			}
 
@@ -51,6 +54,7 @@ namespace Forum.Module
 				.Include(t => t.Tags)
 				.OrderBy(t => t.Created)
 				.Where(t => t.Created.CompareTo(LastTimeStamp) > 0)
+				.AsNoTracking()
 				.Take(50).ToList();
 		}
 
@@ -69,6 +73,7 @@ namespace Forum.Module
 					.Include(t => t.Tags)
 					.OrderByDescending(t => t.Created)
 					.Where(t => t.Title.Contains(title) && t.Created.CompareTo(LastTimeStamp) < 0)
+					.AsNoTracking()
 					.Take(50).ToList();
 			}
 
@@ -78,6 +83,7 @@ namespace Forum.Module
 				.Include(t => t.Tags)
 				.OrderBy(t => t.Created)
 				.Where(t => t.Title.Contains(title) && t.Created.CompareTo(LastTimeStamp) > 0)
+				.AsNoTracking()
 				.Take(50).ToList();
 		}
 
@@ -86,37 +92,32 @@ namespace Forum.Module
 		/// </summary>
 		/// <param name="tags">Tags to search for</param>
 		/// <returns>Found threads</returns>
-		public List<Thread> SearchThreadsByTag(IEnumerable<Tag> tags)
+		public List<Thread> SearchThreadsByTag(List<Tag> tags)
 		{
-			if (SortOrder.NewestFirst == SortBy)
+			// TODO: Do we need to care about how many post it gets from the database or is ef core smart enough?
+			List<Thread> foundThreads = new();
+			foreach (var tag in tags)
 			{
-				return _dbContext.Threads
-					.Include(t => t.Creator)
-					.Include(t => t.Forum)
-					.Include(t => t.Tags)
-					.OrderByDescending(t => t.Created)
-					/* EF Core usually tries to evaluate as much as possible of a query on the server
-					 * (it translates the query into a database query, and lets the database do all the work).
-					 * This is not possible for some queries, like `Intersect()` (The db doesn't know how
-					 * intersect is implemented) below. Instead, EF has to evaluate the query by itself, on
-					 * the client (C# code). This can lead to poor performance, in that case EF throws a runtime
-					 * exception. To prevent this and enforce client evaluation, `AsEnumerable()` can be used.
-					 * https://docs.microsoft.com/en-us/ef/core/querying/client-eval
-					 * TODO: This is _not_ a good idea
-					 */
-					.AsEnumerable()
-					.Where(t => tags.Intersect(t.Tags).Any() && t.Created.CompareTo(LastTimeStamp) < 0)
-					.Take(50).ToList();
+				foundThreads.AddRange(
+					_dbContext.Threads
+						.Include(t => t.Creator)
+						.Include(t => t.Forum)
+						.Include(t => t.Tags)
+						.Where(t => t.Tags.Contains(tag) && (SortBy == SortOrder.NewestFirst
+							? t.Created.CompareTo(LastTimeStamp) < 0
+							: t.Created.CompareTo(LastTimeStamp) > 0))
+						.AsNoTracking()
+				);
 			}
 
-			return _dbContext.Threads
-				.Include(t => t.Creator)
-				.Include(t => t.Forum)
-				.Include(t => t.Tags)
-				.OrderBy(t => t.Created)
-				.AsEnumerable()
-				.Where(t => tags.Intersect(t.Tags).Any() && t.Created.CompareTo(LastTimeStamp) > 0)
-				.Take(50).ToList();
+			// Bc we get the _threads per tag_ and add them together in a list we need to sort the list
+			// to get the threads in order again.
+			foundThreads.Sort((t1, t2) =>
+				SortBy == SortOrder.NewestFirst
+					? t2.Created.CompareTo(t1.Created)
+					: t1.Created.CompareTo(t2.Created));
+
+			return foundThreads.Take(50).ToList();
 		}
 
 		/// <summary>
@@ -134,6 +135,7 @@ namespace Forum.Module
 					.Include(t => t.Tags)
 					.OrderByDescending(t => t.Created)
 					.Where(t => t.Creator.AccountName.Contains(name) && t.Created.CompareTo(LastTimeStamp) < 0)
+					.AsNoTracking()
 					.Take(50).ToList();
 			}
 
@@ -143,9 +145,27 @@ namespace Forum.Module
 				.Include(t => t.Tags)
 				.OrderBy(t => t.Created)
 				.Where(t => t.Creator.AccountName.Contains(name) && t.Created.CompareTo(LastTimeStamp) > 0)
+				.AsNoTracking()
 				.Take(50).ToList();
 		}
 
+		// TODO: Always just pass the id instead of the whole user, when we need to retrieve the whole object form
+		// the database again anyway.
+		public List<Thread> GetSavedThreads(int userId)
+		{
+			var user = _dbContext.Users
+				.Include(u => u.SavedThreads)
+				.ThenInclude(t => t.Creator)
+				.Include(u => u.SavedThreads)
+				.ThenInclude(t => t.Forum)
+				.Include(u => u.SavedThreads)
+				.ThenInclude(t => t.Tags)
+				.AsNoTracking()
+				.First(u => u.Id == userId);
+
+			return user.SavedThreads.Take(50).ToList();
+		}
+		
 		/// <summary>
 		/// Dispose: Clean up resources.
 		/// </summary>

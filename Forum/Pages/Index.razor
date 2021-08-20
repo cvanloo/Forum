@@ -45,9 +45,10 @@
 			<div class="main needs-padding">
 				<p>Sort by:</p>
                 <div class="row btn-select">
-                	<button @onclick="SortByNew" class="btn-col-light btn-hover-accent btn-left @(_sortBy == Module.Search.SortOrder.NewestFirst ? "btn-active" : "")">New</button>
-                	<button @onclick="SortByOld" class="btn-col-light btn-hover-accent btn-right @(_sortBy == Module.Search.SortOrder.OldestFirst? "btn-active" : "")">Old</button>
+                	<button @onclick="SortByNew" class="btn-col-light btn-hover-accent btn-left @(_sortBy == Model.Search.SortOrder.NewestFirst ? "btn-active" : "")">New</button>
+                	<button @onclick="SortByOld" class="btn-col-light btn-hover-accent btn-right @(_sortBy == Model.Search.SortOrder.OldestFirst ? "btn-active" : "")">Old</button>
                 </div>
+                <button @onclick="ShowSavedAsync" class="btn-col-light btn-hover-accent btn-left btn-right" style="width: 100%; @(_showSaved ? "background: #98971A" : "" )">Saved Threads</button>
 			</div>
 			<div class="main row">
 				<form @onsubmit="NavSearch">
@@ -65,8 +66,9 @@
 	private string _displayName;
 	private string _accountName;
 	private string _searchQuery;
-	private Module.Search.SortOrder _sortBy = Module.Search.SortOrder.NewestFirst;
+	private Model.Search.SortOrder _sortBy = Model.Search.SortOrder.NewestFirst;
 	private readonly List<Entity.Thread> _threads = new();
+	private bool _showSaved;
 	
 	// Stores our anonymous event handler to give us the possibility to unsubscribe it on dispose.
 	private EventHandler<LocationChangedEventArgs> _locationChangedHandler;
@@ -79,9 +81,7 @@
 	{
 		get
 		{
-			// Everything inside an URI after an '#' counts as a "fragment" and will be ignored by
-			// the parser. Escaping '#' with '%23' solves this problem.
-			var uriBuilder = new UriBuilder(NavMan.Uri.Replace("#", "%23"));
+			var uriBuilder = new UriBuilder(NavMan.Uri);
 			var q = HttpUtility.ParseQueryString(uriBuilder.Query);
 			return q["q"];
 		}
@@ -143,13 +143,13 @@
 	{
 		await using var dbContext = DbContext.CreateDbContext();
 
-		using var search = new Module.Search(dbContext)
+		using var search = new Model.Search(dbContext)
 		{
 			// Only retrieve threads that are older than our oldest (or newer than our newest, when sorting by oldest
             // first) already retrieved thread.
             LastTimeStamp = _threads.LastOrDefault()?.Created ??
 				// just make sure it's enough far in the past
-            	(Module.Search.SortOrder.NewestFirst == _sortBy ? DateTime.Now : new DateTime(1997, 1, 1)),
+            	(Model.Search.SortOrder.NewestFirst == _sortBy ? DateTime.Now : new DateTime(1997, 1, 1)),
 			SortBy = _sortBy
 		};
 
@@ -184,13 +184,26 @@
 	}
 	
 	/// <summary>
-	/// Update url with searh query.
+	/// Update url with search query.
 	/// </summary>
 	private void NavSearch()
 	{
 		//var encoded = HttpUtility.UrlEncode(_searchQuery);
 		// ReSharper disable once InconsistentNaming
-		var targetURI = string.IsNullOrEmpty(_searchQuery) ? "/" : "/?q=" + _searchQuery;
+		string targetURI;
+
+		if (string.IsNullOrWhiteSpace(_searchQuery))
+		{
+			targetURI = "/";
+		}
+		else
+		{
+			// Everything inside an URI after an '#' counts as a "fragment" and will be ignored by
+			// the parser. Escaping '#' with '%23' solves this problem.
+			var escapedQuery = _searchQuery.Replace("#", "%23");
+			targetURI = "/?q=" + escapedQuery;
+		}
+
 		NavMan.NavigateTo(targetURI);
 	}
 
@@ -199,7 +212,7 @@
 	/// </summary>
 	private void SortByNew()
 	{
-		_sortBy = Module.Search.SortOrder.NewestFirst;
+		_sortBy = Model.Search.SortOrder.NewestFirst;
 		UpdatePage();
 	}
 
@@ -208,12 +221,26 @@
 	/// </summary>
 	private void SortByOld()
 	{
-		_sortBy = Module.Search.SortOrder.OldestFirst;
+		_sortBy = Model.Search.SortOrder.OldestFirst;
 		UpdatePage();
 	}
 
+	private async Task ShowSavedAsync()
+	{
+		// TODO: In Model.Search, allow for sorting and searching saved threads too
+		await using var dbContext = DbContext.CreateDbContext();
+		using var search = new Forum.Model.Search(dbContext);
+		var authState = await AuthenticationStateTask;
+
+		var user = dbContext.Users.First(u => u.AccountName == authState.User.Identity.Name);
+		
+		_showSaved = !_showSaved;
+		_threads.Clear();
+		_threads.AddRange(search.GetSavedThreads(user.Id));
+	}
+	
 	/// <summary>
-	/// Dispose: Clean up, deregister eventhandlers.
+	/// Dispose: Clean up, deregister event handlers.
 	/// </summary>
 	public void Dispose()
 	{

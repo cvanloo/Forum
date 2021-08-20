@@ -79,7 +79,7 @@
 			.Include(f => f.Members)
 			.First(f => f.Id == _createThreadModel.ForumId);
 
-		var newThread = new Entity.Thread()
+		var newThread = new Entity.Thread
 		{
 			ContentPath = uploadPath,
 			Creator = user,

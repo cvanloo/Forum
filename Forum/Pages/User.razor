@@ -31,30 +31,37 @@ else
 			<h4>@_user.DisplayName (@_user.AccountName)</h4>
 			<p>Account created on: @_user.Created.ToString("d")</p>
 			@{ var followText = _followsUser ? "Unfollow" : "Follow"; }
-			<button class="btn-norm" style="width: 100%" @onclick="FollowUserAsync">@followText</button>
+			<button class="btn-col-light btn-norm" style="width: 100%" @onclick="FollowUserAsync">@followText</button>
 			<hr>
 			<h5>Chat</h5>
 			@if (_chat is not null)
 			{
-				<input type="text" placeholder="Type your message..." class="form-control" @bind="_sendMsg"/>
-				<button class="btn-norm" style="width: 100%" @onclick="SendChatMessageAsync">Send message</button>
+				<input type="text" placeholder="Type your message..." class="form-control" style="margin: 0.5rem 0;" @bind="_sendMsg"/>
+				<button class="btn-col-light btn-norm" style="width: 100%;" @onclick="SendChatMessageAsync">Send message</button>
 
 				if (_chat.Messages is not null)
 				{
-					foreach (var message in _chat.Messages)
+					DateTime? lastDate = null;
+					foreach (var message in _chat.Messages.OrderByDescending(m => m.Sent))
 					{
-						<p>@message.Sender.DisplayName: @message.Content</p>
+						if (lastDate is null || lastDate.Value.Day.CompareTo(message.Sent.Day) > 0)
+						{ // Whenever the day changes, display the new date.
+							<hr>
+							<p class="p-annotation-sm" style="color: #98971A;">@message.Sent.ToLongDateString()</p>
+						}
+						<p class="p-annotation-sm" style="color: #98971A;">@message.Sent.ToShortTimeString() @message.Sender.DisplayName:</p>
+						<p>@message.Content</p>
+						lastDate = message.Sent;
 					}
 				}
 			}
 			else
 			{
-				<button class="btn-norm" style="width: 100%" @onclick="StartChatAsync">Start chat</button>
+				<button class="btn-col-light btn-norm" style="width: 100%" @onclick="StartChatAsync">Start chat</button>
 			}
 		</div> 
     </div>
 }
-
 
 @code {
 	private Entity.User _user;
@@ -139,17 +146,20 @@ else
 		}
 	}
 
+	/// <summary>
+	/// Creates a new chat between the currently visiting and the visited user.
+	/// </summary>
 	private async Task StartChatAsync()
 	{
 		await using var dbContext = DbContext.CreateDbContext();
 		var authState = await AuthenticationStateTask;
 		
 		var visitedUser = dbContext.Users.First(u => u.AccountName == _user.AccountName);
-		var loggedUser = dbContext.Users.First(u => u.AccountName == authState.User.Identity.Name);
+		var visitingUser = dbContext.Users.First(u => u.AccountName == authState.User.Identity.Name);
 		
 		var chat = new Entity.Chat
 		{
-			Participants = new List<Entity.User> { visitedUser, loggedUser },
+			Participants = new List<Entity.User> { visitedUser, visitingUser },
 			Messages = new List<Entity.ChatMessage>()
 		};
 
@@ -162,14 +172,12 @@ else
 		try
 		{
 			await dbContext.SaveChangesAsync();
+			_chat = chat;
 		}
 		catch (DbUpdateException dbuEx)
 		{
 			await Console.Error.WriteLineAsync(dbuEx.ToString());
-			return;
 		}
-
-		_chat = chat;
 	}
 
 	/// <summary>
@@ -177,6 +185,8 @@ else
 	/// </summary>
 	private async Task SendChatMessageAsync()
 	{
+		if (string.IsNullOrWhiteSpace(_sendMsg)) return;
+		
 		await using var dbContext = DbContext.CreateDbContext();
 		var authState = await AuthenticationStateTask;
 		
@@ -191,14 +201,24 @@ else
 		};
 
 		ChatService.SendMessage(_chat, newMsg);
+
+		_sendMsg = "";
 	}
 
+	/// <summary>
+	/// Event handler to update the chat when a message is received.
+	/// Adds a message to the chat and updates the page.
+	/// </summary>
+	/// <param name="message">Received chat message.</param>
 	private void UpdateChat(Entity.ChatMessage message)
 	{
 		_chat.Messages.Add(message);
 		InvokeAsync(StateHasChanged);
 	}
 
+	/// <summary>
+	/// Dispose: Clean up resources, unsubscribe event handlers.
+	/// </summary>
 	public void Dispose()
 	{
 		ChatService.Unsubscribe(_msgHandler);

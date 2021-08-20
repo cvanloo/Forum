@@ -16,12 +16,14 @@
 
 <p>Trending Now</p>
 <hr>
-@foreach (var t in _tags)
+@foreach (var t in _tags.Where(t => 0 != t.Popularity))
 {
-	@if (0 == t.Popularity) continue;
-
 	<div id="tag_container" class="row">
-		<a href="/?q=#@t.Name">#@t.Name</a><p>@t.Popularity</p>
+		@{
+			var href = "/?q=%23" + t.Name;
+		}
+		<a href="@href">#@t.Name</a>
+		<p>@t.Popularity</p>
 	</div>
 }
 

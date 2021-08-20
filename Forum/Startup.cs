@@ -47,8 +47,10 @@ namespace Forum
             services.AddDbContextFactory<Database>(options =>
             {
                 options.UseMySql(connectionString, serverVersion)
-                .EnableSensitiveDataLogging()
-                .EnableDetailedErrors();
+                    .EnableSensitiveDataLogging()
+                    .EnableDetailedErrors();
+                    // Use to find expensive queries.
+                    //.ConfigureWarnings(w => w.Throw(RelationalEventId.MultipleCollectionIncludeWarning));
             });
 
             // Smtp Mail service
