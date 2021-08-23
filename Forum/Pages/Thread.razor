@@ -92,7 +92,7 @@ else
 	<div class="container-middle">
 		<div class="main needs-padding">
 			<h5>Thread not found.</h5>
-            <pre>Thread @Id doesn't seem to exist.</pre>
+            <p>Thread @Id doesn't seem to exist.</p>
 		</div>
 	</div>
 }
@@ -252,14 +252,14 @@ else
 		_authState = await AuthenticationStateTask;
 
 		// TODO: Expensive query!
-		_thread = dbContext.Threads
+		_thread = await dbContext.Threads
 			.Include(t => t.Creator)
 			.Include(t => t.Tags)
 			.Include(t => t.Forum)
 				.ThenInclude(f => f.Members)
 			.Include(t => t.Comments)
 				.ThenInclude(c => c.Creator)
-			.FirstOrDefault(t => t.Id == Id);
+			.FirstOrDefaultAsync(t => t.Id == Id);
 
 		if (_thread is null) return;
 
@@ -283,10 +283,10 @@ else
 		}
 
 		// TODO: Expensive query!
-		var user = dbContext.Users
+		var user = await dbContext.Users
 			.Include(u => u.SavedThreads)
 			.Include(u => u.Forums)
-			.First(u => u.AccountName == _authState.User.Identity.Name);
+			.FirstAsync(u => u.AccountName == _authState.User.Identity.Name);
 
 		_saved = user.SavedThreads.Contains(_thread);
 		_followsForum = user.Forums.Contains(_thread.Forum);
