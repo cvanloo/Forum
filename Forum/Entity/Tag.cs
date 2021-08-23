@@ -24,8 +24,7 @@ namespace Forum.Entity
 				var yesterday = DateTime.Now;
 				yesterday = yesterday.AddHours(-24);
 				// ReSharper disable once InconsistentNaming
-				var last24hThreads = Threads.Where(t => t.Created.CompareTo(yesterday) > 0).ToList();
-				return last24hThreads.Count;
+				return Threads.Count(t => t.Created.CompareTo(yesterday) > 0);
 			}
 		}
 

@@ -5,8 +5,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Forum.Entity
 {
-    [Index(nameof(User.Email), IsUnique = true)]
-    [Index(nameof(User.AccountName), IsUnique = true)]
+    [Index(nameof(Email), IsUnique = true)]
+    [Index(nameof(AccountName), IsUnique = true)]
     public class User
     {
 		[Key, Required]
