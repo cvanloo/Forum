@@ -312,6 +312,7 @@ hr {
 code {
 	font-family: "JetBrains Mono", monospace;
 	color: #e83e8c !important;
+	/*color: #c0c0c0 !important;*/
 }
 
 kbd {
@@ -325,7 +326,8 @@ blockquote {
 }
 
 mark {
-	background-color: rgba(119, 115, 39, 0.5);
+	background-color: rgba(239, 78, 57, 0.62);
+	color: #ebdbb2;
 }
 
 

@@ -7,25 +7,14 @@
 		font-family: "JetBrains Mono", monospace;
 		color: #ebdbb2;
 	}
-	.md-view h1 {
+	
+	.md-view h1, .md-view h2, .md-view h3, .md-view h4, .md-view h5, .md-view h6 {
 		color: #98971A;
-	}
-	
-	.md-view h2 {
-		color: #99591A;
-	}
-	
-	.md-view h3 {
-		color: #e83e8c;
-	}
-	
-	.md-view h4, .md-view h5, .md-view h6 {
-		color: #FFF;
 	}
 </style>
 
 <div class="md-view">
-	@HtmlContent
+	@HTMLContent
 </div>
 
 @code {
@@ -38,12 +27,15 @@
 		set
 		{
 			_content = value;
-			HtmlContent = ConvertToMarkup(_content);
+			HTMLContent = ConvertToMarkup(_content);
 		}
 	}
 
-	private MarkupString HtmlContent { get; set; }
+	private MarkupString HTMLContent { get; set; }
 
+	/// <summary>
+	/// Converts Markdown to html
+	/// </summary>
 	private MarkupString ConvertToMarkup(string value)
 	{
 		if (string.IsNullOrWhiteSpace(value))
@@ -54,5 +46,4 @@
 
 		return new MarkupString(sanitizedHtml);
 	}
-
 }
