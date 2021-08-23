@@ -1,11 +1,41 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Forum.Data;
 using Forum.Entity;
 using Microsoft.EntityFrameworkCore;
 
 namespace Forum.Model
 {
+	// !!! Don't use this class !!!
+	// ~~ Use Forum.Model.SearchQuery instead ~~
+/*
+	           ...
+             ;::::;
+           ;::::; :;
+         ;:::::'   :;
+        ;:::::;     ;.
+       ,:::::'       ;           OOO\
+       ::::::;       ;          OOOOO\
+       ;:::::;       ;         OOOOOOOO
+      ,;::::::;     ;'         / OOOOOOO
+    ;:::::::::`. ,,,;.        /  / DOOOOOO
+  .';:::::::::::::::::;,     /  /     DOOOO
+ ,::::::;::::::;;;;::::;,   /  /        DOOO
+;`::::::`'::::::;;;::::: ,#/  /          DOOO
+:`:::::::`;::::::;;::: ;::#  /            DOOO
+::`:::::::`;:::::::: ;::::# /              DOO
+`:`:::::::`;:::::: ;::::::#/               DOO
+ :::`:::::::`;; ;:::::::::##                OO
+ ::::`:::::::`;::::::::;:::#                OO
+ `:::::`::::::::::::;'`:;::#                O
+  `:::::`::::::::;' /  / `:#
+   ::::::`:::::;'  /  /   `#
+ */
+	
+	// TODO: OrderBy and OrderByDescending -> Just one sort?
+	// TODO: Compare to -> Just one comparison, maybe in sort?
+	// TODO: Always just pass the id instead of the whole user, when we need to retrieve the whole object form
 	public class Search : IDisposable
 	{
 		private readonly Database _dbContext;
@@ -32,10 +62,8 @@ namespace Forum.Model
 		/// Retrieve next 50 threads.
 		/// </summary>
 		/// <returns>Found threads</returns>
-		public List<Thread> GetThreads()
+		public List<Thread> FindThreads()
 		{
-			// TODO: OrderBy and OrderByDescending -> Just one sort?
-			// TODO: Compare to -> Just one comparison, maybe in sort?
 			if (SortOrder.NewestFirst == SortBy)
 			{
 				return _dbContext.Threads
@@ -44,7 +72,7 @@ namespace Forum.Model
 					.Include(t => t.Tags)
 					.OrderByDescending(t => t.Created)
 					.Where(t => t.Created.CompareTo(LastTimeStamp) < 0)
-					.AsNoTracking()
+					.AsNoTracking() // We're not going to do any changes to the elements, no need to track them.
 					.Take(50).ToList();
 			}
 
@@ -63,7 +91,7 @@ namespace Forum.Model
 		/// </summary>
 		/// <param name="title">Thread title</param>
 		/// <returns>Found threads</returns>
-		public List<Thread> SearchThreadsByTitle(string title)
+		public List<Thread> FindThreadsByTitle(string title)
 		{
 			if (SortOrder.NewestFirst == SortBy)
 			{
@@ -90,43 +118,13 @@ namespace Forum.Model
 		/// <summary>
 		/// Retrieve next 50 threads that contain (one of) the tags.
 		/// </summary>
-		/// <param name="tags">Tags to search for</param>
+		/// <param name="tagID">Id of the tag to search</param>
 		/// <returns>Found threads</returns>
-		public List<Thread> SearchThreadsByTag(List<Tag> tags)
+		public List<Thread> FindThreadsByTag(int tagID)
 		{
 			// TODO: Do we need to care about how many post it gets from the database or is ef core smart enough?
-			List<Thread> foundThreads = new();
-			foreach (var tag in tags)
-			{
-				foundThreads.AddRange(
-					_dbContext.Threads
-						.Include(t => t.Creator)
-						.Include(t => t.Forum)
-						.Include(t => t.Tags)
-						.Where(t => t.Tags.Contains(tag) && (SortBy == SortOrder.NewestFirst
-							? t.Created.CompareTo(LastTimeStamp) < 0
-							: t.Created.CompareTo(LastTimeStamp) > 0))
-						.AsNoTracking()
-				);
-			}
+			var tag = _dbContext.Tags.First(t => t.Id == tagID);
 
-			// Bc we get the _threads per tag_ and add them together in a list we need to sort the list
-			// to get the threads in order again.
-			foundThreads.Sort((t1, t2) =>
-				SortBy == SortOrder.NewestFirst
-					? t2.Created.CompareTo(t1.Created)
-					: t1.Created.CompareTo(t2.Created));
-
-			return foundThreads.Take(50).ToList();
-		}
-
-		/// <summary>
-		/// Retrieve next 50 threads from user.
-		/// </summary>
-		/// <param name="name">Accountname of user</param>
-		/// <returns>Found threads</returns>
-		public List<Thread> SearchThreadsByUser(string name)
-		{
 			if (SortOrder.NewestFirst == SortBy)
 			{
 				return _dbContext.Threads
@@ -134,9 +132,9 @@ namespace Forum.Model
 					.Include(t => t.Forum)
 					.Include(t => t.Tags)
 					.OrderByDescending(t => t.Created)
-					.Where(t => t.Creator.AccountName.Contains(name) && t.Created.CompareTo(LastTimeStamp) < 0)
+					.Where(t => t.Tags.Contains(tag) && t.Created.CompareTo(LastTimeStamp) < 0)
 					.AsNoTracking()
-					.Take(50).ToList();
+					.ToList();
 			}
 
 			return _dbContext.Threads
@@ -144,26 +142,46 @@ namespace Forum.Model
 				.Include(t => t.Forum)
 				.Include(t => t.Tags)
 				.OrderBy(t => t.Created)
-				.Where(t => t.Creator.AccountName.Contains(name) && t.Created.CompareTo(LastTimeStamp) > 0)
+				.Where(t => t.Tags.Contains(tag) && t.Created.CompareTo(LastTimeStamp) > 0)
 				.AsNoTracking()
-				.Take(50).ToList();
+				.ToList();
+
+
+			//foundThreads.Sort((t1, t2) =>
+			//	SortBy == SortOrder.NewestFirst
+			//		? t2.Created.CompareTo(t1.Created)
+			//		: t1.Created.CompareTo(t2.Created));
 		}
 
-		// TODO: Always just pass the id instead of the whole user, when we need to retrieve the whole object form
-		// the database again anyway.
-		public List<Thread> GetSavedThreads(int userId)
+		/// <summary>
+		/// Retrieve next 50 threads from user.
+		/// </summary>
+		/// <param name="userID">Id of user</param>
+		/// <returns>Found threads</returns>
+		public List<Thread> FindThreadsByUser(int userID)
 		{
-			var user = _dbContext.Users
-				.Include(u => u.SavedThreads)
-				.ThenInclude(t => t.Creator)
-				.Include(u => u.SavedThreads)
-				.ThenInclude(t => t.Forum)
-				.Include(u => u.SavedThreads)
-				.ThenInclude(t => t.Tags)
-				.AsNoTracking()
-				.First(u => u.Id == userId);
+			var user = _dbContext.Users.First(u => u.Id == userID);
 
-			return user.SavedThreads.Take(50).ToList();
+			if (SortOrder.NewestFirst == SortBy)
+			{
+				return _dbContext.Threads
+					.Include(t => t.Creator)
+					.Include(t => t.Forum)
+					.Include(t => t.Tags)
+					.OrderByDescending(t => t.Created)
+					.Where(t => t.Creator == user && t.Created.CompareTo(LastTimeStamp) < 0)
+					.AsNoTracking()
+					.Take(50).ToList();
+			}
+			
+			return _dbContext.Threads
+				.Include(t => t.Creator)
+				.Include(t => t.Forum)
+				.Include(t => t.Tags)
+				.OrderBy(t => t.Created)
+				.Where(t => t.Creator == user && t.Created.CompareTo(LastTimeStamp) > 0)
+				.AsNoTracking()
+				.Take(50).ToList();
 		}
 		
 		/// <summary>

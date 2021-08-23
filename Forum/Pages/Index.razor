@@ -1,6 +1,8 @@
 @page "/"
 @attribute [Authorize(Roles = "user")]
 @using System.Web
+@using Forum.Model
+@using Microsoft.AspNetCore.SignalR
 @* ReSharper disable once InconsistentNaming *@
 @inject NavigationManager NavMan
 @* ReSharper disable once InconsistentNaming *@
@@ -48,7 +50,6 @@
                 	<button @onclick="SortByNew" class="btn-col-light btn-hover-accent btn-left @(_sortBy == Model.Search.SortOrder.NewestFirst ? "btn-active" : "")">New</button>
                 	<button @onclick="SortByOld" class="btn-col-light btn-hover-accent btn-right @(_sortBy == Model.Search.SortOrder.OldestFirst ? "btn-active" : "")">Old</button>
                 </div>
-                <button @onclick="ShowSavedAsync" class="btn-col-light btn-hover-accent btn-left btn-right" style="width: 100%; @(_showSaved ? "background: #98971A" : "" )">Saved Threads</button>
 			</div>
 			<div class="main row">
 				<form @onsubmit="NavSearch">
@@ -66,9 +67,8 @@
 	private string _displayName;
 	private string _accountName;
 	private string _searchQuery;
-	private Model.Search.SortOrder _sortBy = Model.Search.SortOrder.NewestFirst;
-	private readonly List<Entity.Thread> _threads = new();
-	private bool _showSaved;
+	private Search.SortOrder _sortBy = Model.Search.SortOrder.NewestFirst;
+	private List<Entity.Thread> _threads = new();
 	
 	// Stores our anonymous event handler to give us the possibility to unsubscribe it on dispose.
 	private EventHandler<LocationChangedEventArgs> _locationChangedHandler;
@@ -135,6 +135,34 @@
 		Search(query);
 	}
 
+	private async Task Search(string query)
+	{
+		await using var dbContext = DbContext.CreateDbContext();
+
+		var search = new SearchQuery();
+
+		var queryString = query[1..];
+		switch (query[0])
+		{
+			case '#':
+				// foreach ...
+				//search.AddSearchTag(tag);
+				break;
+			case '@':
+				// foreach ...
+				// search.AddSearchUser(user);
+				break;
+			default:
+				search.AddSearchTitle(queryString);
+				break;
+		}
+
+		var result = search.ConstructQuery(dbContext);
+		// TODO(3): OrderBy in here? (See TODO2)
+		_threads = result.Take(50).ToList(); // Query is only executed here.
+	}
+	
+	/*
 	/// <summary>
 	/// Load threads that match search query.
 	/// </summary>
@@ -142,6 +170,7 @@
 	private async void Search(string query)
 	{
 		await using var dbContext = DbContext.CreateDbContext();
+		var authState = await AuthenticationStateTask;
 
 		using var search = new Model.Search(dbContext)
 		{
@@ -157,7 +186,7 @@
 		
 		if (query is null || !query.Any())
 		{
-			results.AddRange(search.GetThreads());
+			results.AddRange(search.FindThreads());
 		}
 		else
 		{
@@ -165,23 +194,37 @@
 			{
 				case '@':
 					// if '@' -> search for posts by user
-					var searchUser = query[1..];
-					results = search.SearchThreadsByUser(searchUser);
+					var searchUser = query[1..]; // Index 1 to end
+					var userID = dbContext.Users.FirstOrDefault(u => u.AccountName == searchUser)?.Id;
+					if (userID is not null) 
+						results = search.FindThreadsByUser(userID.Value);
 					break;
 				case '#':
 					// else if '#' -> search for posts containing tags
 					var searchTags = Entity.Tag.ParseTags(dbContext, query[1..]);
-					if (searchTags is not null) results = search.SearchThreadsByTag(searchTags);
+					foreach (var st in searchTags)
+					{
+						results.AddRange(search.FindThreadsByTag(st.Id));
+					}
+
+					results.Sort((t1, t2) =>
+						_sortBy == Model.Search.SortOrder.NewestFirst
+							? t2.Created.CompareTo(t1.Created)
+							: t1.Created.CompareTo(t2.Created));
 					break;
 				default:
 					// else -> search for posts with title
-					results = search.SearchThreadsByTitle(query);
+					results = search.FindThreadsByTitle(query);
 					break;
 			}
 		}
 
 		_threads.AddRange(results);
+		
+		///////////////////////
+
 	}
+	*/
 	
 	/// <summary>
 	/// Update url with search query.
@@ -223,20 +266,6 @@
 	{
 		_sortBy = Model.Search.SortOrder.OldestFirst;
 		UpdatePage();
-	}
-
-	private async Task ShowSavedAsync()
-	{
-		// TODO: In Model.Search, allow for sorting and searching saved threads too
-		await using var dbContext = DbContext.CreateDbContext();
-		using var search = new Forum.Model.Search(dbContext);
-		var authState = await AuthenticationStateTask;
-
-		var user = dbContext.Users.First(u => u.AccountName == authState.User.Identity.Name);
-		
-		_showSaved = !_showSaved;
-		_threads.Clear();
-		_threads.AddRange(search.GetSavedThreads(user.Id));
 	}
 	
 	/// <summary>
