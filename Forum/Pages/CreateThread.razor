@@ -105,9 +105,9 @@
 		MessageService.Message = "Thread uploaded.";
 
 		// Notify followers of forum as well as followers of poster per email about the new post.
-		var recipientsFollowForum = forum.Members.Select(member => member.Email).ToArray();
-		var recipientsFollowUser = user.Followers.Select(follower => follower.Email).ToArray();
-		
+		var recipientsFollowForum = forum.Members.Where(m => m != user).Select(member => member.Email).ToArray();
+		var recipientsFollowUser = user.Followers.Where(f => f != user).Select(follower => follower.Email).ToArray();
+
 		// Don't await async method, the user shouldn't be blocked.
 		// The execution of this method will continue while the mails are send.
 #pragma warning disable 4014

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using Forum.Entity;
 using Microsoft.EntityFrameworkCore;
@@ -56,7 +57,8 @@ namespace Forum.Model
 			IEnumerable<Thread> query = dbContext.Threads
 				.Include(t => t.Creator)
 				.Include(t => t.Forum)
-				.Include(t => t.Tags);
+				.Include(t => t.Tags)
+				.AsSplitQuery();
 
 			// Saved only
 			if (SavedByUser is not null)
