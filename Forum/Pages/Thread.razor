@@ -136,7 +136,7 @@ else
 		
 		var user = dbContext.Users
 			.Include(u => u.SavedThreads)
-			.Include(u => u.Forums)
+			.Include(u => u.Forums).AsSplitQuery()
 			.First(u => u.AccountName == _authState.User.Identity.Name);
 
 		// Get the thread from the same db context
@@ -251,7 +251,7 @@ else
 
 		_authState = await AuthenticationStateTask;
 
-		// TODO: Expensive query!
+		// NOTE(multiple include): Expensive query!
 		_thread = await dbContext.Threads
 			.Include(t => t.Creator)
 			.Include(t => t.Tags)
@@ -259,6 +259,7 @@ else
 				.ThenInclude(f => f.Members)
 			.Include(t => t.Comments)
 				.ThenInclude(c => c.Creator)
+			.AsSplitQuery() // Divide multiple includes into multiple queries
 			.FirstOrDefaultAsync(t => t.Id == Id);
 
 		if (_thread is null) return;
@@ -282,10 +283,11 @@ else
 			}
 		}
 
-		// TODO: Expensive query!
+		// NOTE(multiple include): Expensive query!
 		var user = await dbContext.Users
 			.Include(u => u.SavedThreads)
 			.Include(u => u.Forums)
+			.AsSplitQuery() // Divide multiple includes into multiple queries
 			.FirstAsync(u => u.AccountName == _authState.User.Identity.Name);
 
 		_saved = user.SavedThreads.Contains(_thread);

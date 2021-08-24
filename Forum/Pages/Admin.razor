@@ -51,8 +51,8 @@
                     <p>Threadcount: @selectedForum.Threads.Count</p>
                     <textarea class="form-control" @bind="_updateForumDescription" >@selectedForum.Description</textarea>
                     <div class="row">
-                        <button class="accent-red btn-left" @onclick="DeleteForumAsync">Delete Forum</button>
-                        <button class="accent-blue btn-right" @onclick="UpdateForumAsync">Update Forum</button>
+                        <button class="accent-light btn-left" @onclick="DeleteForumAsync">Delete Forum</button>
+                        <button class="accent-dark btn-right" @onclick="UpdateForumAsync">Update Forum</button>
                     </div>
                 </div>
 
@@ -61,7 +61,7 @@
                     <input type="text" placeholder="Name" @bind="_newForumName" class="form-control"/>
                     <textarea placeholder="Description" class="form-control" @bind="_newForumDescription"></textarea>
                     <div class="row">
-                        <button class="accent-blue btn-bottom-left btn-right" @onclick="AddForumAsync">Add Forum</button>
+                        <button class="accent-dark btn-bottom-left btn-right btn-left" @onclick="AddForumAsync">Add Forum</button>
                     </div>
                 </div>
                 break;
@@ -69,7 +69,7 @@
                 <div class="main col ml-auto mr-auto text-center form-bigger">
                     <h4>Users: @_userCount</h4>
                     <input class="form-control" type="text" placeholder="Accountname" @bind="_searchUser" />
-                    <button class="accent-blue form-control" @onclick="SearchUserAsync" >Search user</button>
+                    <button class="accent-dark btn-left btn-right" style="width: 100%;" @onclick="SearchUserAsync" >Search user</button>
                     @if (_selectedUser is not null)
                     {
                         <p>Accountname: @_selectedUser.AccountName</p>
@@ -88,7 +88,7 @@
                             <input style="display: inline-block; width: 0; flex-grow: 3; margin-right: 1rem; padding: 5px;" type="checkbox" @bind="@_updateSetBlocked" class="form-control"/>
                         </div>
                         <div class="row">
-                            <button class="accent-blue btn-bottom-left btn-right" @onclick="UpdateUserAsync">Update User</button>
+                            <button class="accent-dark btn-right btn-left" @onclick="UpdateUserAsync">Update User</button>
                         </div>
                     }
                 </div>
@@ -122,9 +122,11 @@
     {
         await using var dbContext = DbContext.CreateDbContext();
         
+        // NOTE(multiple include): Expensive Query!
         _fora = dbContext.Forums
             .Include(f => f.Members)
             .Include(f => f.Threads)
+			.AsSplitQuery() // Divide multiple includes into multiple queries
             .ToList();
 
         _userCount = dbContext.Users.Count();

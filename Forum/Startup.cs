@@ -48,9 +48,12 @@ namespace Forum
             {
                 options.UseMySql(connectionString, serverVersion)
                     .EnableSensitiveDataLogging()
-                    .EnableDetailedErrors();
+                    .EnableDetailedErrors()
                     // Use to find expensive queries.
-                    //.ConfigureWarnings(w => w.Throw(RelationalEventId.MultipleCollectionIncludeWarning));
+                    // Purposefully crash when attempting to execute an expensive query.
+                    .ConfigureWarnings(w => w.Throw(
+                        Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.MultipleCollectionIncludeWarning)
+                    );
             });
 
             // Smtp Mail service

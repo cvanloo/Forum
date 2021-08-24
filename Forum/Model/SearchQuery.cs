@@ -13,7 +13,7 @@ namespace Forum.Model
 		public List<User> Users { get; set; } = new();
 		public SortOrder SortBy { get; set; } = SortOrder.NewestFirst;
 		public DateTime? TimeStamp { get; set; }  = null;
-		public User SavedByUser { get; set; } = null; // TODO: Where and how do we get the currently logged in user?
+		public User SavedByUser { get; set; } = null;
 		public List<AdvancedQuery> AdvancedQueries { get; set; } = new();
 
 		public enum SortOrder

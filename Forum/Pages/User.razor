@@ -68,6 +68,7 @@ else
 	private bool _followsUser;
 	private Entity.Chat _chat;
 	private string _sendMsg;
+	private Entity.ChatMessage _answerTo;
 	IChatService.MsgHandler _msgHandler;
 	
     [Parameter]
@@ -84,6 +85,7 @@ else
 		await using var dbContext = DbContext.CreateDbContext();
 		var authState = await AuthenticationStateTask;
 		
+		// NOTE(multiple include): Expensive Query!
 		_user = await dbContext.Users
 			.Include(u => u.Threads)
 				.ThenInclude(t => t.Tags)
@@ -92,6 +94,7 @@ else
 			.Include(u => u.Threads)
 				.ThenInclude(t => t.Forum)
 			.Include(u => u.Followers)
+			.AsSplitQuery() // Divide multiple includes into multiple queries
 			.FirstOrDefaultAsync(u => u.AccountName == AccountName);
 
 		if (_user is null) return;
@@ -195,7 +198,7 @@ else
 		
 		var newMsg = new Entity.ChatMessage
 		{
-			Parent = null, // TODO: Use reuse thread comments
+			Parent = _answerTo,
 			Sender = loggedUser,
 			Content = _sendMsg
 		};
