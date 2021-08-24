@@ -1,8 +1,6 @@
 @page "/"
 @attribute [Authorize(Roles = "user")]
 @using System.Web
-@using Forum.Model
-@using Microsoft.AspNetCore.SignalR
 @* ReSharper disable once InconsistentNaming *@
 @inject NavigationManager NavMan
 @* ReSharper disable once InconsistentNaming *@
@@ -47,9 +45,10 @@
 			<div class="main needs-padding">
 				<p>Sort by:</p>
                 <div class="row btn-select">
-                	<button @onclick="SortByNew" class="btn-col-light btn-hover-accent btn-left @(_sortBy == Model.Search.SortOrder.NewestFirst ? "btn-active" : "")">New</button>
-                	<button @onclick="SortByOld" class="btn-col-light btn-hover-accent btn-right @(_sortBy == Model.Search.SortOrder.OldestFirst ? "btn-active" : "")">Old</button>
+                	<button @onclick="SortByNew" class="btn-col-light btn-hover-accent btn-left @(_sortBy == Model.SearchQuery.SortOrder.NewestFirst ? "btn-active" : "")">New</button>
+                	<button @onclick="SortByOld" class="btn-col-light btn-hover-accent btn-right @(_sortBy == Model.SearchQuery.SortOrder.OldestFirst ? "btn-active" : "")">Old</button>
                 </div>
+                <button @onclick="ShowSaved" class="btn-col-light btn-hover-accent btn-right btn-left @(_savedOnly ? "btn-active" : "")" style="width: 100%; @(_savedOnly ? "background: #98971A;" : "")" >Saved Threads</button>
 			</div>
 			<div class="main row">
 				<form @onsubmit="NavSearch">
@@ -67,8 +66,11 @@
 	private string _displayName;
 	private string _accountName;
 	private string _searchQuery;
-	private Search.SortOrder _sortBy = Model.Search.SortOrder.NewestFirst;
+	private bool _savedOnly;
+	private Model.SearchQuery.SortOrder _sortBy = Model.SearchQuery.SortOrder.NewestFirst;
 	private List<Entity.Thread> _threads = new();
+
+	private Model.SearchQueryBuilder _cachedQueryBuilder;
 	
 	// Stores our anonymous event handler to give us the possibility to unsubscribe it on dispose.
 	private EventHandler<LocationChangedEventArgs> _locationChangedHandler;
@@ -102,7 +104,7 @@
 
 		_locationChangedHandler = (_, _) =>
 		{
-			UpdatePage();
+			InvokeAsync(UpdatePage);
 			StateHasChanged();
 		};
 
@@ -110,128 +112,92 @@
 		// `OnInitialized` is not called again. Instead we need to listen for the `LocationChanged`-event.
 		NavMan.LocationChanged += _locationChangedHandler; 
 		
-		UpdatePage();
+		await UpdatePage();
 	}
 
 	/// <summary>
 	/// Update the page.
 	/// </summary>
-	private void UpdatePage()
+	private async Task UpdatePage()
 	{
 		var query = SearchQuery;
 		_threads.Clear(); // New search query, delete old results first
 
-		Search(query);
+		await Search(query);
 	}
 
 	/// <summary>
 	/// Loads more threads.
 	/// </summary>
-	private void LoadMore()
+	private async Task LoadMore()
 	{
-		var query = SearchQuery;
-		// Load more of the same search query, don't delete old results
-
-		Search(query);
+		// Don't create the query again, reuse the old one!
+		await using var dbContext = DbContext.CreateDbContext();
+		
+		// Update the timestamp
+		_cachedQueryBuilder.StartAtTimestamp(_threads.Last().Created);
+		
+		var result = _cachedQueryBuilder.Build().ConstructQuery(dbContext);
+		_threads.AddRange(result.Take(50).ToList()); // Query is evaluated here
 	}
 
+	/// <summary>
+	/// Queries and retrieves the searched elements from the database.
+	/// </summary>
+	/// <param name="query">Search query</param>
 	private async Task Search(string query)
 	{
 		await using var dbContext = DbContext.CreateDbContext();
+		
+		var searchBuilder = new Model.SearchQueryBuilder();
+		searchBuilder.SortBy(_sortBy);
 
-		var search = new SearchQuery();
+		if (_savedOnly)
+		{
+			var authState = await AuthenticationStateTask;
+			var user = dbContext.Users
+				.Include(u => u.SavedThreads)
+				.First(u => u.AccountName == authState.User.Identity.Name);
 
-		var queryString = query[1..];
+			searchBuilder.SavedOnly(user);
+		}
+
+		if (string.IsNullOrWhiteSpace(query)) goto exit;
+		
 		switch (query[0])
 		{
 			case '#':
-				// foreach ...
-				//search.AddSearchTag(tag);
+				var tags = Entity.Tag.ParseTags(dbContext, query[1..]);
+				foreach (var t in tags)
+				{
+					searchBuilder.AddQueryTag(t);
+				}
 				break;
 			case '@':
-				// foreach ...
-				// search.AddSearchUser(user);
+				// TODO: Allow to search for multiple usernames ("@Test @Hal@Marcus" searches for "test", "hal", and "marcus")
+				var qName = query[1..];
+				var users = dbContext.Users.Where(u => u.AccountName.ToLower().Contains(qName.ToLower()));
+				foreach (var u in users)
+				{
+					searchBuilder.AddQueryUser(u);
+				}
 				break;
 			default:
-				search.AddSearchTitle(queryString);
+				searchBuilder.AddQueryTitle(query);
 				break;
 		}
-
-		var result = search.ConstructQuery(dbContext);
-		// TODO(3): OrderBy in here? (See TODO2)
-		_threads = result.Take(50).ToList(); // Query is only executed here.
-	}
-	
-	/*
-	/// <summary>
-	/// Load threads that match search query.
-	/// </summary>
-	/// <param name="query">Search query</param>
-	private async void Search(string query)
-	{
-		await using var dbContext = DbContext.CreateDbContext();
-		var authState = await AuthenticationStateTask;
-
-		using var search = new Model.Search(dbContext)
-		{
-			// Only retrieve threads that are older than our oldest (or newer than our newest, when sorting by oldest
-            // first) already retrieved thread.
-            LastTimeStamp = _threads.LastOrDefault()?.Created ??
-				// just make sure it's enough far in the past
-            	(Model.Search.SortOrder.NewestFirst == _sortBy ? DateTime.Now : new DateTime(1997, 1, 1)),
-			SortBy = _sortBy
-		};
-
-		List<Entity.Thread> results = new();
 		
-		if (query is null || !query.Any())
-		{
-			results.AddRange(search.FindThreads());
-		}
-		else
-		{
-			switch (query[0])
-			{
-				case '@':
-					// if '@' -> search for posts by user
-					var searchUser = query[1..]; // Index 1 to end
-					var userID = dbContext.Users.FirstOrDefault(u => u.AccountName == searchUser)?.Id;
-					if (userID is not null) 
-						results = search.FindThreadsByUser(userID.Value);
-					break;
-				case '#':
-					// else if '#' -> search for posts containing tags
-					var searchTags = Entity.Tag.ParseTags(dbContext, query[1..]);
-					foreach (var st in searchTags)
-					{
-						results.AddRange(search.FindThreadsByTag(st.Id));
-					}
-
-					results.Sort((t1, t2) =>
-						_sortBy == Model.Search.SortOrder.NewestFirst
-							? t2.Created.CompareTo(t1.Created)
-							: t1.Created.CompareTo(t2.Created));
-					break;
-				default:
-					// else -> search for posts with title
-					results = search.FindThreadsByTitle(query);
-					break;
-			}
-		}
-
-		_threads.AddRange(results);
-		
-		///////////////////////
-
+	exit:
+		_cachedQueryBuilder = searchBuilder;
+		var result = searchBuilder.Build().ConstructQuery(dbContext);
+		_threads = result.Take(50).ToList(); // Query is only evaluated here.
 	}
-	*/
 	
 	/// <summary>
 	/// Update url with search query.
 	/// </summary>
 	private void NavSearch()
 	{
-		//var encoded = HttpUtility.UrlEncode(_searchQuery);
 		// ReSharper disable once InconsistentNaming
 		string targetURI;
 
@@ -253,19 +219,25 @@
 	/// <summary>
 	/// Change sort order to "newest first".
 	/// </summary>
-	private void SortByNew()
+	private async Task SortByNew()
 	{
-		_sortBy = Model.Search.SortOrder.NewestFirst;
-		UpdatePage();
+		_sortBy = Model.SearchQuery.SortOrder.NewestFirst;
+		await UpdatePage();
 	}
 
 	/// <summary>
 	/// Change sort order to "oldest first".
 	/// </summary>
-	private void SortByOld()
+	private async Task SortByOld()
 	{
-		_sortBy = Model.Search.SortOrder.OldestFirst;
-		UpdatePage();
+		_sortBy = Model.SearchQuery.SortOrder.OldestFirst;
+		await UpdatePage();
+	}
+
+	private async Task ShowSaved()
+	{
+		_savedOnly = !_savedOnly;
+		await UpdatePage();
 	}
 	
 	/// <summary>

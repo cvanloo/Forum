@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Forum.Entity;
 using Microsoft.EntityFrameworkCore;
@@ -7,50 +8,21 @@ namespace Forum.Model
 {
 	public class SearchQuery
 	{
-		private List<string> _titleStrings = new();
-		private List<Tag> _tags = new();
-		private List<User> _users = new();
-		
-		/// <summary>
-		/// The constructed query.
-		/// </summary>
-		//public IEnumerable<Thread> GetQuery => ConstructQuery();
+		public List<string> TitleStrings = new();
+		public List<Tag> Tags = new();
+		public List<User> Users { get; set; } = new();
+		public SortOrder SortBy { get; set; } = SortOrder.NewestFirst;
+		public DateTime? TimeStamp { get; set; }  = null;
+		public User SavedByUser { get; set; } = null; // TODO: Where and how do we get the currently logged in user?
+		public List<AdvancedQuery> AdvancedQueries { get; set; } = new();
 
-		/// <summary>
-		/// Add a title to the search query.
-		/// </summary>
-		/// <param name="title">Title to add to the query.</param>
-		/// <returns>The query object itself.</returns>
-		public SearchQuery AddSearchTitle(string title)
+		public enum SortOrder
 		{
-			_titleStrings.Add(title);
-			
-			return this;
+			NewestFirst,
+			OldestFirst
 		}
 
-		/// <summary>
-		/// Add a tag to the query.
-		/// </summary>
-		/// <param name="tag">The tag to add to the query.</param>
-		/// <returns>The query object itself.</returns>
-		public SearchQuery AddSearchTag(Entity.Tag tag)
-		{
-			_tags.Add(tag);
-			
-			return this;
-		}
-
-		/// <summary>
-		/// Add a user to the query.
-		/// </summary>
-		/// <param name="user">User to add to the query.</param>
-		/// <returns>The query object itself.</returns>
-		public SearchQuery AddSearchUser(Entity.User user)
-		{
-			_users.Add(user);
-			
-			return this;
-		}
+		public delegate IEnumerable<Thread> AdvancedQuery(IEnumerable<Thread> query);
 
 		/// <summary>
 		/// Build a query from search options.
@@ -86,21 +58,64 @@ namespace Forum.Model
 				.Include(t => t.Forum)
 				.Include(t => t.Tags);
 
-			// TODO(1): _Or_ not _and_
-			// TODO(2): Sort order
-			foreach (var title in _titleStrings)
+			// Saved only
+			if (SavedByUser is not null)
+				query = query.Where(t => SavedByUser.SavedThreads.Contains(t));
+			
+			// TODO: Maybe with LINQKit?
+			//// T\ODO(1): _Or_ not _and_
+			// Titles
+			//foreach (var title in TitleStrings)
+			//{
+			//	query = query.Where(t => t.Title.ToLower().Contains(title.ToLower()));
+			//}
+
+			if (TitleStrings.Any())
+				query = query.Where(t => TitleStrings.Contains(t.Title));
+
+			// Tags
+			//foreach (var tag in Tags)
+			//{
+			//	query = query.Where(t => t.Tags.Contains(tag));
+			//}
+
+			if (Tags.Any())
+				query = query.Where(t => t.Tags.Intersect(Tags).Any());
+
+			// Users
+			//foreach (var user in Users)
+			//{
+			//	query = query.Where(t => t.Creator == user);
+			//}
+
+			if (Users.Any())
+				query = query.Where(t => Users.Contains(t.Creator));
+
+			// Sort order
+			query = SortBy switch
 			{
-				query = query.Where(t => t.Title.Contains(title));
+				SortOrder.NewestFirst => query.OrderByDescending(t => t.Created),
+				SortOrder.OldestFirst => query.OrderBy(t => t.Created),
+				_ => query
+			};
+
+			// Timestamp
+			if (TimeStamp is not null)
+			{
+				query = SortBy switch
+				{
+					// `t.Created` happened before (earlier) `TimeStamp` (further in the past)
+					SortOrder.NewestFirst => query.Where(t => t.Created < TimeStamp), // `<` is overwritten by `DateTime.op_GreaterThan`.
+					// `t.Created` happened after (later) `TimeStamp` (nearer to the present)
+					SortOrder.OldestFirst => query.Where(t => t.Created > TimeStamp),
+					_ => query
+				};
 			}
 
-			foreach (var tag in _tags)
+			// Advanced
+			foreach (var del in AdvancedQueries)
 			{
-				query = query.Where(t => t.Tags.Contains(tag));
-			}
-
-			foreach (var user in _users)
-			{
-				query = query.Where(t => t.Creator == user);
+				query = del(query);
 			}
 
 			return query;
