@@ -126,7 +126,7 @@
 		{
 			From = "user@domain.ch",
 			Subject = "New Post To " + thread.Forum.Name,
-			Body = thread.Forum.Name + ": " + thread.Title + "<br>localhost:5000/thread/" + thread.Id,
+			Body = thread.Forum.Name + ": " + thread.Title + " -- localhost:5000/thread/" + thread.Id,
 			To = followerForum
 		});
 
@@ -134,7 +134,7 @@
 		{
 			From = "user@domain.ch",
 			Subject = "New Post From " + thread.Creator.DisplayName,
-			Body = thread.Creator.DisplayName + ": " + thread.Title + "<br>localhost:5000/thread/" + thread.Id,
+			Body = thread.Creator.DisplayName + ": " + thread.Title + " -- localhost:5000/thread/" + thread.Id,
 			To = followerUser
 		});
 	}

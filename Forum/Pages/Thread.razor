@@ -69,11 +69,12 @@
 		<div class="main">
 			<CommentField Thread="@_thread" UpdateHandler="UpdateAsync"/>
 		</div>
+		@* TODO: 20 Comments per page *@
 		@foreach (var c in _thread.Comments)
 		{
 			if (c.Parent is not null) continue;
 
-			<Comment CommentModel="c"/>
+			<Comment CommentModel="c" UpdateHandler="UpdateAsync"/>
 		}
 	</div>
 	<div class="container-right fix-right">

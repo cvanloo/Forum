@@ -174,7 +174,6 @@
 				}
 				break;
 			case '@':
-				// TODO: Allow to search for multiple usernames ("@Test @Hal@Marcus" searches for "test", "hal", and "marcus")
 				var qName = query[1..];
 				var users = dbContext.Users.Where(u => u.AccountName.ToLower().Contains(qName.ToLower()));
 				foreach (var u in users)

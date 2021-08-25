@@ -54,11 +54,7 @@
 		var user = dbContext.Users.First(u => u.AccountName == authState.User.Identity.Name);
 		
 		// Get the parent comment from the same db context
-		Entity.Comment parentComment;
-		if (Comment is null)
-			parentComment = null;
-		else
-			parentComment = dbContext.Comments.First(c => c.Id == Comment.Id);
+		var parentComment = Comment is null ? null : dbContext.Comments.First(c => c.Id == Comment.Id);
 		
 		// Get the thread from the same db context
 		var thread = dbContext.Threads.First(t => t.Id == Thread.Id);

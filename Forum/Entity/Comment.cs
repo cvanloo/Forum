@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 
 namespace Forum.Entity
 {
@@ -32,6 +33,18 @@ namespace Forum.Entity
         public bool IsArchived { get; set; }
 
         [Required]
-        public bool IsDeleted { get; set; }       
+        public bool IsDeleted { get; set; }
+
+        /// <summary>
+        /// Recursively counts its children, including itself.
+        /// </summary>
+        public int CountChildren
+        {
+            get
+            {
+                if (Childs is null) return 1;
+                return 1 + Childs.Sum(c => c.CountChildren);
+            }
+        }
     }
 }

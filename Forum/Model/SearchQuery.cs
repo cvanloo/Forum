@@ -63,33 +63,16 @@ namespace Forum.Model
 			// Saved only
 			if (SavedByUser is not null)
 				query = query.Where(t => SavedByUser.SavedThreads.Contains(t));
-			
-			// TODO: Maybe with LINQKit?
-			// TODO: _Or_ not _and_
-			// Titles
-			//foreach (var title in TitleStrings)
-			//{
-			//	query = query.Where(t => t.Title.ToLower().Contains(title.ToLower()));
-			//}
 
+			// Title
 			if (TitleStrings.Any())
 				query = query.Where(t => TitleStrings.Contains(t.Title));
 
 			// Tags
-			//foreach (var tag in Tags)
-			//{
-			//	query = query.Where(t => t.Tags.Contains(tag));
-			//}
-
 			if (Tags.Any())
 				query = query.Where(t => t.Tags.Intersect(Tags).Any());
 
 			// Users
-			//foreach (var user in Users)
-			//{
-			//	query = query.Where(t => t.Creator == user);
-			//}
-
 			if (Users.Any())
 				query = query.Where(t => Users.Contains(t.Creator));
 

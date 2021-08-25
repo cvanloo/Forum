@@ -26,40 +26,37 @@
 	<p class="p-annotation-sm">
 		<a href="/user/@CommentModel.Creator.AccountName">@CommentModel.Creator.AccountName</a>
 		@CommentModel.Created.ToString("t"), @CommentModel.Created.ToString("d")
-		<button class="btn-mini btn-w-auto" @onclick="Collapse">[@_clpMsg]</button> @*▬*@
+		<button class="btn-mini btn-w-auto" @onclick="Collapse">[@_clpMsg]</button>
+		@* <button class="btn-mini btn-w-auto" @onclick="Collapse">[@CommentModel.CountChildren]</button>*@
 	</p>
 	<span>
 		<MarkdownView Content="@CommentModel.Text" />
 		@* <pre class="txt-title">@CommentModel.Text</pre> *@
 		<button class="btn-mini btn-w-auto" @onclick="ToggleCommentField">Answer</button>
 		<div class="@_cfClass">
-			<CommentField Thread="@CommentModel.Thread" Comment="@CommentModel" UpdateHandler="UpdateAsync"/>
+			<CommentField Thread="@CommentModel.Thread" Comment="@CommentModel" UpdateHandler="UpdateHandler"/>
 		</div>
 
-		@* ReSharper disable once UnusedVariable *@
-		@foreach (var c in _children)
+		@if (CommentModel.Childs is not null)
 		{
-			<Comment CommentModel="c"/>
+			@foreach (var c in CommentModel.Childs)
+			{
+				<Comment CommentModel="c" UpdateHandler="UpdateHandler" />
+			}
 		}
 	</span>
 </div>
 
 @code {
-	private List<Entity.Comment> _children;
 	private string _cfClass = "hidden";
 	private string _collapseClass = "";
 	private string _clpMsg = "-";
 
 	[Parameter]
 	public Entity.Comment CommentModel { get; set; }
-
-	/// <summary>
-	/// Initializes the component.
-	/// </summary>
-	protected override async Task OnInitializedAsync()
-	{
-		await UpdateAsync();
-	}
+	
+	[Parameter]
+	public CommentField.Update UpdateHandler { get; set; }
 
 	/// <summary>
 	/// Toggles visibility of the comment field.
@@ -101,25 +98,14 @@
 		else
 		{
 			_collapseClass = "collapsed";
-			_clpMsg = "+";
+			_clpMsg = CommentModel.CountChildren + " more";
 		}
 	}
 
-	/// <summary>
-	/// Updates the comment and child comments.
-	/// </summary>
-	private async Task UpdateAsync()
+	protected override void OnAfterRender(bool firstRender)
 	{
-		await using var dbContext = DbContext.CreateDbContext();
-
-		_children = dbContext.Comments
-			.Include(c => c.Childs)
-				.ThenInclude(c => c.Creator)
-			.Include(c => c.Childs)
-				.ThenInclude(c => c.Thread)
-			.First(c => c.Id == CommentModel.Id).Childs.ToList();
-		
 		CloseCommentField();
-		StateHasChanged();
+		base.OnAfterRender(firstRender);
 	}
+
 }
