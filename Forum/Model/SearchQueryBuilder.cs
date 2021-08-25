@@ -109,18 +109,6 @@ namespace Forum.Model
 		}
 
 		/// <summary>
-		/// Add your own query in form of a delegate.
-		/// </summary>
-		/// <param name="advancedQuery">Delegate query</param>
-		/// <returns>The query-builder object itself.</returns>
-		public SearchQueryBuilder AddAdvancedQuery(SearchQuery.AdvancedQuery advancedQuery)
-		{
-			_searchQuery.AdvancedQueries.Add(advancedQuery);
-			
-			return this;
-		}
-
-		/// <summary>
 		/// Build the search query.
 		/// </summary>
 		/// <returns>Build search query.</returns>
