@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Linq.Expressions;
 using Forum.Entity;
 using Microsoft.EntityFrameworkCore;
 
@@ -29,7 +29,7 @@ namespace Forum.Model
 		/// Build a query from search options.
 		/// </summary>
 		/// <returns>IEnumerable query.</returns>
-		public IEnumerable<Thread> ConstructQuery(Database dbContext)
+		public IEnumerable<Thread> Construct(Database dbContext)
 		{
 			/* ~~ LINQ ~~
 			 * // 1. Data source
@@ -66,15 +66,39 @@ namespace Forum.Model
 
 			// Title
 			if (TitleStrings.Any())
-				query = query.Where(t => TitleStrings.Contains(t.Title));
+			{
+				var predicate = PredicatesBuilder.False<Thread>();
+				foreach (var title in TitleStrings)
+				{
+					predicate = predicate.Or(t => t.Title.ToLower().Contains(title.ToLower()));
+				}
+
+				query = query.Where(predicate);
+			}
 
 			// Tags
 			if (Tags.Any())
-				query = query.Where(t => t.Tags.Intersect(Tags).Any());
+			{
+				var predicate = PredicatesBuilder.False<Thread>();
+				foreach (var tag in Tags)
+				{
+					predicate = predicate.Or(t => t.Tags.Contains(tag));
+				}
+
+				query = query.Where(predicate);
+			}
 
 			// Users
 			if (Users.Any())
-				query = query.Where(t => Users.Contains(t.Creator));
+			{
+				var predicate = PredicatesBuilder.False<Thread>();
+				foreach (var user in Users)
+				{
+					predicate = predicate.Or(t => t.Creator == user);
+				}
+
+				query = query.Where(predicate);
+			}
 
 			// Sort order
 			query = SortBy switch
@@ -104,6 +128,41 @@ namespace Forum.Model
 			}
 
 			return query;
+		}
+	}
+
+	public static class PredicatesBuilder
+	{
+		/// <summary>
+		/// Default to `false`.
+		/// </summary>
+		/// <typeparam name="T">Type of object to compare.</typeparam>
+		/// <returns>The predicate.</returns>
+		public static Func<T, bool> False<T>()
+		{
+			return f => false;
+		}
+
+		/// <summary>
+		/// Default to `true`.
+		/// </summary>
+		/// <typeparam name="T">Type of object to compare.</typeparam>
+		/// <returns>The predicate.</returns>
+		public static Func<T, bool> True<T>()
+		{
+			return f => true;
+		}
+		
+		/// <summary>
+		/// Predicate `or` comparison.
+		/// </summary>
+		/// <param name="left">Left-hand side operator.</param>
+		/// <param name="right">Right-hand side operator.</param>
+		/// <typeparam name="T">Type of the object to compare.</typeparam>
+		/// <returns>The predicate.</returns>
+		public static Func<T, bool> Or<T>(this Func<T, bool> left, Func<T, bool> right)
+		{
+			return t => left(t) || right(t);
 		}
 	}
 }

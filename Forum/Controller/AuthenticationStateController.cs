@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Forum.Data;
 using System.Security.Claims;
 using Forum.Entity;
-using Microsoft.Extensions.Hosting;
+// using Microsoft.Extensions.Hosting;
 
 namespace Forum.Controller
 {
@@ -13,7 +13,7 @@ namespace Forum.Controller
 	{
 		private readonly IJSRuntime _jsRuntime;
 		private readonly IUserService _userService;
-		private readonly IHostEnvironment _hostEnvironment;
+		// private readonly IHostEnvironment _hostEnvironment;
 
 		private User _cachedUser;
 
@@ -22,12 +22,12 @@ namespace Forum.Controller
 		/// </summary>
 		/// <param name="jsRuntime">The javascript runtime</param>
 		/// <param name="userService">The user service</param>
-		/// <param name="hostEnvironment">The host environment</param>
-		public AuthenticationStateController(IJSRuntime jsRuntime, IUserService userService, IHostEnvironment hostEnvironment)
+		// /// <param name="hostEnvironment">The host environment</param>
+		public AuthenticationStateController(IJSRuntime jsRuntime, IUserService userService /*, IHostEnvironment hostEnvironment */)
 		{
 			_jsRuntime = jsRuntime;
 			_userService = userService;
-			_hostEnvironment = hostEnvironment;
+			// _hostEnvironment = hostEnvironment;
 		}
 
 		/// <summary>

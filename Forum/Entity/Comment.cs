@@ -38,12 +38,22 @@ namespace Forum.Entity
         /// <summary>
         /// Recursively counts its children, including itself.
         /// </summary>
+        [NotMapped]
         public int CountChildren
         {
             get
             {
                 if (Childs is null) return 1;
+                
                 return 1 + Childs.Sum(c => c.CountChildren);
+                
+                //int count = 1;
+                //foreach (var c in Childs)
+                //{
+                //    count += c.CountChildren;
+                //}
+
+                //return count;
             }
         }
     }

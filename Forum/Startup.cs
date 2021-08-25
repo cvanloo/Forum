@@ -49,10 +49,15 @@ namespace Forum
                 options.UseMySql(connectionString, serverVersion)
                     .EnableSensitiveDataLogging()
                     .EnableDetailedErrors()
-                    // Use to find expensive queries.
-                    // Purposefully crash when attempting to execute an expensive query.
                     .ConfigureWarnings(w => w.Throw(
-                        Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.MultipleCollectionIncludeWarning)
+                            // Use to find expensive queries.
+                            // Purposefully crash when attempting to execute an expensive query.
+                            Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId
+                                .MultipleCollectionIncludeWarning)
+                        // Ignore "Take/Skip without order by" - false-positive warnings.
+                        // False positives: Sometimes ef translates queries without a take or skip into `LIMIT 1`.
+                        .Ignore(Microsoft.EntityFrameworkCore.Diagnostics.CoreEventId
+                            .RowLimitingOperationWithoutOrderByWarning)
                     );
             });
 

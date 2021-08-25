@@ -31,12 +31,12 @@
 	</p>
 	<span>
 		<MarkdownView Content="@CommentModel.Text" />
-		@* <pre class="txt-title">@CommentModel.Text</pre> *@
 		<button class="btn-mini btn-w-auto" @onclick="ToggleCommentField">Answer</button>
 		<div class="@_cfClass">
 			<CommentField Thread="@CommentModel.Thread" Comment="@CommentModel" UpdateHandler="UpdateHandler"/>
 		</div>
 
+		@* ReSharper disable once UnusedVariable *@
 		@if (CommentModel.Childs is not null)
 		{
 			@foreach (var c in CommentModel.Childs)
@@ -102,9 +102,16 @@
 		}
 	}
 
+	/// <summary>
+	/// Invoked after each time the component has been rendered.
+	/// </summary>
 	protected override void OnAfterRender(bool firstRender)
 	{
+		// After the user commented, the `CommentField` will call the `UpdateHandler` from
+		// the `Thread` the comment belongs to. This will update the entire `Thread`.
+		// Make sure to close the `CommentField` after the user commented.
 		CloseCommentField();
+		
 		base.OnAfterRender(firstRender);
 	}
 

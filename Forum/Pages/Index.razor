@@ -131,13 +131,13 @@
 	/// </summary>
 	private async Task LoadMore()
 	{
-		// Don't create the query again, reuse the old one!
+		// Don't create the query again, reuse the old one
 		await using var dbContext = DbContext.CreateDbContext();
 		
 		// Update the timestamp
 		_cachedQueryBuilder.StartAtTimestamp(_threads.Last().Created);
 		
-		var result = _cachedQueryBuilder.Build().ConstructQuery(dbContext);
+		var result = _cachedQueryBuilder.Build().Construct(dbContext);
 		_threads.AddRange(result.Take(50).ToList()); // Query is evaluated here
 	}
 
@@ -188,7 +188,7 @@
 		
 	exit:
 		_cachedQueryBuilder = searchBuilder;
-		var result = searchBuilder.Build().ConstructQuery(dbContext);
+		var result = searchBuilder.Build().Construct(dbContext);
 		_threads = result.Take(50).ToList(); // Query is only evaluated here.
 	}
 	

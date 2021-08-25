@@ -48,8 +48,8 @@
 		</div>
 		<div class="main row">
 			@* Number of Pages, 20 Comments per Page
-		 * ( number_of_comments + comments_per_page - 1 ) / comments_per_page
-		 *@
+		     * ( number_of_comments + comments_per_page - 1 ) / comments_per_page
+		     *@
 			<p class="p-annotation-sm needs-space-lr">@_thread.Comments.Count Comments (@((_thread.Comments.Count + 19) / 20) Pages)</p>
 			<p @onclick="CopyLinkAsync" class="p-annotation-sm needs-space-lr clickable shiny">@_copyLabel</p>
 			<p @onclick="SaveThreadAsync" class="p-annotation-sm needs-space-lr clickable shiny">@(_saved ? "Saved!" : "Save")</p>
@@ -69,7 +69,6 @@
 		<div class="main">
 			<CommentField Thread="@_thread" UpdateHandler="UpdateAsync"/>
 		</div>
-		@* TODO: 20 Comments per page *@
 		@foreach (var c in _thread.Comments)
 		{
 			if (c.Parent is not null) continue;
@@ -123,9 +122,9 @@ else
 	/// </summary>
 	private async Task CopyLinkAsync()
 	{
-		_copyLabel = "Copied!";
 		var link = NavMan.Uri;
 		await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", link);
+		_copyLabel = "Copied!";
 	}
 
 	/// <summary>
@@ -181,12 +180,12 @@ else
 		var forum = dbContext.Forums.First(f => f.Id == _thread.Forum.Id);
 
 		if (_followsForum)
-		{
+		{ // Unfollow
 			user.Forums.Remove(forum);
 			_followsForum = false;
 		}
 		else
-		{
+		{ // Follow
 			user.Forums.Add(forum);
 			_followsForum = true;
 		}
@@ -259,6 +258,7 @@ else
 			.Include(t => t.Forum)
 				.ThenInclude(f => f.Members)
 			.Include(t => t.Comments)
+			//.Include(t => t.Comments.OrderByDescending(c => c.Created))
 				.ThenInclude(c => c.Creator)
 			.AsSplitQuery() // Divide multiple includes into multiple queries
 			.FirstOrDefaultAsync(t => t.Id == Id);

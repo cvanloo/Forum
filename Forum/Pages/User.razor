@@ -68,7 +68,6 @@ else
 	private bool _followsUser;
 	private Entity.Chat _chat;
 	private string _sendMsg;
-	private Entity.ChatMessage _answerTo;
 	IChatService.MsgHandler _msgHandler;
 	
     [Parameter]
@@ -198,7 +197,6 @@ else
 		
 		var newMsg = new Entity.ChatMessage
 		{
-			Parent = _answerTo,
 			Sender = loggedUser,
 			Content = _sendMsg
 		};

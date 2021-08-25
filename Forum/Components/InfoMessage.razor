@@ -25,16 +25,15 @@
 	}
 </style>
 
-<div id="helper-container" style="@_style" @onclick="Close">
-	<span id="txt-span">@_message</span>
-</div>
+@if (!string.IsNullOrWhiteSpace(_message))
+{
+	<div id="helper-container" @onclick="Close">
+		<span id="txt-span">@_message</span>
+	</div>
+}
 
 @code {
-	// ReSharper disable once InconsistentNaming
-	private const string CSS = "display: none;";
-	
 	private string _message;
-	private string _style = CSS;
 	private Timer _timer;
 
 	/// <summary>
@@ -65,7 +64,6 @@
 	/// </summary>
 	private void Show()
 	{
-		_style = "";
 		StateHasChanged();
 		try { _timer?.Start(); } catch (ObjectDisposedException) { }
 	}
@@ -75,7 +73,7 @@
 	/// </summary>
 	private void Hide()
 	{
-		_style = CSS;
+		_message = null;
 		StateHasChanged();
 	}
 
@@ -84,7 +82,7 @@
 	/// </summary>
 	private void Close()
 	{
-		_style = CSS;
+		_message = null;
 		_timer?.Stop(); // This probably happens before elapsed is called, so we need to stop the timer.
 	}
 
