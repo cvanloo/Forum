@@ -4,10 +4,10 @@ using System.Linq.Expressions;
 namespace Forum.Model
 {
 	/// <summary>
-	/// TODO: ?
+	/// Provides methods to modify an expression tree.
 	/// For reference see: https://www.c-sharpcorner.com/UploadFile/04fe4a/predicate-combinators-in-linq/
 	/// </summary>
-	/// <typeparam name="TResult">TODO: ?</typeparam>
+	/// <typeparam name="TResult">Type of the result the expression has to return.</typeparam>
 	public class ReplaceParameterVisitor<TResult> : ExpressionVisitor
 	{
 		/* NOTE: The `ExpressionVisitor` is a class designed to be inherited to create more
@@ -28,8 +28,8 @@ namespace Forum.Model
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="parameter">TODO: ?</param>
-		/// <param name="replacement">TODO: ?</param>
+		/// <param name="parameter">Parameter to keep.</param>
+		/// <param name="replacement">Parameter to replace if common.</param>
 		public ReplaceParameterVisitor(ParameterExpression parameter, Expression replacement)
 		{
 			_parameter = parameter;
@@ -51,6 +51,11 @@ namespace Forum.Model
 			return Expression.Lambda<TResult>(Visit(node.Body), parameters);
 		}
 
+		/// <summary>
+		/// Get the new parameter.
+		/// </summary>
+		/// <param name="node">The old parameter.</param>
+		/// <returns>The old parameter, if it is unique, else an empty parameter.</returns>
 		protected override Expression VisitParameter(ParameterExpression node)
 		{
 			return node == _parameter ? _replacement : base.VisitParameter(node);

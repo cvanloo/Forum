@@ -47,13 +47,15 @@ namespace Forum.Controller
 				var token = await _jsRuntime.InvokeAsync<string>("sessionStorage.getItem", "SESSION_ID");
 
 				// Not important to check if token is null or empty
-				_cachedUser = _userService.GetUserFromSessionToken(token);
+				var user = _userService.GetUserFromSessionToken(token);
 
-				if (_cachedUser is null)
+				if (user is null)
 				{
 					// Empty authentication-state equals "not logged in".
 					return await Task.FromResult(new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity())));
 				}
+
+				_cachedUser = user;
 			}
 
 			var identity = SetupClaims(_cachedUser);

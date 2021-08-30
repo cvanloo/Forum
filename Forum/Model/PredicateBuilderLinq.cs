@@ -45,17 +45,19 @@ namespace Forum.Model
 			return t => false; // returns a function that takes a parameter of type `T` and always returns `false`.
 		}
 
-		// v-- TODO: ? --v
-		
 		/// <summary>
 		/// Get the new (right-hand side) predicate containing only its unique parameters. (Remove the common
-		/// parameters).
+		/// parameter).
 		/// </summary>
-		/// <param name="left"></param>
-		/// <param name="right"></param>
-		/// <typeparam name="T"></typeparam>
-		/// <typeparam name="TResult"></typeparam>
-		/// <returns></returns>
+		/// <param name="left">Left-hand side operator.</param>
+		/// <param name="right">Right-hand side operator.</param>
+		/// <typeparam name="T">Type of the object to compare.</typeparam>
+		/// <typeparam name="TResult">Result that the expression has to return.</typeparam>
+		/// <returns>
+		/// The right-hand side predicate as an in-memory representation of a delegate that describes a function which
+		/// takes a value of type `T` and returns a result of type `TResult`, stored in a expression tree, with the
+		/// common parameter removed.
+		/// </returns>
 		private static Expression<Func<TResult>> WithParametersOf<T, TResult>(this Expression<Func<T, TResult>> left,
 			Expression<Func<T, TResult>> right)
 		{
@@ -69,8 +71,8 @@ namespace Forum.Model
 		/// <param name="right">Right-hand side operator.</param>
 		/// <typeparam name="T">Type of the object to compare.</typeparam>
 		/// <returns>
-		/// An in-memory representation of a delegate that describes a function which takes a value `T` and returns a
-		/// `bool`, stored in an expression tree.
+		/// An in-memory representation of a delegate that describes a function which takes a value of type `T` and
+		/// returns a `bool`, stored in an expression tree.
 		/// </returns>
 		public static Expression<Func<T, bool>> And<T>(this Expression<Func<T, bool>> left,
 			Expression<Func<T, bool>> right)
@@ -90,8 +92,8 @@ namespace Forum.Model
 		/// <param name="right">Right-hand side operator.</param>
 		/// <typeparam name="T">Type of the object to compare.</typeparam>
 		/// <returns>
-		/// An in-memory representation of a delegate that describes a function which takes a value `T` and returns a
-		/// `bool`, stored in an expression tree.
+		/// An in-memory representation of a delegate that describes a function which takes a value of type`T` and
+		/// returns a `bool`, stored in an expression tree.
 		/// </returns>
 		public static Expression<Func<T, bool>> Or<T>(this Expression<Func<T, bool>> left,
 			Expression<Func<T, bool>> right)
@@ -107,7 +109,7 @@ namespace Forum.Model
 			//
 			// Removing the common parameter first:
 			// t => false + t.Tags.Contains(value(Forum.Model.SearchQuery_1).tag) results in:
-			// = t => false OrElse t.Tags.Contains(value(Forum.Model.SearchQuery_1).tag)
+			// t => false OrElse t.Tags.Contains(value(Forum.Model.SearchQuery_1).tag)
 			return Expression.Lambda<Func<T, bool>>(Expression.OrElse(left.Body, right.WithParametersOf(left).Body),
 				left.Parameters);
 		}
