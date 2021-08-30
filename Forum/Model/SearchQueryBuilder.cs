@@ -3,6 +3,7 @@ using Forum.Entity;
 
 namespace Forum.Model
 {
+	// TODO: Interface
 	public class SearchQueryBuilder
 	{
 		private SearchQuery _searchQuery;

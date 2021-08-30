@@ -19,6 +19,7 @@ namespace Forum.Data
 			_dbContextFactory = dbContextFactory;
 		}
 		
+		/// <inheritdoc cref="IChatService.FindChat"/>
 		public Chat FindChat(User user1, User user2)
 		{
 			using var dbContext = _dbContextFactory.CreateDbContext();
@@ -29,16 +30,19 @@ namespace Forum.Data
 			return dbContext.Chats.FirstOrDefault(c => c.Participants.Contains(p1) && c.Participants.Contains(p2));
 		}
 
+		/// <inheritdoc cref="IChatService.Subscribe"/>
 		public void Subscribe(IChatService.MsgHandler msgHandler)
 		{
 			_msgHandlers.Add(msgHandler);
 		}
 
+		/// <inheritdoc cref="IChatService.Unsubscribe"/>
 		public void Unsubscribe(IChatService.MsgHandler msgHandler)
 		{
 			_msgHandlers.Remove(msgHandler);
 		}
 
+		/// <inheritdoc cref="IChatService.GetMessages"/>
 		public ICollection<ChatMessage> GetMessages(Chat chat)
 		{
 			using var dbContext = _dbContextFactory.CreateDbContext();
@@ -49,6 +53,7 @@ namespace Forum.Data
 				.First(c => c.Id == chat.Id).Messages;
 		}
 
+		/// <inheritdoc cref="IChatService.SendMessage"/>
 		public void SendMessage(Chat chat, ChatMessage message)
 		{
 			using var dbContext = _dbContextFactory.CreateDbContext();

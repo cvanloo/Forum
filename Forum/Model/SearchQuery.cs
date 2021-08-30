@@ -6,10 +6,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Forum.Model
 {
+	// TODO: Base class
 	public class SearchQuery
 	{
-		public List<string> TitleStrings = new();
-		public List<Tag> Tags = new();
+		public List<string> TitleStrings { get; set; } = new();
+		public List<Tag> Tags { get; set; } = new();
 		public List<User> Users { get; set; } = new();
 		public SortOrder SortBy { get; set; } = SortOrder.NewestFirst;
 		public DateTime? TimeStamp { get; set; }  = null;
@@ -35,14 +36,14 @@ namespace Forum.Model
 			 * // `threadQuery` never holds the actual results of the query and can be
 			 * // reused to retrieve from an updated state of the database.
 			 * var threadQuery =
-			 * 	from thr in threads
-			 * 	where thr.Title == "test"
-			 * 	select thr;
+			 *     from thr in threads
+			 *     here thr.Title == "test"
+			 *     elect thr;
 
 			 * // 3. Query execution, elements are retrieved (deferred execution)
 			 * foreach (var t in threadQuery)
 			 * {
-			 * 	// ...
+			 * 	   // ...
 			 * }
 			 *
 			 * // Queries like `Count`, `Max` and `First`, as well as `ToList` and `ToArray` force

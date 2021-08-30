@@ -48,6 +48,7 @@ namespace Forum.Model
 			var parameters = node.Parameters.Where(p => p != _parameter);
 			
 			// Create a new expression using only `node`s unique parameters.
+			// NOTE: The `base.Visit` invokes `ReplaceParameterVisitor.VisitParameter`.
 			return Expression.Lambda<TResult>(Visit(node.Body), parameters);
 		}
 

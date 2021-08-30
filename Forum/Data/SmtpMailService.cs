@@ -5,10 +5,7 @@ namespace Forum.Data
 {
 	public class SmtpMailService : IMailService
 	{
-		/// <summary>
-		/// Send an email.
-		/// </summary>
-		/// <param name="message">Email to send</param>
+		/// <inheritdoc cref="IMailService.SendAsync"/>
 		public async Task SendAsync(Model.Message message)
 		{
 			using var smtp = new SmtpClient();

@@ -6,6 +6,8 @@ namespace Forum.Entity
 {
     public class Thread
     {
+        //private bool isDeleted;
+        
         [Key,Required]
         public int Id { get; set; }
 
@@ -25,8 +27,22 @@ namespace Forum.Entity
         [Required]
         public bool IsArchived { get; set; }
 
-        [Required]
-        public bool IsDeleted { get; set; }
+       [Required]
+       public bool IsDeleted { get; set; }
+
+       /*[Required]
+       public bool IsDeleted
+       {
+	       get
+	       {
+		       if (Forum.IsDeleted) return true;
+		       return isDeleted;
+	       }
+	       set
+	       {
+		       isDeleted = value;
+	       }
+       }*/
 
         public ICollection<Comment> Comments { get; set; }
 

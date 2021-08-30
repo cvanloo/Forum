@@ -4,7 +4,14 @@
 
 <div @onclick="OpenThread" style="cursor: pointer" class="needs-padding shiny">
 	<p class="p-annotation-sm">
-		@ThreadModel.Creator.AccountName@@@ThreadModel.Forum.Name
+		@{
+			var forumName = ThreadModel.Forum.Name;
+			if (ThreadModel.Forum.IsDeleted)
+			{
+				forumName += " [Deleted]";
+			}
+		}
+		@ThreadModel.Creator.AccountName@@@forumName
 		@ThreadModel.Created.ToString("t"), @ThreadModel.Created.ToString("d")
 	</p>
 	<h5>@ThreadModel.Title</h5>

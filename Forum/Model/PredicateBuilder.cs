@@ -17,6 +17,7 @@ namespace Forum.Model
 		/// <returns>A delegate that describes a function which takes a value `T` and returns a `bool`.</returns>
 		public static Func<T, bool> True<T>()
 		{
+			// ReSharper disable once UnusedParameter.Local
 			return t => true; // returns a function that takes a parameter of type `T` and always returns `true`.
 		}
 
@@ -27,6 +28,7 @@ namespace Forum.Model
 		/// <returns>A delegate that describes a function which takes a value `T` and returns a `bool`.</returns>
 		public static Func<T, bool> False<T>()
 		{
+			// ReSharper disable once UnusedParameter.Local
 			return t => false; // returns a function that takes a parameter of type `T` and always returns `false`.
 		}
 

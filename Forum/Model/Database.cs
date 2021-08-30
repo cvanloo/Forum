@@ -22,9 +22,9 @@ namespace Forum.Model
         public DbSet<PwReset> PwResets { get; set; }
         // ReSharper disable once UnusedAutoPropertyAccessor.Global
         public DbSet<Tag> Tags { get; set; }
-        // ReShaper disable once UnusedAutoPropertyAccessor.Global
+        // ReSharper disable once UnusedAutoPropertyAccessor.Global
         public DbSet<Setting> Settings { get; set; }
-        // ReShaper disable once UnusedAutoPropertyAccessor.Global
+        // ReSharper disable once UnusedAutoPropertyAccessor.Global
         public DbSet<Chat> Chats { get; set; }
 
         /// <summary>

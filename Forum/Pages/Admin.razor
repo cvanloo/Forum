@@ -165,7 +165,8 @@
         await using var dbContext = DbContext.CreateDbContext();
 
         var forum = dbContext.Forums.First(f => f.Id == _selectedForumId);
-        dbContext.Forums.Remove(forum);
+
+        forum.IsDeleted = true;
 
         try
         {

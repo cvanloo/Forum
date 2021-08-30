@@ -33,8 +33,8 @@
 	[Parameter]
 	public Entity.Comment Comment { get; set; }
 	
-	// In order to update the view and display the new comment, we take a function here that allows us to update the
-	// parent element.
+	// In order to update the view and display the new comment, we take a function here that allows us to notify/update
+	// the parent element.
 	[Parameter]
 	public Update UpdateHandler { get; set; }
 
@@ -46,7 +46,7 @@
 	/// </summary>
 	private async Task CreateCommentAsync()
 	{
-		if (string.IsNullOrEmpty(_comment)) return;
+		if (Thread.IsDeleted || string.IsNullOrEmpty(_comment)) return;
 
 		var authState = await AuthenticationStateTask;
 		await using var dbContext = DbContext.CreateDbContext();

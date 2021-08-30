@@ -79,7 +79,14 @@
 	<div class="container-right fix-right">
 		<div class="main needs-padding">
 			<img width="100" height="100" src="/css/icons/Default.jpg" alt="Forum Image" />
-			<h5>@_thread.Forum.Name</h5>
+			@{
+				var forumName = _thread.Forum.Name;
+				if (_thread.Forum.IsDeleted)
+				{
+					forumName += " [Deleted]";
+				}
+			}
+			<h5>@forumName</h5>
 			<p class="p-annotation-sm">@_thread.Forum.Members.Count Mem. / Created @_thread.Forum.Created.ToString("d")</p>
 			<pre style="color: #ebdbb2;">@_thread.Forum.Description</pre>
 			@{ var followText = _followsForum ? "Unfollow" : "Follow"; }
@@ -136,7 +143,8 @@ else
 		
 		var user = dbContext.Users
 			.Include(u => u.SavedThreads)
-			.Include(u => u.Forums).AsSplitQuery()
+			.Include(u => u.Forums)
+			.AsSplitQuery()
 			.First(u => u.AccountName == _authState.User.Identity.Name);
 
 		// Get the thread from the same db context

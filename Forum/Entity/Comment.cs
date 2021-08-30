@@ -8,6 +8,8 @@ namespace Forum.Entity
 {
     public class Comment
     {
+        //private bool isDeleted;
+        
         [Key,Required]
         public int Id { get; set; }
 
@@ -34,6 +36,20 @@ namespace Forum.Entity
 
         [Required]
         public bool IsDeleted { get; set; }
+
+        /*[Required]
+        public bool IsDeleted
+        {
+            get
+            {
+                if (Thread.IsDeleted) return true;
+                return isDeleted;
+            }
+            set
+            {
+                isDeleted = value;
+            }
+        }*/
 
         /// <summary>
         /// Recursively counts its children, including itself.
