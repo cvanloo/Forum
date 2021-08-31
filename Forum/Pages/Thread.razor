@@ -1,6 +1,7 @@
 ﻿@page "/thread/{Id:int}"
 @attribute [Authorize]
 @using System.IO
+@using Markdig.Extensions.ListExtras
 @* ReSharper disable once InconsistentNaming *@
 @inject NavigationManager NavMan
 @* ReSharper disable once InconsistentNaming *@
@@ -25,7 +26,7 @@
  *@
 @if (_thread is not null)
 {
-	<div class="container-middle">
+	<div class="container-middle" style="overflow: hidden;">
 		<div class="main needs-padding">
 			<p class="p-annotation-sm">
 				<a href="/user/@_thread.Creator.AccountName">@_thread.Creator.AccountName</a>
@@ -50,7 +51,8 @@
 			@* Number of Pages, 20 Comments per Page
 		     * ( number_of_comments + comments_per_page - 1 ) / comments_per_page
 		     *@
-			<p class="p-annotation-sm needs-space-lr">@_thread.Comments.Count Comments (@((_thread.Comments.Count + 19) / 20) Pages)</p>
+			@*<p class="p-annotation-sm needs-space-lr">@_thread.Comments.Count Comments (@((_thread.Comments.Count + 19) / 20) Pages)</p>*@
+			<p class="p-annotation-sm needs-space-lr">@_thread.Comments.Count Comment(s)</p>
 			<p @onclick="CopyLinkAsync" class="p-annotation-sm needs-space-lr clickable shiny">@_copyLabel</p>
 			<p @onclick="SaveThreadAsync" class="p-annotation-sm needs-space-lr clickable shiny">@(_saved ? "Saved!" : "Save")</p>
 			@{
@@ -62,18 +64,18 @@
 			@if (!thread.IsDeleted &&
 			     thread.Creator == dbContext.Users.First(u => u.AccountName == _authState.User.Identity.Name))
 			{
-				<p @onclick="DeleteAsync" class="p-annotation-sm needs-space-lr clickable shiny">Delete</p>
+				<p @onclick="DeleteThreadAsync" class="p-annotation-sm needs-space-lr clickable shiny">Delete</p>
 			}
-			@{dbContext.Dispose();}
+			@{ dbContext.Dispose(); }
 		</div>
 		<div class="main">
-			<CommentField Thread="@_thread" UpdateHandler="UpdateAsync"/>
+			<CommentField Thread="@_thread" UpdateHandler="UpdatePageAsync"/>
 		</div>
 		@foreach (var c in _thread.Comments)
 		{
 			if (c.Parent is not null) continue;
 
-			<Comment CommentModel="c" UpdateHandler="UpdateAsync"/>
+			<Comment CommentModel="c" UpdateHandler="UpdatePageAsync"/>
 		}
 	</div>
 	<div class="container-right fix-right">
@@ -121,7 +123,7 @@ else
 
 	protected override async Task OnInitializedAsync()
 	{
-		await UpdateAsync();
+		await UpdatePageAsync();
 	}
 
 	/// <summary>
@@ -211,7 +213,7 @@ else
 	/// <summary>
 	/// Deletes the post.
 	/// </summary>
-	private async Task DeleteAsync()
+	private async Task DeleteThreadAsync()
 	{
 		await using var dbContext = DbContext.CreateDbContext();
 
@@ -253,7 +255,7 @@ else
 	/// <summary>
 	/// Updates the page.
 	/// </summary>
-	private async Task UpdateAsync()
+	private async Task UpdatePageAsync()
 	{
 		await using var dbContext = DbContext.CreateDbContext();
 

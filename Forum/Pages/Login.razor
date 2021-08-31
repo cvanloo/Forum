@@ -14,7 +14,7 @@
 	<AuthorizeView>
 		@* ReSharper disable once UnusedParameter.Local*@
 		<NotAuthorized Context="auth">
-			<EditForm OnValidSubmit="SignIn" Model="_loginModel">
+			<EditForm OnValidSubmit="SignInAsync" Model="_loginModel">
 				<DataAnnotationsValidator />
 				<div class="col">
 					<h3 class="mt-2">Login</h3>
@@ -42,7 +42,7 @@
 					<p>Confirm logout.</p>
 					<div class="row">
 						<button @onclick='() => NavMan.NavigateTo("/")' class="btn-col-dark accent-light btn-left">Home</button>
-						<button class="btn-col-dark accent-dark btn-right" @onclick="LogOut">Log Out</button>
+						<button class="btn-col-dark accent-dark btn-right" @onclick="LogOutAsync">Log Out</button>
 					</div>
 				</div>
 			</div>
@@ -59,7 +59,7 @@
 	/// <summary>
 	/// Log user in.
 	/// </summary>
-	private async Task SignIn()
+	private async Task SignInAsync()
 	{
 		try
 		{
@@ -71,10 +71,13 @@
 			var uriBuilder = new UriBuilder(NavMan.Uri);
 			var url = System.Web.HttpUtility.ParseQueryString(uriBuilder.Query);
 			var returnUrl = url["returnUrl"] ?? "/";
+			
 			// Validate url, NOTE: Good enough ¯\_(ツ)_/¯
 			var regex = new Regex(".*:?//");
-			if (!regex.IsMatch(returnUrl))
-				NavMan.NavigateTo(returnUrl);
+			if (regex.IsMatch(returnUrl))
+				returnUrl = "/";
+			
+			NavMan.NavigateTo(returnUrl);
 		}
 		catch (UserService.LoginException lEx)
 		{
@@ -88,7 +91,7 @@
 	/// <summary>
 	/// Log user out.
 	/// </summary>
-	private async Task LogOut()
+	private async Task LogOutAsync()
 	{
 		await ((Forum.Controller.AuthenticationStateController)AuthProvider).Logout();
 	}

@@ -20,7 +20,7 @@
 </style>
 
 <div class="main text-center mt-5 ml-auto mr-auto form-bigger">
-	<EditForm OnValidSubmit="UpdateAccount" Model="_preferencesModel" class="form-bigger">
+	<EditForm OnValidSubmit="UpdateAccountAsync" Model="_preferencesModel" class="form-bigger">
 		<DataAnnotationsValidator />
 		<div class="col">
 			<h3 class="mt-2">User Preferences</h3>
@@ -83,7 +83,7 @@
 	/// <summary>
 	/// Update user preferences.
 	/// </summary>
-	private async Task UpdateAccount()
+	private async Task UpdateAccountAsync()
 	{
 		await using var dbContext = DbContext.CreateDbContext();
 		var authState = await AuthenticationStateTask;

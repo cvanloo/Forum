@@ -38,17 +38,17 @@
 				{
 					<ThreadPreview ThreadModel="thread" />
 				}
-				<button @onclick="LoadMore" style="width: 100%;" class="btn-col-light btn-norm">Load more</button>
+				<button @onclick="LoadMoreAsync" style="width: 100%;" class="btn-col-light btn-norm">Load more</button>
 			</div>
 		</div>
 		<div class="container-right fix-right">
 			<div class="main needs-padding">
 				<p>Sort by:</p>
                 <div class="row btn-select">
-                	<button @onclick="SortByNew" class="btn-col-light btn-hover-accent btn-left @(_sortBy == Model.SearchQuery.SortOrder.NewestFirst ? "btn-active" : "")">New</button>
-                	<button @onclick="SortByOld" class="btn-col-light btn-hover-accent btn-right @(_sortBy == Model.SearchQuery.SortOrder.OldestFirst ? "btn-active" : "")">Old</button>
+                	<button @onclick="SortByNewAsync" class="btn-col-light btn-hover-accent btn-left @(_sortBy == Model.SearchQuery.SortOrder.NewestFirst ? "btn-active" : "")">New</button>
+                	<button @onclick="SortByOldAsync" class="btn-col-light btn-hover-accent btn-right @(_sortBy == Model.SearchQuery.SortOrder.OldestFirst ? "btn-active" : "")">Old</button>
                 </div>
-                <button @onclick="ShowSaved" class="btn-col-light btn-hover-accent btn-right btn-left @(_savedOnly ? "btn-active" : "")" style="width: 100%; @(_savedOnly ? "background: #98971A;" : "")" >Saved Threads</button>
+                <button @onclick="ShowSavedAsync" class="btn-col-light btn-hover-accent btn-right btn-left @(_savedOnly ? "btn-active" : "")" style="width: 100%; @(_savedOnly ? "background: #98971A;" : "")" >Saved Threads</button>
 			</div>
 			<div class="main row">
 				<form @onsubmit="NavSearch">
@@ -68,7 +68,7 @@
 	private string _searchQuery;
 	private bool _savedOnly;
 	private Model.SearchQuery.SortOrder _sortBy = Model.SearchQuery.SortOrder.NewestFirst;
-	private List<Entity.Thread> _threads = new();
+	private List<Entity.Thread> _threads = new(); // TODO: IQueryable, lazy loading
 
 	private Model.SearchQueryBuilder _cachedQueryBuilder;
 	
@@ -104,7 +104,7 @@
 
 		_locationChangedHandler = (_, _) =>
 		{
-			InvokeAsync(UpdatePage);
+			InvokeAsync(UpdatePageAsync);
 			StateHasChanged();
 		};
 
@@ -112,24 +112,24 @@
 		// `OnInitialized` is not called again. Instead we need to listen for the `LocationChanged`-event.
 		NavMan.LocationChanged += _locationChangedHandler; 
 		
-		await UpdatePage();
+		await UpdatePageAsync();
 	}
 
 	/// <summary>
 	/// Update the page.
 	/// </summary>
-	private async Task UpdatePage()
+	private async Task UpdatePageAsync()
 	{
 		var query = SearchQuery;
 		_threads.Clear(); // New search query, delete old results first
 
-		await Search(query);
+		await SearchAsync(query);
 	}
 
 	/// <summary>
 	/// Loads more threads.
 	/// </summary>
-	private async Task LoadMore()
+	private async Task LoadMoreAsync()
 	{
 		// Don't create the query again, reuse the old one
 		await using var dbContext = DbContext.CreateDbContext();
@@ -145,7 +145,7 @@
 	/// Queries and retrieves the searched elements from the database.
 	/// </summary>
 	/// <param name="query">Search query</param>
-	private async Task Search(string query)
+	private async Task SearchAsync(string query)
 	{
 		await using var dbContext = DbContext.CreateDbContext();
 		
@@ -218,25 +218,25 @@
 	/// <summary>
 	/// Change sort order to "newest first".
 	/// </summary>
-	private async Task SortByNew()
+	private async Task SortByNewAsync()
 	{
 		_sortBy = Model.SearchQuery.SortOrder.NewestFirst;
-		await UpdatePage();
+		await UpdatePageAsync();
 	}
 
 	/// <summary>
 	/// Change sort order to "oldest first".
 	/// </summary>
-	private async Task SortByOld()
+	private async Task SortByOldAsync()
 	{
 		_sortBy = Model.SearchQuery.SortOrder.OldestFirst;
-		await UpdatePage();
+		await UpdatePageAsync();
 	}
 
-	private async Task ShowSaved()
+	private async Task ShowSavedAsync()
 	{
 		_savedOnly = !_savedOnly;
-		await UpdatePage();
+		await UpdatePageAsync();
 	}
 	
 	/// <summary>

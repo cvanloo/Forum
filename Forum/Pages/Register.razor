@@ -15,7 +15,7 @@
 @inject IDbContextFactory<Model.Database> DbContext
 
 <div class="main text-center mt-5 ml-auto mr-auto form-bigger">
-	<EditForm class="form-bigger" Model="@_registerModel" OnValidSubmit="CreateAccount">
+	<EditForm class="form-bigger" Model="@_registerModel" OnValidSubmit="CreateAccountAsync">
 		<DataAnnotationsValidator/>
 		@*<ValidationSummary />*@
 		<div class="col">
@@ -59,7 +59,7 @@
 	/// <summary>
 	/// Crates a new account.
 	/// </summary>
-	private async Task CreateAccount()
+	private async Task CreateAccountAsync()
 	{
 		await using var dbContext = DbContext.CreateDbContext();
 		
