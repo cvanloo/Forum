@@ -77,7 +77,13 @@
 		var tags = Entity.Tag.ParseTags(dbContext, _createThreadModel.Tags);
 		var forum = dbContext.Forums
 			.Include(f => f.Members)
-			.First(f => f.Id == _createThreadModel.ForumId);
+			.FirstOrDefault(f => f.Id == _createThreadModel.ForumId);
+
+		if (forum is null)
+		{
+			MessageService.Message = "No forum selected.";
+			return;
+		}
 
 		var newThread = new Entity.Thread
 		{
