@@ -32,9 +32,10 @@
 	<span>
 		<MarkdownView Content="@CommentModel.Text" />
 		<button class="btn-mini btn-w-auto" @onclick="ToggleCommentField">Answer</button>
-		<div class="@_cfClass">
-			<CommentField Thread="@CommentModel.Thread" Comment="@CommentModel" UpdateHandler="UpdateHandler"/>
-		</div>
+		@if (_showCommentField)
+		{
+			<CommentField Thread="@CommentModel.Thread" Comment="@CommentModel" UpdateHandler="UpdateHandlerComponent"/>
+		}
 
 		@* ReSharper disable once UnusedVariable *@
 		@if (CommentModel.Childs is not null)
@@ -48,7 +49,7 @@
 </div>
 
 @code {
-	private string _cfClass = "hidden";
+	private bool _showCommentField = false;
 	private string _collapseClass = "";
 	private string _clpMsg = "-";
 
@@ -63,10 +64,8 @@
 	/// </summary>
 	private void ToggleCommentField()
 	{
-		if ("" == _cfClass)
-			CloseCommentField();
-		else
-			OpenCommentField();
+		_showCommentField = !_showCommentField;
+		StateHasChanged();
 	}
 
 	/// <summary>
@@ -74,7 +73,7 @@
 	/// </summary>
 	private void CloseCommentField()
 	{
-		_cfClass = "hidden";
+		_showCommentField = false;
 	}
 
 	/// <summary>
@@ -82,7 +81,7 @@
 	/// </summary>
 	private void OpenCommentField()
 	{
-		_cfClass = "";
+		_showCommentField = true;
 	}
 
 	/// <summary>
@@ -102,16 +101,9 @@
 		}
 	}
 
-	/// <summary>
-	/// Invoked after each time the component has been rendered.
-	/// </summary>
-	protected override void OnAfterRender(bool firstRender)
+	private async Task UpdateHandlerComponent()
 	{
-		// After the user commented, the `CommentField` will call the `UpdateHandler` from
-		// the `Thread` the comment belongs to. This will update the entire `Thread`.
-		// Make sure to close the `CommentField` after the user commented.
 		CloseCommentField();
-		
-		base.OnAfterRender(firstRender);
+		await UpdateHandler();
 	}
 }

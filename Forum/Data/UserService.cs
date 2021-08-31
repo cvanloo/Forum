@@ -14,8 +14,15 @@ namespace Forum.Data
 
 		public class LoginException : Exception
 		{
+			/// <summary>
+			/// A message describing why the login process failed.
+			/// </summary>
 			public new string Message { get; }
 			
+			/// <summary>
+			/// Constructor
+			/// </summary>
+			/// <param name="message">A message describing why the login process failed.</param>
 			public LoginException(string message)
 			{
 				Message = message;
@@ -50,19 +57,19 @@ namespace Forum.Data
 			User user;
 
 			if (identifier.Contains('@'))
-			{
+			{ // Identify via email address
 				user = db.Users
 					.Include(u => u.Settings)
 					.FirstOrDefault(u => u.Email == identifier);
 			}
 			else
-			{
+			{ // Identify via account name
 				user = db.Users
 					.Include(u => u.Settings)
 					.FirstOrDefault(u => u.AccountName == identifier);
 			}
 
-			if (user is null) throw new LoginException("User not found.");
+			if (user is null) throw new LoginException("This account does not exist.");
 			
 			if (!BCrypt.Net.BCrypt.EnhancedVerify(password, user.PwHash))
 				throw new LoginException("Wrong password.");
@@ -86,7 +93,7 @@ namespace Forum.Data
 		/// <returns>The session token.</returns>
 		public string StoreSessionToken(User user)
 		{
-			RemoveSession(user);
+			RemoveSession(user); // Delete old session(s)
 
 			using var db = _dbContext.CreateDbContext();
 

@@ -45,11 +45,13 @@
                             <option value="@forum.Id">@forum.Name</option>
                         }
                     </select>
-                    @{ var selectedForum = _fora.First(f => f.Id == _selectedForumId);}
-                    <p>Created: @selectedForum.Created</p>
-                    <p>Membercount: @selectedForum.Members.Count</p>
-                    <p>Threadcount: @selectedForum.Threads.Count</p>
-                    <textarea class="form-control" @bind="_updateForumDescription" >@selectedForum.Description</textarea>
+                    @{
+                        var selectedForum = _fora.FirstOrDefault(f => f.Id == _selectedForumId);
+                    }
+                    <p>Created: @selectedForum?.Created</p>
+                    <p>Membercount: @selectedForum?.Members.Count</p>
+                    <p>Threadcount: @selectedForum?.Threads.Count</p>
+                    <textarea class="form-control" @bind="_updateForumDescription" >@selectedForum?.Description</textarea>
                     <div class="row">
                         <button class="accent-light btn-left" @onclick="DeleteForumAsync">Delete Forum</button>
                         <button class="accent-dark btn-right" @onclick="UpdateForumAsync">Update Forum</button>
@@ -139,7 +141,10 @@
     {
         await using var dbContext = DbContext.CreateDbContext();
 
-        var forum = dbContext.Forums.First(f => f.Id == _selectedForumId);
+        var forum = dbContext.Forums.FirstOrDefault(f => f.Id == _selectedForumId);
+
+        if (forum is null) return;
+        
         forum.Description = _updateForumDescription;
 
         try
@@ -164,7 +169,9 @@
     {
         await using var dbContext = DbContext.CreateDbContext();
 
-        var forum = dbContext.Forums.First(f => f.Id == _selectedForumId);
+        var forum = dbContext.Forums.FirstOrDefault(f => f.Id == _selectedForumId);
+
+        if (forum is null) return;
 
         forum.IsDeleted = true;
 

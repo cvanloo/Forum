@@ -131,6 +131,8 @@
 	/// </summary>
 	private async Task LoadMoreAsync()
 	{
+		if (!_threads.Any()) return;
+		
 		// Don't create the query again, reuse the old one
 		await using var dbContext = DbContext.CreateDbContext();
 		
