@@ -40,15 +40,33 @@
 		@* ReSharper disable once UnusedVariable *@
 		@if (CommentModel.Childs is not null)
 		{
-			@foreach (var c in CommentModel.Childs)
+			// Don't load if number of parents is too big.
+			@if (CommentModel.CountParents > LoadPerm)
 			{
-				<Comment CommentModel="c" UpdateHandler="UpdateHandler" />
+				<p @onclick="LoadMore" class="shiny p-annotation-sm">Load more comments.</p>
+			}
+			else
+			{
+				@foreach (var c in CommentModel.Childs)
+				{
+					<Comment CommentModel="c" UpdateHandler="UpdateHandler" LoadPerm="LoadPerm"/>
+				}
 			}
 		}
+		
+		@*@if (_children is not null)
+		{
+			@foreach (var c in _children)
+			{
+				<Comment CommentModel="c" UpdateHandler="UpdateHandler"/>
+			}
+			<p @onclick="LoadMore" class="shiny p-annotation-sm">Load more comments.</p>
+		}*@
 	</span>
 </div>
 
 @code {
+	//private List<Entity.Comment> _children = new(); 
 	private bool _showCommentField = false;
 	private string _collapseClass = "";
 	private string _clpMsg = "-";
@@ -58,6 +76,14 @@
 	
 	[Parameter]
 	public CommentField.Update UpdateHandler { get; set; }
+
+	[Parameter]
+	public int LoadPerm { get; set; } = 10-1;
+
+	/*protected override async Task OnInitializedAsync()
+	{
+		ReloadComments();
+	}*/
 
 	/// <summary>
 	/// Toggles visibility of the comment field.
@@ -101,9 +127,67 @@
 		}
 	}
 
+	/// <summary>
+	/// Update the comment/thread.
+	/// </summary>
 	private async Task UpdateHandlerComponent()
 	{
 		CloseCommentField(); // Add our own action to the update handler
 		await UpdateHandler(); // Propagate event to parent
 	}
+
+	/// <summary>
+	/// Load more child comments.
+	/// </summary>
+	private void LoadMore()
+	{
+		LoadPerm += 10;
+	}
+
+	/*/// <summary>
+	/// Reload all currently loaded comments. If there are non, load the first 20.
+	/// </summary>
+	private void ReloadComments()
+	{
+		if (CommentModel.Childs is null || !CommentModel.Childs.Any()) return;
+		
+		var last = _children.LastOrDefault()?.Created;
+
+		if (last is null)
+		{ // When there are no comments yet, simply load the first 20.
+			_children = CommentModel.Childs
+				.OrderBy(c => c.Created)
+				.Take(20)
+				.ToList();
+		}
+		else
+		{ // When there already are comments, load all of them again.
+			_children = CommentModel.Childs
+				.OrderBy(c => c.Created)
+				.Where(c => c.Created <= last)
+				.ToList();
+		}
+	}
+
+	/// <summary>
+	/// Load the next 20 comments.
+	/// </summary>
+	private void LoadMore()
+	{
+		if (CommentModel.Childs is null || !CommentModel.Childs.Any()) return;
+		
+		var lastAfterReload = _children.LastOrDefault()?.Created;
+
+		if (lastAfterReload is null) return;
+
+		// Add the next 20 comments
+		_children.AddRange(CommentModel.Childs
+			.OrderBy(c => c.Created)
+			.Where(c => c.Created > lastAfterReload)
+			.Take(20)
+			.ToList()
+			);
+
+		StateHasChanged();
+	}*/
 }

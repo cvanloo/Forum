@@ -40,14 +40,10 @@
 
 		var tags = dbContext.Tags.Include(t => t.Threads).ToList();
 
-		if (tags.Count == 0) return;
-		
 		tags.Sort();
 
-		try
-		{
-			_tags = tags.GetRange(0, 3);
-		}
-		catch (ArgumentException) { }
+		var limit = tags.Count < 3 ? tags.Count : 3;
+
+		_tags = tags.GetRange(0, limit);
 	}
 }

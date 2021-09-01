@@ -72,5 +72,19 @@ namespace Forum.Entity
                 //return count;
             }
         }
+
+        /// <summary>
+        /// Recursively counts its children, including itself.
+        /// </summary>
+        [NotMapped]
+        public int CountParents
+        {
+            get
+            {
+                if (Parent is null) return 1;
+
+                return 1 + Parent.CountParents;
+            }
+        }
     }
 }

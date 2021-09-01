@@ -139,8 +139,8 @@
 		await MailService.SendAsync(new Model.Message
 		{
 			From = "user@domain.ch",
-			Subject = "New Post From " + thread.Creator.DisplayName,
-			Body = thread.Creator.DisplayName + ": " + thread.Title + " -- localhost:5000/thread/" + thread.Id,
+			Subject = "New Post From " + thread.Creator.AccountName,
+			Body = thread.Creator.AccountName + ": " + thread.Title + " -- localhost:5000/thread/" + thread.Id,
 			To = followerUser
 		});
 	}

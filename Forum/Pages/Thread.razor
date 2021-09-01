@@ -1,7 +1,6 @@
 ﻿@page "/thread/{Id:int}"
 @attribute [Authorize]
 @using System.IO
-@using Markdig.Extensions.ListExtras
 @* ReSharper disable once InconsistentNaming *@
 @inject NavigationManager NavMan
 @* ReSharper disable once InconsistentNaming *@
@@ -71,16 +70,17 @@
 		<div class="main">
 			<CommentField Thread="@_thread" UpdateHandler="UpdatePageAsync"/>
 		</div>
-		@foreach (var c in _thread.Comments)
+		@foreach (var c in _comments)
 		{
 			if (c.Parent is not null) continue;
 
 			<Comment CommentModel="c" UpdateHandler="UpdatePageAsync"/>
 		}
+		<p @onclick="LoadMore" class="shiny p-annotation-sm">Load more comments.</p>
 	</div>
 	<div class="container-right fix-right">
 		<div class="main needs-padding">
-			<img width="100" height="100" src="/css/icons/Default.jpg" alt="Forum Image" />
+			@* <img width="100" height="100" src="/css/icons/Default.jpg" alt="Forum Image" /> *@
 			@{
 				var forumName = _thread.Forum.Name;
 				if (_thread.Forum.IsDeleted)
@@ -113,6 +113,7 @@ else
 	private bool _followsForum;
 	
 	private Entity.Thread _thread;
+	private List<Entity.Comment> _comments = new();
 	private AuthenticationState _authState;
 
 	[Parameter]
@@ -267,10 +268,11 @@ else
 			.Include(t => t.Tags)
 			.Include(t => t.Forum)
 				.ThenInclude(f => f.Members)
-			.Include(t => t.Comments)
-			//.Include(t => t.Comments.OrderByDescending(c => c.Created))
+			//.Include(t => t.Comments)
+			.Include(t => t.Comments.OrderByDescending(c => c.Created))
 				.ThenInclude(c => c.Creator)
 			.AsSplitQuery() // Divide multiple includes into multiple queries
+			.OrderByDescending(t => t.Created)
 			.FirstOrDefaultAsync(t => t.Id == Id);
 
 		if (_thread is null) return;
@@ -294,6 +296,9 @@ else
 			}
 		}
 
+		// _comments = _thread.Comments.Where(c => c.Parent is null).Take(20).ToList();
+		ReloadComments();
+		
 		// NOTE(multiple include): Expensive query!
 		var user = await dbContext.Users
 			.Include(u => u.SavedThreads)
@@ -303,6 +308,50 @@ else
 
 		_saved = user.SavedThreads.Contains(_thread);
 		_followsForum = user.Forums.Contains(_thread.Forum);
+		
+		StateHasChanged();
+	}
+
+	/// <summary>
+	/// Reload all currently loaded comments. If there are non, load the first 20.
+	/// </summary>
+	private void ReloadComments()
+	{
+		var last = _comments.LastOrDefault()?.Created;
+
+		if (last is null)
+		{ // When there are no comments yet, simply load the first 20.
+			_comments = _thread.Comments
+				.OrderBy(c => c.Created)
+				.Where(c => c.Parent is null)
+				.Take(20)
+				.ToList();
+		}
+		else
+		{ // When there already are comments, load all of them again.
+			_comments = _thread.Comments
+				.OrderBy(c => c.Created)
+				.Where(c => c.Parent is null && c.Created <= last)
+				.ToList();
+		}
+	}
+	
+	/// <summary>
+	/// Load the next 20 comments.
+	/// </summary>
+	private void LoadMore()
+	{
+		var lastAfterReload = _comments.LastOrDefault()?.Created;
+
+		if (lastAfterReload is null) return;
+		
+		// Add the next 20 comments
+		_comments.AddRange(_thread.Comments
+			.OrderBy(c => c.Created)
+			.Where(c => c.Created > lastAfterReload && c.Parent is null)
+			.Take(20)
+			.ToList()
+		);
 		
 		StateHasChanged();
 	}

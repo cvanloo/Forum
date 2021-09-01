@@ -140,7 +140,7 @@
 		_cachedQueryBuilder.StartAtTimestamp(_threads.Last().Created);
 		
 		var result = _cachedQueryBuilder.Build().Construct(dbContext);
-		_threads.AddRange(result.Take(50).ToList()); // Query is evaluated here
+		_threads.AddRange(result.Take(20).ToList()); // Query is evaluated here
 	}
 
 	/// <summary>
@@ -191,7 +191,7 @@
 	exit:
 		_cachedQueryBuilder = searchBuilder;
 		var result = searchBuilder.Build().Construct(dbContext);
-		_threads = result.Take(50).ToList(); // Query is only evaluated here.
+		_threads = result.Take(20).ToList(); // Query is only evaluated here.
 	}
 	
 	/// <summary>
