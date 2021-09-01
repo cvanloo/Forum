@@ -43,7 +43,7 @@
 			// Don't load if number of parents is too big.
 			@if (CommentModel.CountParents > LoadPerm)
 			{
-				<p @onclick="LoadMore" class="shiny p-annotation-sm">Load more comments.</p>
+				<p @onclick="LoadMore" class="shiny p-annotation-sm">Load @(CommentModel.CountChildren > 10 ? 10: CommentModel.CountChildren - 1) more comment(s).</p>
 			}
 			else
 			{
