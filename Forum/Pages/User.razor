@@ -30,8 +30,11 @@ else
 		<div class="main needs-padding">
 			<h4>@_user.DisplayName (@_user.AccountName)</h4>
 			<p>Account created on: @_user.Created.ToString("d")</p>
-			@{ var followText = _followsUser ? "Unfollow" : "Follow"; }
-			<button class="btn-col-light btn-norm" style="width: 100%" @onclick="FollowUserAsync">@followText</button>
+			@if (_user != _loggedUser)
+			{
+				var followText = _followsUser ? "Unfollow" : "Follow";
+				<button class="btn-col-light btn-norm" style="width: 100%" @onclick="FollowUserAsync">@followText</button>
+			}
 			<hr>
 			<h5>Chat</h5>
 			@if (_chat is not null)
@@ -49,7 +52,12 @@ else
 							<hr>
 							<p class="p-annotation-sm" style="color: #98971A;">@message.Sent.ToLongDateString()</p>
 						}
-						<p class="p-annotation-sm" style="color: #98971A;">@message.Sent.ToShortTimeString() @message.Sender.DisplayName:</p>
+
+						var senderString = string.IsNullOrWhiteSpace(message.Sender.DisplayName)
+							? message.Sender.AccountName
+							: message.Sender.DisplayName;
+
+						<p class="p-annotation-sm" style="color: #98971A;">@message.Sent.ToShortTimeString() @senderString:</p>
 						<p>@message.Content</p>
 						lastDate = message.Sent;
 					}
@@ -65,6 +73,7 @@ else
 
 @code {
 	private Entity.User _user;
+	private Entity.User _loggedUser;
 	private bool _followsUser;
 	private Entity.Chat _chat;
 	private string _sendMsg;
@@ -98,11 +107,11 @@ else
 
 		if (_user is null) return;
 		
-		var loggedUser = dbContext.Users.First(u => u.AccountName == authState.User.Identity.Name);
+		_loggedUser = dbContext.Users.First(u => u.AccountName == authState.User.Identity.Name);
 		
-		_followsUser = _user.Followers.Contains(loggedUser);
+		_followsUser = _user.Followers.Contains(_loggedUser);
 
-		_chat = ChatService.FindChat(_user, loggedUser);
+		_chat = ChatService.FindChat(_user, _loggedUser);
 		if (_chat is not null)
 		{
 			_msgHandler.Handler = UpdateChat;

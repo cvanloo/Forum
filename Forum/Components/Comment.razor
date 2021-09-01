@@ -103,8 +103,7 @@
 
 	private async Task UpdateHandlerComponent()
 	{
-		// Add our own action to the update handler
-		CloseCommentField();
-		await UpdateHandler();
+		CloseCommentField(); // Add our own action to the update handler
+		await UpdateHandler(); // Propagate event to parent
 	}
 }
