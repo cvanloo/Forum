@@ -27,6 +27,8 @@ namespace Forum.Data
 			var p1 = dbContext.Users.First(u => u.Id == user1.Id);
 			var p2 = dbContext.Users.First(u => u.Id == user2.Id);
 
+			if (p1 == p2) return null;
+
 			return dbContext.Chats.FirstOrDefault(c => c.Participants.Contains(p1) && c.Participants.Contains(p2));
 		}
 

@@ -169,10 +169,14 @@
 		switch (query[0])
 		{
 			case '#':
-				var tags = Entity.Tag.ParseTags(dbContext, query[1..]);
-				foreach (var t in tags)
+				var qTags = query[1..].Split('#', ' ');
+				foreach (var qTag in qTags)
 				{
-					searchBuilder.AddQueryTag(t);
+					var tags = dbContext.Tags.Where(t => t.Name == qTag);
+					foreach (var t in tags)
+					{
+						searchBuilder.AddQueryTag(t);
+					}
 				}
 				break;
 			case '@':

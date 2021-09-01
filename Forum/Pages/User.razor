@@ -57,7 +57,7 @@ else
 							? message.Sender.AccountName
 							: message.Sender.DisplayName;
 
-						<p class="p-annotation-sm" style="color: #98971A;">@message.Sent.ToShortTimeString() @senderString:</p>
+						<p class="p-annotation-sm" style="color: #98971A;">@message.Sent.ToShortTimeString() @(senderString):</p>
 						<p>@message.Content</p>
 						lastDate = message.Sent;
 					}
