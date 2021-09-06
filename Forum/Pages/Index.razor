@@ -165,14 +165,20 @@
 		}
 
 		if (string.IsNullOrWhiteSpace(query)) goto exit;
-		
+
 		switch (query[0])
 		{
 			case '#':
-				var qTags = query[1..].Split('#', ' ');
+				var qTags = query.Split('#', ' ');
 				foreach (var qTag in qTags)
 				{
+					if (string.IsNullOrWhiteSpace(qTag)) continue;
+					
 					var tags = dbContext.Tags.Where(t => t.Name == qTag);
+					
+					// Default search to fail, no match will return no results
+					searchBuilder.AddQueryTag(null);
+					
 					foreach (var t in tags)
 					{
 						searchBuilder.AddQueryTag(t);
@@ -180,11 +186,20 @@
 				}
 				break;
 			case '@':
-				var qName = query[1..];
-				var users = dbContext.Users.Where(u => u.AccountName.ToLower().Contains(qName.ToLower()));
-				foreach (var u in users)
+				var qNames = query.Split('@', ' ');
+				foreach (var qName in qNames)
 				{
-					searchBuilder.AddQueryUser(u);
+					if (string.IsNullOrWhiteSpace(qName)) continue;
+					
+					var users = dbContext.Users.Where(u => u.AccountName.ToLower().Contains(qName.ToLower()));
+					
+					// Default search to fail, no match will return no results
+					searchBuilder.AddQueryUser(null);
+					
+					foreach (var u in users)
+					{
+						searchBuilder.AddQueryUser(u);
+					}
 				}
 				break;
 			default:

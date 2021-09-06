@@ -2,6 +2,7 @@
 @using BCrypt.Net;
 @using System.ComponentModel.DataAnnotations;
 @using Forum.Entity
+@using Forum.Model
 @using Microsoft.Extensions.Configuration 
 @* ReSharper disable once InconsistentNaming *@
 @inject NavigationManager NavigationManager 
@@ -11,6 +12,8 @@
 @inject IConfiguration Config
 @* ReSharper disable once InconsistentNaming *@
 @inject Data.InfoMessage MessageService
+@* ReSharper disable once InconsistentNaming *@
+@inject Data.IMailService MailService
 @* ReSharper disable once InconsistentNaming *@
 @inject IDbContextFactory<Model.Database> DbContext
 
@@ -97,6 +100,14 @@
 		{
 			await Console.Error.WriteLineAsync(dbuEx.ToString());
 		}
+
+		await MailService.SendAsync(new Message()
+		{
+			Body = "Account created successfully.",
+			From = "sender@domaine.ch",
+			Subject = "Account creation",
+			To = new[] { user.Email }
+		});
 		
 		MessageService.Message = "Account created successfully.";
         NavigationManager.NavigateTo("/login");
