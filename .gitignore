@@ -4,6 +4,8 @@ UML/
 Styleguide/
 OldMig/
 \!!!*
+*.ppt*
+ProgressBar.vba
 
 
 # Created by https://www.toptal.com/developers/gitignore/api/aspnetcore,visualstudio

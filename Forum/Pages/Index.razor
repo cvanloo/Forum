@@ -140,6 +140,7 @@
 		_cachedQueryBuilder.StartAtTimestamp(_threads.Last().Created);
 		
 		var result = _cachedQueryBuilder.Build().Construct(dbContext);
+		//_threads.AddRange(await result.Take(20).ToListAsync()); // Query is evaluated here
 		_threads.AddRange(result.Take(20).ToList()); // Query is evaluated here
 	}
 

@@ -65,7 +65,7 @@
 		{
 			await ((Forum.Controller.AuthenticationStateController) AuthProvider)
 				.ValidateLogin(_loginModel.Identifier, _loginModel.Password);
-
+			
 			MessageService.Message = "You are now logged in.";
 
 			var uriBuilder = new UriBuilder(NavMan.Uri);

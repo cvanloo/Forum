@@ -23,7 +23,6 @@ namespace Forum.Entity
 			{
 				var yesterday = DateTime.Now;
 				yesterday = yesterday.AddHours(-24);
-				// ReSharper disable once InconsistentNaming
 				return Threads.Count(t => t.Created.CompareTo(yesterday) > 0);
 			}
 		}
@@ -32,9 +31,11 @@ namespace Forum.Entity
 		{
 			if (obj is null) return 1;
 
-			var otherTag = obj as Tag;
+			// `as` never throws an exception, if the cast is not possible, it will just assign `null`
+			// var otherTag = obj as Tag;
+			// An explicit cast throws an exception if the cast is not possible.
+			var otherTag = (Tag) obj;
 
-			// ReSharper disable once PossibleNullReferenceException
 			if (otherTag.Popularity > Popularity)
 				return 1;
 

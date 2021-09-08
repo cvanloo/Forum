@@ -12,10 +12,10 @@
 @inject IConfiguration Config
 @* ReSharper disable once InconsistentNaming *@
 @inject Data.InfoMessage MessageService
-@* ReSharper disable once InconsistentNaming *@
+@* ReSharper disable once RedundantNameQualifier, InconsistentNaming *@
 @inject Data.IMailService MailService
 @* ReSharper disable once InconsistentNaming *@
-@inject IDbContextFactory<Model.Database> DbContext
+@inject IDbContextFactory<Database> DbContext
 
 <div class="main text-center mt-5 ml-auto mr-auto form-bigger">
 	<EditForm class="form-bigger" Model="@_registerModel" OnValidSubmit="CreateAccountAsync">

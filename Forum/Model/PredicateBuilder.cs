@@ -57,7 +57,7 @@ namespace Forum.Model
 		}
 
 		/// <summary>
-		/// Predicate `not` operator. Works like `if (!predicate)`.
+		/// Predicate `not` unary comparison. Works like `if (!predicate)`.
 		/// </summary>
 		/// <param name="predicate">Predicate to invert.</param>
 		/// <typeparam name="T">Type of the object to compare.</typeparam>

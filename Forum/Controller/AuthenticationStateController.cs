@@ -105,7 +105,7 @@ namespace Forum.Controller
 		/// <returns>Users claims-identity</returns>
 		private static ClaimsIdentity SetupClaims(User user)
 		{
-			var claims = new List<Claim>()
+			var claims = new List<Claim>
 			{
 				new (ClaimTypes.Role, "user"),
 				new (ClaimTypes.Name, user.AccountName),
