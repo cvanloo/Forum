@@ -8,7 +8,7 @@ namespace Forum.Model
 	/// Don't use in LINQ for Entities, this can causes the program
 	/// to pull entire databases into memory for processing.
 	/// </summary>
-	public static class PredicatesBuilder
+	public static class PredicateBuilder
 	{
 		/// <summary>
 		/// Default to `true`.
