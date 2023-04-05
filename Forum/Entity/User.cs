@@ -33,7 +33,7 @@ namespace Forum.Entity
         public bool IsDeleted { get; set; }
 
         [Required]
-        public ICollection<User> Followees { get; set; } // Our followees, the users we follow
+        public ICollection<User> Followees { get; set; } // Our "followees", the users we follow
 
         [Required]
         public ICollection<User> Followers { get; set; } // Our followers, the users that follow us
@@ -47,6 +47,7 @@ namespace Forum.Entity
 
         // Threads created by this user
         public ICollection<Thread> Threads { get; set; }
+        public ICollection<Comment> Comments { get; set; }
 
         public ICollection<Session> Sessions { get; set; }
 

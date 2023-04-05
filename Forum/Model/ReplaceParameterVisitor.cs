@@ -53,7 +53,7 @@ namespace Forum.Model
 			
 			// Create a new expression using the `parameters` we want to keep and a newly constructed 
 			// body in where we replaced all occurrences of t2 with t1.
-			// NOTE: `base.Visit` below invokes the more specified `ReplaceParameterVisitor.VisitParameter`.
+			// NOTE: `base.Visit` below invokes the more specialized `ReplaceParameterVisitor.VisitParameter`.
 			// `VisitParameter` walks through the expression and replaces all occurrences of t2 with t1.
 			// Before `VisitParameter`: node.Body = t2.Tags.Contains(tag)
 			// After `VisitParameter`:  node.Body = t1.Tags.Contains(tag)

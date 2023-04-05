@@ -108,7 +108,7 @@ namespace Forum.Model
 			// NOTE: `WithParametersOf` replaces the duplicate parameter in the rhs expression with the
 			// parameter of the lhs expression. (We want to add two expression together, both take a _different_
 			// parameter t (t1 and t2). In the combined expression, t1 should be the exact same as t2; we only
-			// want to use t1 through the whole combined expression.)
+			// want to use t1 throughout the whole combined expression.)
 			// Example:
 			// Would we simply add both expressions together, we end up with an expression that uses two
 			// different parameters:
@@ -131,9 +131,12 @@ namespace Forum.Model
 		/// <summary>
 		/// Predicate `not` unary comparison. Works like `if (!predicate)`.
 		/// </summary>
-		/// <param name="left"></param>
-		/// <typeparam name="T"></typeparam>
-		/// <returns></returns>
+		/// <param name="left">Left-hand side operator.</param>
+		/// <typeparam name="T">Type of the object to compare.</typeparam>
+		/// <returns>
+		/// An in-memory representation of a delegate that describes a function which takes a value of type`T` and
+		/// returns a `bool`, stored in an expression tree.
+		/// </returns>
 		public static Expression<Func<T, bool>> Not<T>(this Expression<Func<T, bool>> left)
 		{
 			// Compile creates a `Func<>` from our `Expression<Func<>>`

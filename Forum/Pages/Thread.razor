@@ -122,6 +122,9 @@ else
 	[CascadingParameter]
 	private Task<AuthenticationState> AuthenticationStateTask { get; set; }
 
+	/// <summary>
+	/// Initializes the page.
+	/// </summary>
 	protected override async Task OnInitializedAsync()
 	{
 		await UpdatePageAsync();

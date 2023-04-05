@@ -12,7 +12,7 @@ namespace Forum.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Chat",
+                name: "Chats",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -22,7 +22,7 @@ namespace Forum.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Chat", x => x.Id);
+                    table.PrimaryKey("PK_Chats", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -94,25 +94,27 @@ namespace Forum.Migrations
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     SenderId = table.Column<int>(type: "int", nullable: true),
                     ParentId = table.Column<int>(type: "int", nullable: true),
+                    Content = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     Sent = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValueSql: "NOW()"),
                     IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false),
-                    ChatId = table.Column<int>(type: "int", nullable: true)
+                    ChatId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ChatMessage", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_ChatMessage_Chat_ChatId",
-                        column: x => x.ChatId,
-                        principalTable: "Chat",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_ChatMessage_ChatMessage_ParentId",
                         column: x => x.ParentId,
                         principalTable: "ChatMessage",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ChatMessage_Chats_ChatId",
+                        column: x => x.ChatId,
+                        principalTable: "Chats",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_ChatMessage_Users_SenderId",
                         column: x => x.SenderId,
@@ -133,9 +135,9 @@ namespace Forum.Migrations
                 {
                     table.PrimaryKey("PK_ChatUser", x => new { x.ChatsId, x.ParticipantsId });
                     table.ForeignKey(
-                        name: "FK_ChatUser_Chat_ChatsId",
+                        name: "FK_ChatUser_Chats_ChatsId",
                         column: x => x.ChatsId,
-                        principalTable: "Chat",
+                        principalTable: "Chats",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -221,12 +223,12 @@ namespace Forum.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Setting",
+                name: "Settings",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Key = table.Column<string>(type: "varchar(255)", nullable: false)
+                    SettingKey = table.Column<string>(type: "varchar(255)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Value = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -234,9 +236,9 @@ namespace Forum.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Setting", x => x.Id);
+                    table.PrimaryKey("PK_Settings", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Setting_Users_UserId",
+                        name: "FK_Settings_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
@@ -279,36 +281,6 @@ namespace Forum.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "UserForums",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    UserId = table.Column<int>(type: "int", nullable: false),
-                    ForumId = table.Column<int>(type: "int", nullable: false),
-                    Joined = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValueSql: "NOW()"),
-                    IsBlocked = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false),
-                    ModLevel = table.Column<int>(type: "int", nullable: false, defaultValue: 0)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_UserForums", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_UserForums_Forums_ForumId",
-                        column: x => x.ForumId,
-                        principalTable: "Forums",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_UserForums_Users_UserId",
-                        column: x => x.UserId,
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.CreateTable(
                 name: "UserUser",
                 columns: table => new
                 {
@@ -343,10 +315,10 @@ namespace Forum.Migrations
                     Text = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     ParentId = table.Column<int>(type: "int", nullable: true),
+                    ThreadId = table.Column<int>(type: "int", nullable: false),
                     Created = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValueSql: "NOW()"),
                     IsArchived = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false),
-                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false),
-                    ThreadId = table.Column<int>(type: "int", nullable: true)
+                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false)
                 },
                 constraints: table =>
                 {
@@ -362,7 +334,7 @@ namespace Forum.Migrations
                         column: x => x.ThreadId,
                         principalTable: "Threads",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Comments_Users_CreatorId",
                         column: x => x.CreatorId,
@@ -479,14 +451,14 @@ namespace Forum.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Setting_Key_UserId",
-                table: "Setting",
-                columns: new[] { "Key", "UserId" },
+                name: "IX_Settings_SettingKey_UserId",
+                table: "Settings",
+                columns: new[] { "SettingKey", "UserId" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Setting_UserId",
-                table: "Setting",
+                name: "IX_Settings_UserId",
+                table: "Settings",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
@@ -514,16 +486,6 @@ namespace Forum.Migrations
                 name: "IX_ThreadUser_SaviorsId",
                 table: "ThreadUser",
                 column: "SaviorsId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_UserForums_ForumId",
-                table: "UserForums",
-                column: "ForumId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_UserForums_UserId",
-                table: "UserForums",
-                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Users_AccountName",
@@ -564,7 +526,7 @@ namespace Forum.Migrations
                 name: "Sessions");
 
             migrationBuilder.DropTable(
-                name: "Setting");
+                name: "Settings");
 
             migrationBuilder.DropTable(
                 name: "TagThread");
@@ -573,13 +535,10 @@ namespace Forum.Migrations
                 name: "ThreadUser");
 
             migrationBuilder.DropTable(
-                name: "UserForums");
-
-            migrationBuilder.DropTable(
                 name: "UserUser");
 
             migrationBuilder.DropTable(
-                name: "Chat");
+                name: "Chats");
 
             migrationBuilder.DropTable(
                 name: "Tags");

@@ -9,6 +9,7 @@ namespace Forum.Data
 		public async Task SendAsync(Model.Message message)
 		{
 			using var smtp = new SmtpClient();
+			
 			/* Delivery via SMTP */
 			//smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
 			//

@@ -3,8 +3,7 @@ using Forum.Entity;
 
 namespace Forum.Model
 {
-	// TODO: Interface
-	public class SearchQueryBuilder
+	public class SearchQueryBuilder : ISearchQueryBuilder
 	{
 		private SearchQuery _searchQuery;
 
@@ -68,6 +67,11 @@ namespace Forum.Model
 			return this;
 		}
 
+		/// <summary>
+		/// Sort the query by the provided sort order.
+		/// </summary>
+		/// <param name="sortBy">Sort order to sort the query by.</param>
+		/// <returns>The query-builder object itself.</returns>
 		public SearchQueryBuilder SortBy(SearchQuery.SortOrder sortBy)
 		{
 			_searchQuery.SortBy = sortBy;

@@ -66,6 +66,13 @@ namespace Forum.Model
 			if (SavedByUser is not null)
 				query = query.Where(t => SavedByUser.SavedThreads.Contains(t));
 
+			// Are they already loaded out of the database?
+			//query = SavedByUser.SavedThreads.AsQueryable()
+			//	.Include(t => t.Creator)
+			//	.Include(t => t.Forum)
+			//	.Include(t => t.Tags)
+			//	.AsSplitQuery();
+
 			// -- Title --
 			if (TitleStrings.Any())
 			{

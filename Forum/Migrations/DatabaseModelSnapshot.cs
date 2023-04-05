@@ -59,7 +59,7 @@ namespace Forum.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<int?>("ChatId")
+                    b.Property<int>("ChatId")
                         .HasColumnType("int");
 
                     b.Property<string>("Content")
@@ -436,9 +436,11 @@ namespace Forum.Migrations
 
             modelBuilder.Entity("Forum.Entity.ChatMessage", b =>
                 {
-                    b.HasOne("Forum.Entity.Chat", null)
+                    b.HasOne("Forum.Entity.Chat", "Chat")
                         .WithMany("Messages")
-                        .HasForeignKey("ChatId");
+                        .HasForeignKey("ChatId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("Forum.Entity.ChatMessage", "Parent")
                         .WithMany()
@@ -448,6 +450,8 @@ namespace Forum.Migrations
                         .WithMany()
                         .HasForeignKey("SenderId");
 
+                    b.Navigation("Chat");
+
                     b.Navigation("Parent");
 
                     b.Navigation("Sender");
@@ -456,7 +460,7 @@ namespace Forum.Migrations
             modelBuilder.Entity("Forum.Entity.Comment", b =>
                 {
                     b.HasOne("Forum.Entity.User", "Creator")
-                        .WithMany()
+                        .WithMany("Comments")
                         .HasForeignKey("CreatorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -610,6 +614,8 @@ namespace Forum.Migrations
 
             modelBuilder.Entity("Forum.Entity.User", b =>
                 {
+                    b.Navigation("Comments");
+
                     b.Navigation("PwResets");
 
                     b.Navigation("Sessions");

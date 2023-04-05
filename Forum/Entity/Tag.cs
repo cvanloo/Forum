@@ -27,6 +27,7 @@ namespace Forum.Entity
 			}
 		}
 
+		/// <inheritdoc cref="IComparable.CompareTo"/>
 		public int CompareTo(object obj)
 		{
 			if (obj is null) return 1;

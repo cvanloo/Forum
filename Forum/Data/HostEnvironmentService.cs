@@ -4,7 +4,7 @@ namespace Forum.Data
 {
     public class HostEnvironmentService
     {
-        public IHostEnvironment HostEnvironment { get; set; }
+        public IHostEnvironment HostEnvironment { get; init; }
 
         /// <summary>
         /// Constructor

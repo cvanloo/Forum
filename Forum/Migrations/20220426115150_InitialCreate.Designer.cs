@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Forum.Migrations
 {
     [DbContext(typeof(Database))]
-    [Migration("20210719092500_InitialCreate")]
+    [Migration("20220426115150_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -52,7 +52,7 @@ namespace Forum.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Chat");
+                    b.ToTable("Chats");
                 });
 
             modelBuilder.Entity("Forum.Entity.ChatMessage", b =>
@@ -61,8 +61,12 @@ namespace Forum.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<int?>("ChatId")
+                    b.Property<int>("ChatId")
                         .HasColumnType("int");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
@@ -122,7 +126,7 @@ namespace Forum.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<int?>("ThreadId")
+                    b.Property<int>("ThreadId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -228,7 +232,7 @@ namespace Forum.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<string>("Key")
+                    b.Property<string>("SettingKey")
                         .IsRequired()
                         .HasColumnType("varchar(255)");
 
@@ -243,10 +247,10 @@ namespace Forum.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.HasIndex("Key", "UserId")
+                    b.HasIndex("SettingKey", "UserId")
                         .IsUnique();
 
-                    b.ToTable("Setting");
+                    b.ToTable("Settings");
                 });
 
             modelBuilder.Entity("Forum.Entity.Tag", b =>
@@ -357,42 +361,6 @@ namespace Forum.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("Forum.Entity.UserForum", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<int>("ForumId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsBlocked")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("tinyint(1)")
-                        .HasDefaultValue(false);
-
-                    b.Property<DateTime>("Joined")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime(6)")
-                        .HasDefaultValueSql("NOW()");
-
-                    b.Property<int>("ModLevel")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0);
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ForumId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("UserForums");
-                });
-
             modelBuilder.Entity("ForumUser", b =>
                 {
                     b.Property<int>("ForumsId")
@@ -470,9 +438,11 @@ namespace Forum.Migrations
 
             modelBuilder.Entity("Forum.Entity.ChatMessage", b =>
                 {
-                    b.HasOne("Forum.Entity.Chat", null)
+                    b.HasOne("Forum.Entity.Chat", "Chat")
                         .WithMany("Messages")
-                        .HasForeignKey("ChatId");
+                        .HasForeignKey("ChatId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("Forum.Entity.ChatMessage", "Parent")
                         .WithMany()
@@ -482,6 +452,8 @@ namespace Forum.Migrations
                         .WithMany()
                         .HasForeignKey("SenderId");
 
+                    b.Navigation("Chat");
+
                     b.Navigation("Parent");
 
                     b.Navigation("Sender");
@@ -490,7 +462,7 @@ namespace Forum.Migrations
             modelBuilder.Entity("Forum.Entity.Comment", b =>
                 {
                     b.HasOne("Forum.Entity.User", "Creator")
-                        .WithMany()
+                        .WithMany("Comments")
                         .HasForeignKey("CreatorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -499,13 +471,17 @@ namespace Forum.Migrations
                         .WithMany("Childs")
                         .HasForeignKey("ParentId");
 
-                    b.HasOne("Forum.Entity.Thread", null)
+                    b.HasOne("Forum.Entity.Thread", "Thread")
                         .WithMany("Comments")
-                        .HasForeignKey("ThreadId");
+                        .HasForeignKey("ThreadId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Creator");
 
                     b.Navigation("Parent");
+
+                    b.Navigation("Thread");
                 });
 
             modelBuilder.Entity("Forum.Entity.PwReset", b =>
@@ -556,25 +532,6 @@ namespace Forum.Migrations
                     b.Navigation("Creator");
 
                     b.Navigation("Forum");
-                });
-
-            modelBuilder.Entity("Forum.Entity.UserForum", b =>
-                {
-                    b.HasOne("Forum.Entity.Forum", "ForumModel")
-                        .WithMany()
-                        .HasForeignKey("ForumId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Forum.Entity.User", "UserModel")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ForumModel");
-
-                    b.Navigation("UserModel");
                 });
 
             modelBuilder.Entity("ForumUser", b =>
@@ -659,6 +616,8 @@ namespace Forum.Migrations
 
             modelBuilder.Entity("Forum.Entity.User", b =>
                 {
+                    b.Navigation("Comments");
+
                     b.Navigation("PwResets");
 
                     b.Navigation("Sessions");

@@ -23,14 +23,17 @@ namespace Forum
         // ReSharper disable once MemberCanBePrivate.Global
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
-        // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
+        /// <summary>
+        /// This method gets called by the runtime. Use this method to add services to the container.
+        /// For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
+        /// </summary>
+        /// <param name="services">Contains the container's services.</param>
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddServerSideBlazor();
             services.AddRazorPages();
 
-            // Authentication and Authorization services
+            // -- Authentication and Authorization services --
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<AuthenticationStateProvider, AuthenticationStateController>();
             services.AddAuthorization(options =>
@@ -40,9 +43,10 @@ namespace Forum
                 options.AddPolicy("IsPoster", p => p.RequireClaim("poster", "True"));
             });
 
-            // Database context factory
+            // -- Database context factory --
             var connectionString = Configuration.GetConnectionString("DatabaseConnection");
-            var serverVersion = new MySqlServerVersion(new Version(8, 0, 21));
+            //var serverVersion = new MySqlServerVersion(new Version(8, 0, 21));
+            var serverVersion = new MySqlServerVersion(new Version(10, 5, 10));
 
             services.AddDbContextFactory<Database>(options =>
             {
@@ -76,12 +80,14 @@ namespace Forum
                 var sanitizer = new HtmlSanitizer();
                 sanitizer.AllowedAttributes.Add("class");
                 sanitizer.AllowedAttributes.Remove("style"); // disallow setting the style
-                sanitizer.AllowedTags.Remove("a"); // disallow links
+                sanitizer.AllowedTags.Remove("a");           // disallow links
                 return sanitizer;
             });
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        /// <summary>
+        /// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        /// </summary>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
